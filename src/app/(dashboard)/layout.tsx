@@ -1,0 +1,108 @@
+"use client";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard, ArrowUpRight,
+  LogOut, TrendingUp, Shield, Wallet
+} from "lucide-react";
+import { useStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+
+const NAV = [
+  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/kyc",        label: "KYC Status", icon: Shield },
+  { href: "/wallet",     label: "Wallet",     icon: Wallet },
+  { href: "/withdraw",   label: "Withdraw",   icon: ArrowUpRight },
+];
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router   = useRouter();
+  const { isLoggedIn, hydrate, fetchLivePrices, updatePrices, logout, demoUser } = useStore();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    hydrate().finally(() => setLoading(false));
+  }, []);
+
+  // Live price polling: CoinGecko every 30s, micro-animation every 3s
+  useEffect(() => {
+    fetchLivePrices();
+    const bigPoll  = setInterval(fetchLivePrices, 30_000);
+    const miniTick = setInterval(updatePrices, 3_000);
+    return () => { clearInterval(bigPoll); clearInterval(miniTick); };
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !isLoggedIn) router.push("/login");
+  }, [loading, isLoggedIn, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-ex-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-ex-yellow border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) return null;
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] bg-ex-bg">
+      {/* Sidebar */}
+      <aside className="hidden md:flex flex-col w-56 bg-ex-card border-r border-ex-border p-4 gap-1">
+        {/* User info */}
+        <div className="flex items-center gap-3 p-3 mb-4 bg-ex-card2 rounded-xl border border-ex-border">
+          <div className="w-10 h-10 rounded-full bg-ex-yellow flex items-center justify-center text-black font-black text-lg">
+            {demoUser.name?.[0] ?? "U"}
+          </div>
+          <div>
+            <div className="font-semibold text-sm">{demoUser.name || "User"}</div>
+            <div className="text-xs text-gray-500 truncate max-w-[120px]">{demoUser.email}</div>
+          </div>
+        </div>
+
+        {NAV.map(item => (
+          <Link key={item.href} href={item.href}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+              pathname === item.href
+                ? "bg-ex-yellow/10 text-ex-yellow border border-ex-yellow/20"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+            )}>
+            <item.icon className="w-4 h-4" />
+            {item.label}
+          </Link>
+        ))}
+
+        <div className="border-t border-ex-border my-2" />
+
+        <Link href="/markets"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+          <TrendingUp className="w-4 h-4" /> Markets
+        </Link>
+
+        <div className="mt-auto">
+          <button onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-ex-red hover:bg-ex-red/5 transition-colors">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
+    </div>
+  );
+}
