@@ -1,19 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser, getUserWallet, updateWalletBalance, createTransaction } from "@/lib/db";
-import { SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
+import {
+  getSessionUser, getUserWallet, createWithdrawalRequest,
+  getUserWithdrawalRequests, getSetting,
+} from "@/lib/db";
+import { SESSION_COOKIE, ASSETS, WITHDRAWAL_FEES_CONFIG } from "@/lib/auth-utils";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = await getSessionUser(token);
+  const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const wallets = await getUserWallet(user.id);
-  return NextResponse.json({ wallets });
+  const wallets     = await getUserWallet(user.id);
+  const withdrawals = await getUserWithdrawalRequests(user.id);
+  const withdrawalsEnabled = (await getSetting("withdrawals_enabled")) !== "false";
+
+  return NextResponse.json({
+    wallets,
+    depositAddress: user.depositAddress,
+    withdrawals,
+    withdrawalsEnabled,
+  });
 }
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = await getSessionUser(token);
+  const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { action, asset, amount, address } = await request.json();
@@ -22,38 +33,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid asset" }, { status: 400 });
   }
 
-  const wallets = await getUserWallet(user.id);
-  const wallet = wallets.find((w) => w.symbol === asset);
-  if (!wallet) return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-
-  if (action === "deposit") {
-    const amt = parseFloat(amount);
-    if (!amt || amt <= 0) return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-
-    await updateWalletBalance(user.id, asset, { available: amt });
-    await createTransaction({
-      userId: user.id, type: "deposit", asset, amount: amt,
-      status: "completed", date: new Date().toISOString().split("T")[0],
-      desc: `${asset} Deposit`,
-      txHash: `0x${crypto.randomUUID().replace(/-/g, "")}`,
-    });
-    return NextResponse.json({ success: true });
-  }
-
   if (action === "withdraw") {
+    const withdrawalsEnabled = (await getSetting("withdrawals_enabled")) !== "false";
+    if (!withdrawalsEnabled) {
+      return NextResponse.json({ error: "Withdrawals are temporarily paused by admin" }, { status: 400 });
+    }
+
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-    if (wallet.available < amt) {
+
+    const feeConfig = WITHDRAWAL_FEES_CONFIG[asset] ?? { fee: 1, min: 10 };
+    if (amt < feeConfig.min) {
+      return NextResponse.json({ error: `Minimum withdrawal: ${feeConfig.min} ${asset}` }, { status: 400 });
+    }
+
+    if (!address || address.trim().length < 10) {
+      return NextResponse.json({ error: "Invalid destination address" }, { status: 400 });
+    }
+
+    const wallets = await getUserWallet(user.id);
+    const wallet  = wallets.find((w) => w.symbol === asset);
+    if (!wallet || wallet.available < amt) {
       return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
     }
 
-    await updateWalletBalance(user.id, asset, { available: -amt });
-    await createTransaction({
-      userId: user.id, type: "withdrawal", asset, amount: amt, fee: 0.1,
-      status: "pending", date: new Date().toISOString().split("T")[0],
-      desc: `${asset} Withdrawal`, address,
+    await createWithdrawalRequest({
+      userId: user.id, asset, amount: amt,
+      fee: feeConfig.fee, destinationAddress: address.trim(),
     });
-    return NextResponse.json({ success: true });
+
+    return NextResponse.json({ success: true, message: "Withdrawal request submitted — pending admin approval (24-48h)" });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

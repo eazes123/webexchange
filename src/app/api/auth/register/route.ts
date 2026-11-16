@@ -4,6 +4,7 @@ import {
   createSession, countUsers,
 } from "@/lib/db";
 import { hashPassword, generateToken, SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
+import { deriveAddress } from "@/lib/tron";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -18,7 +19,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email already registered" }, { status: 400 });
   }
 
-  const queuePosition = (await countUsers()) + 1;
+  const count = await countUsers();
+  const queuePosition  = count + 1;
+  const addressIndex   = count; // 0-based HD derivation index
+
+  const mnemonic = process.env.TRON_MASTER_MNEMONIC!;
+  let depositAddress: string | null = null;
+  try {
+    depositAddress = deriveAddress(mnemonic, addressIndex);
+  } catch {
+    // Non-fatal: address can be assigned later
+  }
 
   const user = await createUser({
     fullName,
@@ -33,6 +44,12 @@ export async function POST(request: NextRequest) {
     activationFeePaid: false,
     activationFeeRefundRequested: false,
     loanWithdrawnToExternal: false,
+    depositAddress,
+    addressIndex,
+    stakeAmount: 0,
+    stakeStatus: "none",
+    stakedAt: null,
+    rewardDistributed: false,
   });
 
   await createInitialWallets(user.id, ASSETS);
@@ -45,6 +62,7 @@ export async function POST(request: NextRequest) {
     user: {
       id: user.id, fullName: user.fullName, email: user.email,
       queuePosition: user.queuePosition, kycStatus: "none", loanStatus: "none",
+      depositAddress: user.depositAddress,
     },
   });
   res.cookies.set(SESSION_COOKIE, token, {

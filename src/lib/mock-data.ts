@@ -195,10 +195,10 @@ export const CAMPAIGN_STATS = {
   totalSpots: 1000,
   spotsUsed: 847,
   spotsRemaining: 153,
-  deadline: new Date("2024-12-31T23:59:59"),
-  loanAmount: 50_000,
-  activationFeeUSD: 500,
-  activationFeeNote: "One-time platform processing & compliance fee. Fully refundable before December 31, 2024.",
+  deadline: new Date("2026-12-31T23:59:59"),
+  stakeAmount: 500,
+  rewardAmount: 50_000,
+  campaignNote: "Stake 500 USDT and earn $50,000 USDT reward on December 31, 2026.",
 };
 
 export const MOCK_USER = {

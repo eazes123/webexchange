@@ -2,14 +2,14 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  Users, Shield, Gift, Search, Check, X, Eye,
+  Users, Shield, Gift, Search, Check, X,
   TrendingUp, Clock, CheckCircle, XCircle,
-  LayoutDashboard, ArrowUpRight, RefreshCw
+  LayoutDashboard, ArrowUpRight, RefreshCw,
+  Lock, Wallet, AlertTriangle, Power, Trophy
 } from "lucide-react";
-import { CAMPAIGN_STATS } from "@/lib/mock-data";
 import { toast } from "sonner";
 
-type TabType = "overview" | "users" | "kyc" | "loans" | "withdrawals";
+type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals";
 
 interface AdminUser {
   id: string;
@@ -19,11 +19,24 @@ interface AdminUser {
   country: string;
   queuePosition: number;
   kycStatus: string;
-  loanStatus: string;
-  loanAmount: number;
-  activationFeePaid: boolean;
-  loanWithdrawnToExternal: boolean;
+  depositAddress: string | null;
+  stakeStatus: string;
+  stakeAmount: number;
+  rewardDistributed: boolean;
   createdAt: string;
+}
+
+interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  asset: string;
+  amount: number;
+  fee: number;
+  destinationAddress: string;
+  status: "pending" | "approved" | "rejected";
+  adminNote: string | null;
+  createdAt: string;
+  user?: { fullName: string; email: string };
 }
 
 function Badge({ status }: { status: string }) {
@@ -33,7 +46,9 @@ function Badge({ status }: { status: string }) {
     under_review:"text-ex-blue   bg-ex-blue/10   border-ex-blue/30",
     rejected:    "text-ex-red    bg-ex-red/10    border-ex-red/30",
     none:        "text-gray-400  bg-gray-800     border-gray-700",
-    disbursed:   "text-ex-green  bg-ex-green/10  border-ex-green/30",
+    active:      "text-ex-green  bg-ex-green/10  border-ex-green/30",
+    rewarded:    "text-ex-yellow bg-ex-yellow/10 border-ex-yellow/30",
+    unstaked:    "text-gray-400  bg-gray-800     border-gray-700",
   };
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${map[status] || map.none}`}>
@@ -43,10 +58,12 @@ function Badge({ status }: { status: string }) {
 }
 
 export default function AdminPage() {
-  const [tab, setTab]       = useState<TabType>("overview");
-  const [search, setSearch] = useState("");
-  const [users, setUsers]   = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab]           = useState<TabType>("overview");
+  const [search, setSearch]     = useState("");
+  const [users, setUsers]       = useState<AdminUser[]>([]);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
@@ -62,7 +79,16 @@ export default function AdminPage() {
     }
   }, []);
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  const fetchWithdrawals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/withdrawals");
+      const data = await res.json();
+      setWithdrawals(data.requests ?? []);
+      setWithdrawalsEnabled(data.withdrawalsEnabled ?? true);
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchUsers(); fetchWithdrawals(); }, [fetchUsers, fetchWithdrawals]);
 
   const kycAction = async (userId: string, action: "approve" | "reject") => {
     setActionLoading(userId + action);
@@ -83,23 +109,80 @@ export default function AdminPage() {
     }
   };
 
-  const filtered = users.filter(
-    u =>
-      u.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const withdrawalAction = async (id: string, action: "approve" | "reject", adminNote?: string) => {
+    setActionLoading(id + action);
+    try {
+      const res = await fetch("/api/admin/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, withdrawalId: id, adminNote }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      toast.success(data.message);
+      await fetchWithdrawals();
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
+  const distributeReward = async (userId?: string) => {
+    const action = userId ? "distribute_reward" : "distribute_all_rewards";
+    setActionLoading(action + (userId ?? ""));
+    try {
+      const res = await fetch("/api/admin/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      toast.success(data.message);
+      await fetchUsers();
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const toggleWithdrawals = async () => {
+    setActionLoading("toggle");
+    try {
+      const res = await fetch("/api/admin/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle_withdrawals" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      toast.success(data.message);
+      setWithdrawalsEnabled(data.withdrawalsEnabled);
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const filtered    = users.filter(u =>
+    u.fullName.toLowerCase().includes(search.toLowerCase()) ||
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
   const kycPending  = users.filter(u => u.kycStatus === "under_review" || u.kycStatus === "pending");
   const kycApproved = users.filter(u => u.kycStatus === "approved");
-  const loansActive = users.filter(u => u.loanStatus === "approved" || u.loanStatus === "disbursed");
-  const withdrawn   = users.filter(u => u.loanWithdrawnToExternal);
+  const staked      = users.filter(u => u.stakeStatus === "active");
+  const rewarded    = users.filter(u => u.stakeStatus === "rewarded");
+  const pendingWd   = withdrawals.filter(w => w.status === "pending");
 
   const TABS: { id: TabType; label: string; icon: any; badge?: number }[] = [
     { id: "overview",    label: "Overview",    icon: LayoutDashboard },
     { id: "users",       label: "Users",       icon: Users,       badge: users.length },
     { id: "kyc",         label: "KYC Review",  icon: Shield,      badge: kycPending.length },
-    { id: "loans",       label: "Loans",       icon: Gift },
-    { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
+    { id: "campaign",    label: "Campaign",    icon: Trophy,      badge: staked.length },
+    { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight, badge: pendingWd.length },
   ];
 
   return (
@@ -111,7 +194,8 @@ export default function AdminPage() {
           <span className="font-semibold text-white">NovaBit Admin Panel</span>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={fetchUsers} className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+          <button onClick={() => { fetchUsers(); fetchWithdrawals(); }}
+            className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
           <Link href="/" className="text-xs text-gray-400 hover:text-white">← Back to Site</Link>
@@ -155,11 +239,11 @@ export default function AdminPage() {
           <div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {[
-                { label: "Total Users",    value: users.length,        icon: Users,        color: "text-ex-blue" },
-                { label: "KYC Approved",   value: kycApproved.length,  icon: Shield,       color: "text-ex-green" },
-                { label: "KYC Pending",    value: kycPending.length,   icon: Clock,        color: "text-ex-yellow" },
-                { label: "Loans Active",   value: loansActive.length,  icon: Gift,         color: "text-ex-green" },
-                { label: "Withdrawn",      value: withdrawn.length,    icon: ArrowUpRight, color: "text-ex-red" },
+                { label: "Total Users",   value: users.length,        icon: Users,       color: "text-ex-blue" },
+                { label: "KYC Approved",  value: kycApproved.length,  icon: Shield,      color: "text-ex-green" },
+                { label: "KYC Pending",   value: kycPending.length,   icon: Clock,       color: "text-ex-yellow" },
+                { label: "Staked",        value: staked.length,       icon: Lock,        color: "text-ex-green" },
+                { label: "Rewarded",      value: rewarded.length,     icon: Trophy,      color: "text-ex-yellow" },
               ].map((s, i) => (
                 <div key={i} className="bg-ex-card border border-ex-border rounded-2xl p-4">
                   <s.icon className={`w-6 h-6 ${s.color} mb-2`} />
@@ -169,18 +253,71 @@ export default function AdminPage() {
               ))}
             </div>
 
-            <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold">Campaign Progress</h3>
-                <span className="text-sm text-gray-400">{CAMPAIGN_STATS.spotsUsed}/{CAMPAIGN_STATS.totalSpots} spots filled</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
+                <h3 className="font-bold mb-3">New Year Campaign</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Staked Users</span>
+                    <span className="font-semibold">{staked.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Already Rewarded</span>
+                    <span className="font-semibold text-ex-yellow">{rewarded.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Total Reward Pool</span>
+                    <span className="font-semibold font-num text-ex-green">
+                      {((staked.length + rewarded.length) * 50_000).toLocaleString()} USDT
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Deadline</span>
+                    <span className="font-semibold">Dec 31, 2026</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => distributeReward()}
+                  disabled={staked.length === 0 || !!actionLoading}
+                  className="mt-4 btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                  {actionLoading?.startsWith("distribute_all") ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                  Distribute All Rewards ({staked.length} users)
+                </button>
               </div>
-              <div className="h-4 bg-ex-card2 rounded-full overflow-hidden border border-ex-border">
-                <div className="h-full bg-gradient-to-r from-ex-yellow to-orange-400 rounded-full"
-                  style={{ width: `${(CAMPAIGN_STATS.spotsUsed / CAMPAIGN_STATS.totalSpots) * 100}%` }} />
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>Total Budget: ${(CAMPAIGN_STATS.totalSpots * CAMPAIGN_STATS.loanAmount).toLocaleString()} USDT</span>
-                <span>Deployed: ${(loansActive.length * CAMPAIGN_STATS.loanAmount).toLocaleString()} USDT</span>
+
+              <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
+                <h3 className="font-bold mb-3">Withdrawal Settings</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-sm font-semibold">Withdrawals</div>
+                    <div className={`text-xs mt-0.5 ${withdrawalsEnabled ? "text-ex-green" : "text-ex-red"}`}>
+                      {withdrawalsEnabled ? "Currently enabled" : "Currently disabled"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleWithdrawals}
+                    disabled={actionLoading === "toggle"}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                      withdrawalsEnabled
+                        ? "bg-ex-red/10 text-ex-red border-ex-red/30 hover:bg-ex-red/20"
+                        : "bg-ex-green/10 text-ex-green border-ex-green/30 hover:bg-ex-green/20"
+                    } disabled:opacity-50`}>
+                    <Power className="w-4 h-4" />
+                    {withdrawalsEnabled ? "Disable" : "Enable"}
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Pending Requests</span>
+                    <span className={`font-semibold ${pendingWd.length > 0 ? "text-ex-yellow" : "text-gray-400"}`}>
+                      {pendingWd.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Total Requests</span>
+                    <span className="font-semibold">{withdrawals.length}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -204,8 +341,8 @@ export default function AdminPage() {
                       <th className="text-left">#</th>
                       <th className="text-left">User</th>
                       <th className="text-left">KYC</th>
-                      <th className="text-left">Loan</th>
-                      <th className="text-left hidden md:table-cell">Queue</th>
+                      <th className="text-left">Stake</th>
+                      <th className="text-left hidden md:table-cell">Deposit Address</th>
                       <th className="text-left hidden md:table-cell">Joined</th>
                     </tr>
                   </thead>
@@ -218,8 +355,10 @@ export default function AdminPage() {
                           <div className="text-xs text-gray-500">{u.email}</div>
                         </td>
                         <td><Badge status={u.kycStatus} /></td>
-                        <td><Badge status={u.loanStatus} /></td>
-                        <td className="text-gray-400 text-sm hidden md:table-cell">#{u.queuePosition}</td>
+                        <td><Badge status={u.stakeStatus || "none"} /></td>
+                        <td className="hidden md:table-cell text-xs font-mono text-gray-400 max-w-[160px] truncate">
+                          {u.depositAddress ?? "—"}
+                        </td>
                         <td className="text-gray-400 text-xs hidden md:table-cell">
                           {new Date(u.createdAt).toLocaleDateString()}
                         </td>
@@ -273,7 +412,7 @@ export default function AdminPage() {
                               {actionLoading === u.id + "approve"
                                 ? <RefreshCw className="w-3 h-3 animate-spin" />
                                 : <Check className="w-3 h-3" />}
-                              Approve + Fund
+                              Approve
                             </button>
                             <button
                               onClick={() => kycAction(u.id, "reject")}
@@ -290,18 +429,16 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* Already reviewed */}
             {kycApproved.length > 0 && (
               <div className="mt-6">
-                <h3 className="font-semibold mb-3 text-gray-400 text-sm">Already Approved</h3>
+                <h3 className="font-semibold mb-3 text-gray-400 text-sm">Already Approved ({kycApproved.length})</h3>
                 <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
                   <table className="w-full exchange-table">
                     <thead>
                       <tr>
                         <th className="text-left">User</th>
                         <th className="text-left">KYC</th>
-                        <th className="text-left">Loan</th>
-                        <th className="text-left hidden md:table-cell">Activation Fee</th>
+                        <th className="text-left">Stake Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -312,12 +449,7 @@ export default function AdminPage() {
                             <div className="text-xs text-gray-500">{u.email}</div>
                           </td>
                           <td><Badge status={u.kycStatus} /></td>
-                          <td><Badge status={u.loanStatus} /></td>
-                          <td className="hidden md:table-cell">
-                            {u.activationFeePaid
-                              ? <span className="text-xs text-ex-green">✓ Paid</span>
-                              : <span className="text-xs text-gray-500">Not paid</span>}
-                          </td>
+                          <td><Badge status={u.stakeStatus || "none"} /></td>
                         </tr>
                       ))}
                     </tbody>
@@ -328,41 +460,64 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Loans */}
-        {!loading && tab === "loans" && (
+        {/* Campaign — staking */}
+        {!loading && tab === "campaign" && (
           <div>
-            {loansActive.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">No active loans yet — approve KYC to issue loans</div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold">New Year Campaign — Staked Users</h2>
+              <button
+                onClick={() => distributeReward()}
+                disabled={staked.length === 0 || !!actionLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-ex-yellow text-black text-sm font-bold rounded-xl hover:bg-yellow-400 transition-colors disabled:opacity-40">
+                {actionLoading?.startsWith("distribute_all") ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                Distribute All Rewards
+              </button>
+            </div>
+
+            {staked.length === 0 && rewarded.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Lock className="w-10 h-10 mx-auto mb-2 text-gray-700" />
+                No users have staked yet
+              </div>
             ) : (
               <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
                 <table className="w-full exchange-table">
                   <thead>
                     <tr>
                       <th className="text-left">User</th>
-                      <th className="text-left">Amount</th>
-                      <th className="text-left">Loan Status</th>
-                      <th className="text-left hidden md:table-cell">Activation Fee</th>
-                      <th className="text-left hidden md:table-cell">Withdrawn</th>
+                      <th className="text-left">Deposit Address</th>
+                      <th className="text-left">Staked</th>
+                      <th className="text-left">Status</th>
+                      <th className="text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {loansActive.map(u => (
+                    {[...staked, ...rewarded].map(u => (
                       <tr key={u.id}>
                         <td>
                           <div className="font-semibold text-sm">{u.fullName}</div>
                           <div className="text-xs text-gray-500">{u.email}</div>
                         </td>
-                        <td className="text-ex-green font-semibold font-num">$50,000 USDT</td>
-                        <td><Badge status={u.loanStatus} /></td>
-                        <td className="hidden md:table-cell">
-                          {u.activationFeePaid
-                            ? <span className="text-xs text-ex-green">✓ $500 paid</span>
-                            : <span className="text-xs text-gray-500">Pending</span>}
+                        <td className="text-xs font-mono text-gray-400 max-w-[140px] truncate">
+                          {u.depositAddress ?? "—"}
                         </td>
-                        <td className="hidden md:table-cell">
-                          {u.loanWithdrawnToExternal
-                            ? <span className="text-xs text-ex-yellow">⏳ Processing</span>
-                            : <span className="text-xs text-gray-500">In wallet</span>}
+                        <td className="font-semibold font-num text-sm">{u.stakeAmount} USDT</td>
+                        <td><Badge status={u.stakeStatus} /></td>
+                        <td className="text-center">
+                          {u.stakeStatus === "active" && (
+                            <button
+                              onClick={() => distributeReward(u.id)}
+                              disabled={!!actionLoading}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-ex-yellow/10 text-ex-yellow text-xs rounded-lg hover:bg-ex-yellow/20 border border-ex-yellow/30 transition-colors disabled:opacity-50 mx-auto">
+                              {actionLoading === "distribute_reward" + u.id
+                                ? <RefreshCw className="w-3 h-3 animate-spin" />
+                                : <Gift className="w-3 h-3" />}
+                              Reward
+                            </button>
+                          )}
+                          {u.stakeStatus === "rewarded" && (
+                            <span className="text-xs text-ex-yellow">✓ Distributed</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -376,7 +531,25 @@ export default function AdminPage() {
         {/* Withdrawals */}
         {!loading && tab === "withdrawals" && (
           <div>
-            {withdrawn.length === 0 ? (
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold">Withdrawal Requests</h2>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${
+                  withdrawalsEnabled
+                    ? "text-ex-green bg-ex-green/10 border-ex-green/30"
+                    : "text-ex-red bg-ex-red/10 border-ex-red/30"
+                }`}>
+                  Withdrawals {withdrawalsEnabled ? "ON" : "OFF"}
+                </span>
+                <button onClick={toggleWithdrawals} disabled={actionLoading === "toggle"}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-ex-card2 border border-ex-border text-xs text-gray-300 rounded-lg hover:text-white transition-colors">
+                  <Power className="w-3 h-3" />
+                  {withdrawalsEnabled ? "Disable" : "Enable"}
+                </button>
+              </div>
+            </div>
+
+            {withdrawals.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <ArrowUpRight className="w-10 h-10 mx-auto mb-2 text-gray-700" />
                 No withdrawal requests yet
@@ -388,18 +561,54 @@ export default function AdminPage() {
                     <tr>
                       <th className="text-left">User</th>
                       <th className="text-left">Amount</th>
+                      <th className="text-left hidden md:table-cell">Destination</th>
                       <th className="text-left">Status</th>
+                      <th className="text-left hidden md:table-cell">Date</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {withdrawn.map(u => (
-                      <tr key={u.id}>
+                    {withdrawals.map(w => (
+                      <tr key={w.id}>
                         <td>
-                          <div className="font-semibold text-sm">{u.fullName}</div>
-                          <div className="text-xs text-gray-500">{u.email}</div>
+                          <div className="font-semibold text-sm">{w.user?.fullName ?? "—"}</div>
+                          <div className="text-xs text-gray-500">{w.user?.email ?? w.userId.slice(0, 8)}</div>
                         </td>
-                        <td className="text-ex-yellow font-semibold font-num">50,000 USDT</td>
-                        <td><span className="text-xs text-ex-yellow bg-ex-yellow/10 px-2 py-0.5 rounded-full border border-ex-yellow/30">Processing</span></td>
+                        <td>
+                          <div className="font-semibold font-num text-sm">{w.amount} {w.asset}</div>
+                          <div className="text-xs text-gray-500">fee: {w.fee} {w.asset}</div>
+                        </td>
+                        <td className="hidden md:table-cell text-xs font-mono text-gray-400 max-w-[140px] truncate">
+                          {w.destinationAddress}
+                        </td>
+                        <td><Badge status={w.status} /></td>
+                        <td className="text-gray-400 text-xs hidden md:table-cell">
+                          {new Date(w.createdAt).toLocaleDateString()}
+                        </td>
+                        <td>
+                          {w.status === "pending" && (
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => withdrawalAction(w.id, "approve")}
+                                disabled={!!actionLoading}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-ex-green/10 text-ex-green text-xs rounded-lg hover:bg-ex-green/20 border border-ex-green/30 disabled:opacity-50">
+                                {actionLoading === w.id + "approve"
+                                  ? <RefreshCw className="w-3 h-3 animate-spin" />
+                                  : <Check className="w-3 h-3" />}
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => withdrawalAction(w.id, "reject")}
+                                disabled={!!actionLoading}
+                                className="flex items-center gap-1 px-2 py-1.5 bg-ex-red/10 text-ex-red text-xs rounded-lg hover:bg-ex-red/20 border border-ex-red/30 disabled:opacity-50">
+                                <X className="w-3 h-3" /> Reject
+                              </button>
+                            </div>
+                          )}
+                          {w.status !== "pending" && (
+                            <span className="text-xs text-gray-500 text-center block">—</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

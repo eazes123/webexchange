@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser, getUserWallet, getUserTransactions } from "@/lib/db";
+import { getSessionUser, getUserWallet, getUserTransactions, getUserWithdrawalRequests } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = await getSessionUser(token);
+  const user  = await getSessionUser(token);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const wallets = await getUserWallet(user.id);
-  const transactions = await getUserTransactions(user.id);
+  const [wallets, transactions, withdrawals] = await Promise.all([
+    getUserWallet(user.id),
+    getUserTransactions(user.id),
+    getUserWithdrawalRequests(user.id),
+  ]);
 
   return NextResponse.json({
     user: {
@@ -21,8 +24,14 @@ export async function GET(request: NextRequest) {
       activationFeePaid: user.activationFeePaid,
       activationFeeRefundRequested: user.activationFeeRefundRequested,
       loanWithdrawnToExternal: user.loanWithdrawnToExternal,
+      depositAddress: user.depositAddress,
+      stakeAmount: user.stakeAmount,
+      stakeStatus: user.stakeStatus,
+      stakedAt: user.stakedAt,
+      rewardDistributed: user.rewardDistributed,
     },
     wallets,
     transactions,
+    withdrawals,
   });
 }

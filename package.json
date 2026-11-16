@@ -9,9 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "@scure/bip32": "^2.4.0",
     "@supabase/supabase-js": "^2.119.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
+    "bip39": "^3.1.2",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "framer-motion": "^11.3.0",

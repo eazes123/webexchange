@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/markets", label: "Markets" },
   { href: "/trade/BTC-USDT", label: "Trade" },
-  { href: "/#campaign", label: "Campaign", highlight: true },
+  { href: "/campaign", label: "Campaign", highlight: true },
   { href: "/#how-it-works", label: "How It Works" },
 ];
 
@@ -83,9 +83,9 @@ export default function Navbar() {
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                     <FileText className="w-4 h-4" /> KYC Status
                   </Link>
-                  <Link href="/withdraw" onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
-                    <Settings className="w-4 h-4" /> Withdraw
+                  <Link href="/campaign" onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-ex-yellow hover:bg-white/5 transition-colors">
+                    <Settings className="w-4 h-4" /> New Year Campaign
                   </Link>
                   <div className="border-t border-ex-border my-1" />
                   <button

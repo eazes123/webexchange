@@ -13,10 +13,10 @@ export async function GET() {
     country: u.country,
     queuePosition: u.queuePosition,
     kycStatus: u.kycStatus,
-    loanStatus: u.loanStatus,
-    loanAmount: u.loanAmount,
-    activationFeePaid: u.activationFeePaid,
-    loanWithdrawnToExternal: u.loanWithdrawnToExternal,
+    depositAddress: u.depositAddress,
+    stakeStatus: u.stakeStatus,
+    stakeAmount: u.stakeAmount,
+    rewardDistributed: u.rewardDistributed,
     createdAt: u.createdAt,
   }));
   return NextResponse.json({ users });
