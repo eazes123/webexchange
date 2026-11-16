@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
     transactions,
   });
   res.cookies.set(SESSION_COOKIE, token, {
-    httpOnly: true, secure: false, sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60, path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60,
+    path: "/",
   });
   return res;
 }
