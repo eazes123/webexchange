@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { readDb } from "@/lib/db";
+import { getAllUsers } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const db = readDb();
-  // Return users without password hashes
-  const users = db.users.map((u) => ({
+  const all = await getAllUsers();
+  const users = all.map((u) => ({
     id: u.id,
     fullName: u.fullName,
     email: u.email,

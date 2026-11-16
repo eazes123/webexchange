@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readDb, writeDb, getSessionUser, DbKyc } from "@/lib/db";
+import { getSessionUser, getKyc, upsertKyc, updateUser } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = getSessionUser(token);
+  const user = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const db = readDb();
-  const kyc = db.kyc.find((k) => k.userId === user.id) ?? null;
+  const kyc = await getKyc(user.id);
   return NextResponse.json({ kyc, kycStatus: user.kycStatus });
 }
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = getSessionUser(token);
+  const user = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   if (user.kycStatus === "approved") {
@@ -22,10 +21,8 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const db = readDb();
 
-  const existing = db.kyc.findIndex((k) => k.userId === user.id);
-  const record: DbKyc = {
+  await upsertKyc({
     userId: user.id,
     step: body.step ?? 5,
     fullName: body.fullName ?? user.fullName,
@@ -34,20 +31,10 @@ export async function POST(request: NextRequest) {
     idType: body.idType ?? "",
     idNumber: body.idNumber ?? "",
     nationality: body.nationality ?? user.country,
-    status: "under_review",   // Always under_review — admin must approve
-    submittedAt: new Date().toISOString(),
-  };
+    status: "under_review",
+  });
 
-  if (existing !== -1) {
-    db.kyc[existing] = record;
-  } else {
-    db.kyc.push(record);
-  }
+  await updateUser(user.id, { kycStatus: "under_review" });
 
-  // Set user kycStatus to under_review — not auto-approved
-  const userIdx = db.users.findIndex((u) => u.id === user.id);
-  if (userIdx !== -1) db.users[userIdx].kycStatus = "under_review";
-
-  writeDb(db);
   return NextResponse.json({ success: true, kycStatus: "under_review" });
 }
