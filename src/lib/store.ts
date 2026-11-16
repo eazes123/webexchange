@@ -148,6 +148,8 @@ export const useStore = create<AppStore>((set, get) => ({
             change24h: parseFloat((p.usd_24h_change ?? c.change24h).toFixed(2)),
             marketCap: p.usd_market_cap ?? c.marketCap,
             volume24h: p.usd_24h_vol ?? c.volume24h,
+            high24h: p.high24h ?? c.high24h,
+            low24h: p.low24h ?? c.low24h,
           };
         }),
       }));

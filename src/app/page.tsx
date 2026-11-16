@@ -14,11 +14,10 @@ import { useStore } from "@/lib/store";
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number; }
 
 const STEPS = [
-  { icon: Users,         title: "Pre-Signup",     desc: "Create your account with basic details and verify your email/phone." },
-  { icon: Shield,        title: "Complete KYC",   desc: "Submit your ID, selfie and proof of address for full verification." },
-  { icon: Clock,         title: "Join Waitlist",  desc: "Get your queue position. First 1000 to pass KYC are selected." },
-  { icon: Award,         title: "Loan Approved",  desc: "Receive $50,000 USDT interest-free loan in your account." },
-  { icon: TrendingUp,    title: "Start Trading",  desc: "Trade, withdraw, or use your funds on the platform." },
+  { icon: Users,      title: "Create Account",  desc: "Register with your email and basic details to get your unique deposit address." },
+  { icon: Shield,     title: "Complete KYC",    desc: "Submit your ID, selfie, and proof of address for full identity verification." },
+  { icon: Lock,       title: "Stake 500 USDT",  desc: "Deposit and stake 500 USDT to activate your New Year campaign slot." },
+  { icon: Award,      title: "Collect $50,000", desc: "On Dec 31, 2026 receive $50,500 USDT (stake + reward) in your account." },
 ];
 
 const FEATURES = [
@@ -26,18 +25,18 @@ const FEATURES = [
   { icon: Zap,     title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
   { icon: Globe,   title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
   { icon: Lock,    title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
-  { icon: Star,    title: "0% Interest Loan",      desc: "First 1000 users get a completely interest-free loan to start." },
+  { icon: Award,   title: "New Year Campaign",      desc: "Stake 500 USDT, earn $50,000 USDT reward on December 31st, 2026." },
   { icon: Users,   title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
 ];
 
 const FAQS = [
   {
-    q: "How do I qualify for the $50,000 USDT loan?",
-    a: "Complete the pre-signup form and pass the full 5-step KYC verification by December 31st. The first 1000 users who complete both steps automatically qualify for the interest-free loan."
+    q: "How do I qualify for the $50,000 USDT reward?",
+    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps qualify for the $50,000 USDT New Year reward."
   },
   {
-    q: "Is the $50,000 USDT loan really interest-free?",
-    a: "Yes, the loan carries 0% interest. However, a one-time Loan Activation Fee of $500 USDT is required to process the withdrawal. This is a platform compliance and processing charge, fully refundable if you change your mind before December 31st."
+    q: "What happens to my staked 500 USDT?",
+    a: "Your 500 USDT is locked as collateral for the campaign duration. On December 31st, 2026 you receive your 500 USDT stake back plus $50,000 USDT reward — a total of $50,500 USDT credited to your account."
   },
   {
     q: "What documents are required for KYC?",
@@ -49,11 +48,11 @@ const FAQS = [
   },
   {
     q: "When does the campaign end?",
-    a: "The pre-signup campaign runs until December 31st, 2026. Spots are limited to 1000 users on a first-come-first-served basis based on KYC completion date."
+    a: "The staking campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis based on KYC completion and stake activation date."
   },
   {
-    q: "Can I trade with the loan funds?",
-    a: "Yes! Once the loan is approved and disbursed to your account, you can use the USDT to trade any available spot pairs on the platform."
+    q: "Can I trade with my account balance?",
+    a: "Yes! Once your reward is credited on December 31st, 2026, you can use the USDT to trade any available spot pairs or withdraw to your external wallet."
   },
 ];
 
@@ -132,21 +131,22 @@ export default function LandingPage() {
 
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
-              Get{" "}
-              <span className="gradient-text">$50,000 USDT</span>
+              Stake 500 USDT
               <br />
-              Interest-Free Loan
+              Earn <span className="gradient-text">$50,000 USDT</span>
+              <br />
+              New Year Reward
             </h1>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              First <strong className="text-white">1,000 users</strong> who complete Pre-Signup + KYC
-              by December 31st, 2026 receive a <strong className="text-ex-green">0% interest loan</strong> — no collateral required.
+              First <strong className="text-white">1,000 users</strong> who stake 500 USDT
+              after completing KYC receive a <strong className="text-ex-green">$50,000 USDT New Year reward</strong> on December 31st, 2026.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
               <Link href="/register"
                 className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-400 transition-all glow-yellow">
-                Pre-Signup Now <ArrowRight className="w-5 h-5" />
+                Sign Up Now <ArrowRight className="w-5 h-5" />
               </Link>
               <Link href="/#how-it-works"
                 className="inline-flex items-center gap-2 border border-ex-border text-gray-300 px-8 py-4 rounded-xl text-lg hover:border-gray-500 hover:text-white transition-all">
@@ -157,10 +157,10 @@ export default function LandingPage() {
             {/* Stats row */}
             <div className="flex flex-wrap justify-center gap-6 mb-12">
               {[
-                { label: "Loan Amount",   value: "$50,000 USDT", color: "text-ex-green" },
-                { label: "Interest Rate", value: "0%",           color: "text-ex-yellow" },
+                { label: "Stake Amount",  value: "500 USDT",     color: "text-ex-yellow" },
+                { label: "Reward",        value: "$50,000 USDT", color: "text-ex-green" },
                 { label: "Spots Left",    value: spotsLeft.toString(), color: "text-ex-red" },
-                { label: "Total Spots",   value: "1,000",        color: "text-white" },
+                { label: "Deadline",      value: "Dec 31, 2026", color: "text-white" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <div className={`text-2xl font-black font-num ${s.color}`}>{s.value}</div>
@@ -244,12 +244,12 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black mb-3">How It Works</h2>
-            <p className="text-gray-400">5 simple steps to claim your interest-free loan</p>
+            <p className="text-gray-400">4 simple steps to earn your $50,000 USDT reward</p>
           </div>
           <div className="relative">
             {/* Connecting line */}
             <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-ex-border to-transparent" />
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {STEPS.map((step, i) => (
                 <motion.div key={i}
                   initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -272,7 +272,7 @@ export default function LandingPage() {
           <div className="text-center mt-12">
             <Link href="/register"
               className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-400 transition-all">
-              Start Now — {spotsLeft} Spots Left <ArrowRight className="w-5 h-5" />
+              Sign Up Now — {spotsLeft} Spots Left <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -338,15 +338,15 @@ export default function LandingPage() {
               <Award className="w-8 h-8 text-ex-yellow" />
             </div>
             <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Claim Your <span className="gradient-text">$50,000 USDT</span>
+              Earn <span className="gradient-text">$50,000 USDT</span>
             </h2>
             <p className="text-gray-400 mb-6 text-lg">
               Only <strong className="text-white">{spotsLeft} spots</strong> remaining.
-              Complete signup + KYC before December 31st, 2026 to secure your loan.
+              Stake 500 USDT after KYC before December 31st, 2026 to claim your reward.
             </p>
             <Link href="/register"
               className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-10 py-4 rounded-xl text-xl hover:bg-yellow-400 transition-all glow-yellow">
-              Pre-Signup Now <ArrowRight className="w-6 h-6" />
+              Sign Up Now <ArrowRight className="w-6 h-6" />
             </Link>
             <p className="text-xs text-gray-600 mt-4">
               By signing up you agree to our Terms & Conditions and Privacy Policy.

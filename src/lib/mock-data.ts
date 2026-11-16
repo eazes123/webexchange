@@ -4,6 +4,8 @@ export interface Coin {
   name: string;
   image: string;
   price: number;
+  high24h?: number;
+  low24h?: number;
   change24h: number;
   change7d: number;
   volume24h: number;

@@ -33,7 +33,7 @@ export default function TradePage() {
   const params = useParams();
   const pairParam = (params?.pair as string) || "BTC-USDT";
   const [base, quote] = pairParam.split("-");
-  const { coins, updatePrices } = useStore();
+  const { coins, updatePrices, walletBalances } = useStore();
 
   const coin = coins.find(c => c.symbol === base) || coins[0];
   const [orderType, setOrderType] = useState<"limit" | "market">("limit");
@@ -61,8 +61,7 @@ export default function TradePage() {
     const price = orderType === "market" ? coin.price : parseFloat(limitPrice);
     const total = (parseFloat(amount) * price).toFixed(2);
     toast.success(
-      `Demo ${side.toUpperCase()} order placed: ${amount} ${base} @ $${price.toFixed(2)} = $${total}`,
-      { description: "⚠️ DEMO MODE — No real funds used" }
+      `${side.toUpperCase()} order placed: ${amount} ${base} @ $${price.toFixed(2)} = $${total}`
     );
     setAmount("");
   };
@@ -94,8 +93,8 @@ export default function TradePage() {
             </div>
           </div>
           {[
-            { label: "24h High", value: formatPrice(coin.price * 1.025) },
-            { label: "24h Low",  value: formatPrice(coin.price * 0.975) },
+            { label: "24h High", value: formatPrice(coin.high24h ?? coin.price * 1.025) },
+            { label: "24h Low",  value: formatPrice(coin.low24h ?? coin.price * 0.975) },
             { label: "Volume",   value: `${(coin.volume24h / 1e9).toFixed(2)}B` },
           ].map(s => (
             <div key={s.label} className="hidden md:block">
@@ -206,7 +205,11 @@ export default function TradePage() {
           {/* Available balance (mock) */}
           <div className="flex justify-between text-xs text-gray-500">
             <span>Available</span>
-            <span className="text-white font-num">{side === "buy" ? "10,000.00 USDT" : "0.0000 " + base}</span>
+            <span className="text-white font-num">
+              {side === "buy"
+                ? `${(walletBalances[quote]?.available ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${quote}`
+                : `${(walletBalances[base]?.available ?? 0).toFixed(6)} ${base}`}
+            </span>
           </div>
 
           {/* Price input */}
@@ -257,7 +260,7 @@ export default function TradePage() {
           </button>
 
           <p className="text-xs text-gray-600 text-center">
-            ⚠️ Demo only — no real funds used
+            Trading is subject to market risk. Please trade responsibly.
           </p>
         </div>
       </div>

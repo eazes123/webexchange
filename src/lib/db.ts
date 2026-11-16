@@ -412,8 +412,12 @@ export async function rejectWithdrawal(id: string, adminNote?: string): Promise<
 
 // ── Settings ───────────────────────────────────────────────────────────────────
 export async function getSetting(key: string): Promise<string | null> {
-  const { data } = await supabaseAdmin.from("settings").select("value").eq("key", key).single();
-  return data?.value ?? null;
+  try {
+    const { data } = await supabaseAdmin.from("settings").select("value").eq("key", key).single();
+    return data?.value ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {
