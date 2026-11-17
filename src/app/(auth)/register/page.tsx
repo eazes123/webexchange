@@ -60,7 +60,7 @@ export default function RegisterPage() {
       setRegisteredEmail(form.email);
       setStep(1);
     } catch {
-      toast.error("Network error — please try again");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow text-sm px-3 py-1.5 rounded-full mb-4">
-            <Zap className="w-4 h-4" /> Limited — {985} spots remaining
+            <Zap className="w-4 h-4" /> Limited: {985} spots remaining
           </div>
           <h1 className="text-3xl font-black">Create Account</h1>
           <p className="text-gray-400 mt-1">Join the $50,000 USDT loan campaign</p>

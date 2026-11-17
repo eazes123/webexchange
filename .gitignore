@@ -12,6 +12,9 @@ out/
 .env.local
 .env.*.local
 
+# Admin wallet utility (contains private key derivation — local use only)
+scripts/derive-wallet.mjs
+
 # Database (local JSON file — Supabase replaces this)
 data/
 

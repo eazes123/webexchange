@@ -207,7 +207,7 @@ export default function WalletPage() {
             </div>
           </>
         ) : (
-          <div className="text-sm text-gray-500 py-2">Deposit address not assigned yet — please contact support.</div>
+          <div className="text-sm text-gray-500 py-2">Deposit address not assigned yet. Please contact support.</div>
         )}
       </div>
 
@@ -254,7 +254,7 @@ export default function WalletPage() {
                   <td className="px-5 py-4 text-right text-gray-500 font-num hidden md:table-cell">
                     {hideBalance ? "••••" : locked > 0
                       ? <span className="text-purple-400 font-semibold">{locked.toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
-                      : "—"}
+                      : "-"}
                   </td>
                   <td className="px-5 py-4 text-right font-num hidden md:table-cell">
                     {hideBalance ? "••••" : `$${usd.toLocaleString("en-US", { maximumFractionDigits: 2 })}`}
@@ -360,7 +360,7 @@ export default function WalletPage() {
             ) : (
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-5 text-center">
                 <Info className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                <div className="text-sm font-semibold mb-1">Other Assets — Contact Support</div>
+                <div className="text-sm font-semibold mb-1">Other Assets: Contact Support</div>
                 <div className="text-xs text-gray-500">
                   For {selectedAsset} deposits, please contact our support team to get your deposit address.
                   USDT (TRC20) is our primary supported deposit method for the campaign.

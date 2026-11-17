@@ -76,7 +76,7 @@ export default function Footer() {
 
         <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-ex-border">
           <p className="text-xs text-gray-600">
-            © 2024 NovaBit Exchange — Demo Project (Class Assignment). All rights reserved.
+            © 2024 NovaBit Exchange | Demo Project (Class Assignment). All rights reserved.
           </p>
           <div className="flex gap-4">
             {["Privacy Policy", "Terms of Service", "Risk Disclosure"].map((item) => (

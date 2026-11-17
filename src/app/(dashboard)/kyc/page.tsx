@@ -58,7 +58,7 @@ export default function KycPage() {
       }
       setCameraMode("active");
     } catch {
-      toast.error("Camera access denied — please allow camera or upload a photo instead.");
+      toast.error("Camera access denied. Please allow camera or upload a photo instead.");
     }
   };
 
@@ -117,11 +117,11 @@ export default function KycPage() {
 
     // Final guard before submit
     if (!formData.fullName.trim() || !formData.dob || !formData.nationality.trim() || !formData.address.trim()) {
-      toast.error("Personal information is incomplete — please go back to Step 1"); return;
+      toast.error("Personal information is incomplete. Please go back to Step 1."); return;
     }
-    if (!formData.docFront) { toast.error("ID document is missing — please go back to Step 2"); return; }
-    if (!formData.selfie)   { toast.error("Selfie is missing — please go back to Step 3"); return; }
-    if (!formData.addressDoc){ toast.error("Proof of address is missing — please go back to Step 4"); return; }
+    if (!formData.docFront) { toast.error("ID document is missing. Please go back to Step 2."); return; }
+    if (!formData.selfie)   { toast.error("Selfie is missing. Please go back to Step 3."); return; }
+    if (!formData.addressDoc){ toast.error("Proof of address is missing. Please go back to Step 4."); return; }
 
     setLoading(true);
     try {
@@ -141,10 +141,10 @@ export default function KycPage() {
       if (!res.ok) { toast.error(data.error); return; }
       setKycStatus("under_review");
       setSubmitted(true);
-      toast.success("KYC submitted! Under review — usually 24-48 hours.");
+      toast.success("KYC submitted! Under review, usually 24-48 hours.");
       router.push("/dashboard");
     } catch {
-      toast.error("Failed to submit KYC — please try again");
+      toast.error("Failed to submit KYC. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -163,7 +163,7 @@ export default function KycPage() {
             { label: "Verified On", value: new Date().toLocaleDateString() },
             { label: "ID Type",     value: "Government ID" },
             { label: "Queue #",     value: `#${demoUser.queuePosition}` },
-            { label: "Campaign",    value: "New Year Loan — Active" },
+            { label: "Campaign",    value: "New Year Loan: Active" },
           ].map(r => (
             <div key={r.label} className="bg-ex-card border border-ex-border rounded-xl p-3">
               <div className="text-xs text-gray-500">{r.label}</div>
@@ -324,7 +324,7 @@ export default function KycPage() {
                       <p className="font-semibold text-white">Open Camera (Recommended)</p>
                       <p className="text-xs text-gray-500 mt-1">Take a live selfie using your webcam</p>
                     </button>
-                    <div className="text-center text-xs text-gray-500">— or —</div>
+                    <div className="text-center text-xs text-gray-500">or</div>
                     <div className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
                       formData.selfie ? "border-ex-green/50 bg-ex-green/5" : "border-ex-border hover:border-ex-yellow/50"
                     }`} onClick={() => document.getElementById("selfie")?.click()}>
@@ -391,14 +391,14 @@ export default function KycPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Full Name",        value: formData.fullName    || "—", ok: !!formData.fullName },
-                { label: "Date of Birth",    value: formData.dob         || "—", ok: !!formData.dob },
-                { label: "Nationality",      value: formData.nationality || "—", ok: !!formData.nationality },
+                { label: "Full Name",        value: formData.fullName    || "-", ok: !!formData.fullName },
+                { label: "Date of Birth",    value: formData.dob         || "-", ok: !!formData.dob },
+                { label: "Nationality",      value: formData.nationality || "-", ok: !!formData.nationality },
                 { label: "ID Type",          value: formData.docType,              ok: true },
                 { label: "Front ID",         value: formData.docFront    ? "✅ Uploaded" : "❌ Missing", ok: !!formData.docFront },
                 { label: "Selfie",           value: formData.selfie      ? "✅ Uploaded" : "❌ Missing", ok: !!formData.selfie },
                 { label: "Proof of Address", value: formData.addressDoc  ? "✅ Uploaded" : "❌ Missing", ok: !!formData.addressDoc },
-                { label: "Home Address",     value: formData.address     || "—", ok: !!formData.address },
+                { label: "Home Address",     value: formData.address     || "-", ok: !!formData.address },
               ].map(r => (
                 <div key={r.label} className={`bg-ex-card2 border rounded-xl p-3 ${r.ok ? "border-ex-border" : "border-ex-red/40"}`}>
                   <div className="text-xs text-gray-500">{r.label}</div>
@@ -409,7 +409,7 @@ export default function KycPage() {
             {(!formData.docFront || !formData.selfie || !formData.addressDoc) && (
               <div className="bg-ex-red/10 border border-ex-red/30 rounded-xl p-3 text-sm text-ex-red flex items-center gap-2">
                 <X className="w-4 h-4 shrink-0" />
-                Some required items are missing — go back and complete all steps before submitting.
+                Some required items are missing. Go back and complete all steps before submitting.
               </div>
             )}
             <div className="bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow flex items-center gap-2">

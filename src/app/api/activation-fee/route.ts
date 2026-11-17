@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     await createTransaction({
       userId: user.id, type: "fee", asset: "USDT", amount: FEE_AMOUNT,
       status: "completed", date: new Date().toISOString().split("T")[0],
-      desc: "Loan Activation Fee — Platform Processing Charge",
+      desc: "Loan Activation Fee: Platform Processing Charge",
       txHash: `0x${crypto.randomUUID().replace(/-/g, "")}`,
     });
     return NextResponse.json({ success: true });
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     await createTransaction({
       userId: user.id, type: "refund", asset: "USDT", amount: FEE_AMOUNT,
       status: "completed", date: new Date().toISOString().split("T")[0],
-      desc: "Activation Fee Refund — Pre-Campaign Cancellation",
+      desc: "Activation Fee Refund: Pre-Campaign Cancellation",
     });
     return NextResponse.json({ success: true });
   }

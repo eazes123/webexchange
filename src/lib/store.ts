@@ -186,7 +186,7 @@ export const useStore = create<AppStore>((set, get) => ({
         {
           id: `opt-${Date.now()}`, type: "withdrawal", asset, amount, fee: 0,
           status: "pending" as const, date: new Date().toISOString().split("T")[0],
-          desc: `${asset} Withdrawal — Pending Approval`, address,
+          desc: `${asset} Withdrawal: Pending Approval`, address,
         },
         ...state.transactions,
       ],

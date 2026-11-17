@@ -33,7 +33,7 @@ export default function LoginPage() {
       }
       setStep("2fa");
     } catch {
-      toast.error("Network error — please try again");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }

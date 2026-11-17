@@ -17,7 +17,7 @@ const STEPS = [
   { icon: Users,      title: "Create Account",   desc: "Register with your email and basic details to get your unique deposit address." },
   { icon: Shield,     title: "Complete KYC",     desc: "Submit your ID, selfie, and proof of address for full identity verification." },
   { icon: Lock,       title: "Stake 500 USDT",   desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
-  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 1-year interest-free loan — withdraw or trade freely." },
+  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 1-year interest-free loan. Withdraw or trade freely." },
 ];
 
 const FEATURES = [
@@ -36,7 +36,7 @@ const FAQS = [
   },
   {
     q: "Is the loan really interest-free?",
-    a: "Yes — 0% interest for the full 1-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
+    a: "Yes, 0% interest for the full 1-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
   },
   {
     q: "Can I withdraw or trade with the loan funds?",
@@ -44,7 +44,7 @@ const FAQS = [
   },
   {
     q: "What documents are required for KYC?",
-    a: "You need: (1) Valid government ID — passport, national ID, or driver's license, (2) A selfie/liveness check for face matching, and (3) Proof of address — utility bill or bank statement dated within 3 months."
+    a: "You need: (1) Valid government ID: passport, national ID, or driver's license, (2) A selfie/liveness check for face matching, and (3) Proof of address: utility bill or bank statement dated within 3 months."
   },
   {
     q: "How long does KYC verification take?",
@@ -126,7 +126,7 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 rounded-full px-4 py-1.5 text-ex-yellow text-sm font-semibold mb-6">
               <span className="w-2 h-2 bg-ex-yellow rounded-full animate-pulse" />
-              Limited Time Campaign — {spotsLeft} spots remaining
+              Limited Time Campaign: {spotsLeft} spots remaining
             </div>
 
             {/* Headline */}
@@ -138,8 +138,8 @@ export default function LandingPage() {
             </h1>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
               First <strong className="text-white">1,000 users</strong> who stake 500 USDT after KYC receive a{" "}
-              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 1 year —
-              trade freely or withdraw anytime.
+              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 1 year.
+              Trade freely or withdraw anytime.
             </p>
 
             {/* CTAs */}
@@ -272,7 +272,7 @@ export default function LandingPage() {
           <div className="text-center mt-12">
             <Link href="/register"
               className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-400 transition-all">
-              Sign Up Now — {spotsLeft} Spots Left <ArrowRight className="w-5 h-5" />
+              Sign Up Now ({spotsLeft} Spots Left) <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>

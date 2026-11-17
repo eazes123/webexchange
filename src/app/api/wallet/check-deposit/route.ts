@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     await createTransaction({
       userId: user.id, type: "deposit", asset: "USDT", amount: dep.amount,
       status: "completed", date: new Date().toISOString().split("T")[0],
-      desc: `USDT TRC20 Deposit — On-chain confirmed`,
+      desc: `USDT TRC20 Deposit: On-chain confirmed`,
       txHash: dep.txHash,
     });
 

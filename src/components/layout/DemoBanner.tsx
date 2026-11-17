@@ -11,7 +11,7 @@ export default function DemoBanner() {
       <div className="flex items-center gap-2 flex-1 justify-center text-sm font-semibold">
         <AlertTriangle className="w-4 h-4 shrink-0" />
         <span>
-          ⚠️ DEMO PROJECT — Class Assignment Only. NOT a real exchange. Do NOT send real money or complete real KYC.
+          ⚠️ DEMO PROJECT: Class Assignment Only. NOT a real exchange. Do NOT send real money or complete real KYC.
         </span>
       </div>
       <button

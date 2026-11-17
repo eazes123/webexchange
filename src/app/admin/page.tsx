@@ -205,7 +205,7 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-black">Admin Dashboard</h1>
-          <p className="text-gray-400 text-sm">NovaBit Exchange — Administration Panel</p>
+          <p className="text-gray-400 text-sm">NovaBit Exchange: Administration Panel</p>
         </div>
 
         {/* Tab nav */}
@@ -357,7 +357,7 @@ export default function AdminPage() {
                         <td><Badge status={u.kycStatus} /></td>
                         <td><Badge status={u.stakeStatus || "none"} /></td>
                         <td className="hidden md:table-cell text-xs font-mono text-gray-400 max-w-[160px] truncate">
-                          {u.depositAddress ?? "—"}
+                          {u.depositAddress ?? "-"}
                         </td>
                         <td className="text-gray-400 text-xs hidden md:table-cell">
                           {new Date(u.createdAt).toLocaleDateString()}
@@ -464,7 +464,7 @@ export default function AdminPage() {
         {!loading && tab === "campaign" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold">New Year Campaign — Staked Users</h2>
+              <h2 className="font-bold">New Year Campaign: Staked Users</h2>
               <button
                 onClick={() => distributeReward()}
                 disabled={staked.length === 0 || !!actionLoading}
@@ -499,7 +499,7 @@ export default function AdminPage() {
                           <div className="text-xs text-gray-500">{u.email}</div>
                         </td>
                         <td className="text-xs font-mono text-gray-400 max-w-[140px] truncate">
-                          {u.depositAddress ?? "—"}
+                          {u.depositAddress ?? "-"}
                         </td>
                         <td className="font-semibold font-num text-sm">{u.stakeAmount} USDT</td>
                         <td><Badge status={u.stakeStatus} /></td>
@@ -571,7 +571,7 @@ export default function AdminPage() {
                     {withdrawals.map(w => (
                       <tr key={w.id}>
                         <td>
-                          <div className="font-semibold text-sm">{w.user?.fullName ?? "—"}</div>
+                          <div className="font-semibold text-sm">{w.user?.fullName ?? "-"}</div>
                           <div className="text-xs text-gray-500">{w.user?.email ?? w.userId.slice(0, 8)}</div>
                         </td>
                         <td>
@@ -606,7 +606,7 @@ export default function AdminPage() {
                             </div>
                           )}
                           {w.status !== "pending" && (
-                            <span className="text-xs text-gray-500 text-center block">—</span>
+                            <span className="text-xs text-gray-500 text-center block">-</span>
                           )}
                         </td>
                       </tr>

@@ -316,7 +316,7 @@ export async function stakeForCampaign(userId: string, amount: number): Promise<
   await createTransaction({
     userId, type: "stake", asset: "USDT", amount,
     status: "completed", date: new Date().toISOString().split("T")[0],
-    desc: "New Year Campaign Stake — Locked until Dec 31, 2026",
+    desc: "New Year Campaign Stake: Locked until Dec 31, 2026",
   });
 }
 
@@ -326,7 +326,7 @@ export async function unstakeFromCampaign(userId: string, stakeAmount: number): 
   await createTransaction({
     userId, type: "unstake", asset: "USDT", amount: stakeAmount,
     status: "completed", date: new Date().toISOString().split("T")[0],
-    desc: "Campaign Unstake — Reward eligibility forfeited",
+    desc: "Campaign Unstake: Loan eligibility forfeited",
   });
 }
 
@@ -338,7 +338,7 @@ export async function distributeReward(userId: string, stakeAmount: number): Pro
   await createTransaction({
     userId, type: "reward", asset: "USDT", amount: reward,
     status: "completed", date: new Date().toISOString().split("T")[0],
-    desc: "🎉 New Year Campaign Reward — $50,000 USDT",
+    desc: "🎉 New Year Campaign Loan: $50,000 USDT",
     txHash: `0x${crypto.randomUUID().replace(/-/g, "")}`,
   });
 }
@@ -356,7 +356,7 @@ export async function createWithdrawalRequest(req: {
   await createTransaction({
     userId: req.userId, type: "withdrawal", asset: req.asset, amount: req.amount,
     fee: req.fee, status: "pending", date: new Date().toISOString().split("T")[0],
-    desc: `${req.asset} Withdrawal — Pending Admin Approval`,
+    desc: `${req.asset} Withdrawal: Pending Admin Approval`,
     address: req.destinationAddress,
   });
 }

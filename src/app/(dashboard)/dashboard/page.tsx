@@ -98,7 +98,7 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Lock className="w-7 h-7 text-ex-green shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black text-ex-green">Staking Active — Loan Eligible ✓</h1>
+              <h1 className="text-xl font-black text-ex-green">Staking Active, Loan Eligible ✓</h1>
               <p className="text-gray-400 mt-1">
                 Your 500 USDT is staked. Keep it staked until <strong className="text-white">December 31, 2026</strong> to
                 receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
@@ -124,7 +124,7 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Wallet className="w-7 h-7 text-ex-blue shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black">KYC Verified — Deposit 500 USDT to Continue</h1>
+              <h1 className="text-xl font-black">KYC Verified: Deposit 500 USDT to Continue</h1>
               <p className="text-gray-400 mt-1">
                 Send at least <strong className="text-white">500 USDT (TRC20)</strong> to your personal deposit
                 address. Then stake in the New Year Campaign to get your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             icon: Gift,
             label: "Loan Amount",
             value: isRewarded ? "$50,000" : "Eligible",
-            sub:   "50,000 USDT — 0% interest",
+            sub:   "50,000 USDT, 0% interest",
             color: isRewarded ? "text-ex-green" : "text-ex-yellow",
           },
         ].map((s, i) => (
@@ -209,7 +209,7 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-5 h-5 text-ex-yellow" />
-                <h2 className="font-bold">Step 2 — Verify Your Identity</h2>
+                <h2 className="font-bold">Step 2: Verify Your Identity</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
                 KYC is required to participate in the campaign. It takes about 5 minutes.
@@ -252,7 +252,7 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Star className="w-5 h-5 text-ex-yellow" />
-                <h2 className="font-bold">Step 3 — Stake 500 USDT</h2>
+                <h2 className="font-bold">Step 3: Stake 500 USDT</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
                 {!hasDeposit
@@ -276,14 +276,14 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Lock className="w-5 h-5 text-ex-green" />
-                <h2 className="font-bold">Staking Active — Loan Pending Disbursement</h2>
+                <h2 className="font-bold">Staking Active: Loan Pending Disbursement</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
                 Your 500 USDT is staked. Keep it locked until December 31, 2026 to
                 receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
               </p>
               <div className="bg-ex-green/5 border border-ex-green/20 rounded-xl p-3 text-sm text-ex-green flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 shrink-0" /> Stake confirmed — reward eligible
+                <CheckCircle className="w-4 h-4 shrink-0" /> Stake confirmed, loan eligible
               </div>
               <Link href="/campaign" className="btn-outline w-full py-2.5 text-sm text-center block mt-3">
                 View Campaign Status →
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 <h2 className="font-bold">Loan Disbursed! 🎉</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely — 0% interest for 1 year.
+                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely. 0% interest for 1 year.
               </p>
               <div className="space-y-2">
                 <Link href="/wallet" className="btn-primary w-full py-2.5 text-sm text-center block">

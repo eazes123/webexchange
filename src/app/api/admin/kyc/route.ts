@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       amount: 50_000,
       status: "completed",
       date: new Date().toISOString().split("T")[0],
-      desc: "Interest-Free Loan Credit — Campaign Reward",
+      desc: "Interest-Free Loan Credit: Campaign Disbursement",
       txHash: `0x${crypto.randomUUID().replace(/-/g, "")}`,
     });
     return NextResponse.json({

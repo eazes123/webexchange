@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       fee: feeConfig.fee, destinationAddress: address.trim(),
     });
 
-    return NextResponse.json({ success: true, message: "Withdrawal request submitted — pending admin approval (24-48h)" });
+    return NextResponse.json({ success: true, message: "Withdrawal request submitted. Pending admin approval (24-48h)." });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

@@ -108,7 +108,7 @@ export default function CampaignPage() {
           <p className="text-gray-400 mb-6">Your $50,000 USDT interest-free loan has been disbursed to your wallet.</p>
           <div className="bg-ex-green/10 border border-ex-green/30 rounded-xl p-5 mb-6">
             <div className="text-4xl font-black text-ex-green font-num">+50,000 USDT</div>
-            <div className="text-sm text-gray-400 mt-1">New Year Loan — Disbursed (0% Interest, 1 Year)</div>
+            <div className="text-sm text-gray-400 mt-1">New Year Loan: Disbursed (0% Interest, 1 Year)</div>
           </div>
           <Link href="/wallet" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
             <Wallet className="w-4 h-4" /> View Wallet
@@ -128,7 +128,7 @@ export default function CampaignPage() {
           </span>
         </div>
         <h1 className="text-3xl font-black mb-1">Get $50,000 USDT Interest-Free Loan</h1>
-        <p className="text-gray-400">Stake 500 USDT and receive a $50,000 USDT interest-free loan — trade freely or withdraw anytime</p>
+        <p className="text-gray-400">Stake 500 USDT and receive a $50,000 USDT interest-free loan. Trade freely or withdraw anytime.</p>
       </div>
 
       {/* Countdown */}
@@ -155,10 +155,10 @@ export default function CampaignPage() {
         </h2>
         <div className="space-y-3">
           {[
-            { n: 1, done: kycApproved,                    label: "Complete KYC verification",     sub: "Identity verified — full access unlocked" },
+            { n: 1, done: kycApproved,                    label: "Complete KYC verification",     sub: "Identity verified. Full access unlocked." },
             { n: 2, done: usdtAvailable + usdtLocked >= 500, label: "Deposit 500+ USDT to your wallet", sub: `Your USDT TRC20 address is on the Wallet page` },
             { n: 3, done: isStaked || isRewarded,         label: "Stake 500 USDT in campaign",   sub: "Locked until Dec 31, 2026 for maximum reward" },
-            { n: 4, done: isRewarded,                     label: "Loan Disbursed to Your Wallet", sub: "Credited December 31, 2026 — trade freely or withdraw anytime" },
+            { n: 4, done: isRewarded,                     label: "Loan Disbursed to Your Wallet", sub: "Credited December 31, 2026. Trade freely or withdraw anytime." },
           ].map(s => (
             <div key={s.n} className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
               s.done ? "bg-ex-green/5 border-ex-green/20" : "bg-ex-card2 border-ex-border"
@@ -197,7 +197,7 @@ export default function CampaignPage() {
             <div className="bg-ex-green/10 border border-ex-green/30 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Lock className="w-4 h-4 text-ex-green" />
-                <span className="font-semibold text-ex-green">Active Stake — Loan Eligible</span>
+                <span className="font-semibold text-ex-green">Active Stake, Loan Eligible</span>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
                 <div><span className="text-gray-500">Staked</span><div className="font-bold font-num">{stakeAmount} USDT</div></div>
@@ -264,9 +264,9 @@ export default function CampaignPage() {
           {[
             ["Stake Required", "500 USDT (locked for campaign duration)"],
             ["Loan Amount", "$50,000 USDT (interest-free)"],
-            ["Interest Rate", "0% — no interest, no fees"],
+            ["Interest Rate", "0% (no interest, no fees)"],
             ["Loan Term", "1 Year (from disbursement)"],
-            ["Campaign Deadline", "December 31, 2026 — 23:59 UTC"],
+            ["Campaign Deadline", "December 31, 2026, 23:59 UTC"],
             ["Network", "USDT TRC20 (TRON)"],
             ["Eligibility", "KYC approved + 500 USDT staked"],
             ["Loan Disbursement", "December 31, 2026 (campaign end)"],
