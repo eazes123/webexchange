@@ -87,7 +87,8 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-black text-ex-green">Congratulations, {demoUser.name}! 🎉</h1>
               <p className="text-gray-300 mt-1">
-                Your $50,000 USDT New Year Campaign reward has been credited to your wallet.
+                Your $50,000 USDT interest-free loan has been disbursed to your wallet.
+                You can now withdraw or trade with it freely.
               </p>
             </div>
           </div>
@@ -97,10 +98,10 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Lock className="w-7 h-7 text-ex-green shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black text-ex-green">Staking Active — Reward Eligible ✓</h1>
+              <h1 className="text-xl font-black text-ex-green">Staking Active — Loan Eligible ✓</h1>
               <p className="text-gray-400 mt-1">
                 Your 500 USDT is staked. Keep it staked until <strong className="text-white">December 31, 2026</strong> to
-                earn <strong className="text-ex-yellow">$50,000 USDT</strong>.
+                receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
               </p>
             </div>
           </div>
@@ -126,7 +127,7 @@ export default function DashboardPage() {
               <h1 className="text-xl font-black">KYC Verified — Deposit 500 USDT to Continue</h1>
               <p className="text-gray-400 mt-1">
                 Send at least <strong className="text-white">500 USDT (TRC20)</strong> to your personal deposit
-                address. Then stake in the New Year Campaign to earn <strong className="text-ex-yellow">$50,000 USDT</strong>.
+                address. Then stake in the New Year Campaign to get your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
               </p>
             </div>
           </div>
@@ -138,8 +139,8 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-black">Welcome, {demoUser.name}! 👋</h1>
             <p className="text-gray-400 mt-1">
               Complete KYC verification to unlock the{" "}
-              <strong className="text-ex-yellow">New Year Campaign</strong> and earn{" "}
-              <strong className="text-white">$50,000 USDT</strong>.
+              <strong className="text-ex-yellow">New Year Campaign</strong> and get your{" "}
+              <strong className="text-white">$50,000 USDT interest-free loan</strong>.
             </p>
           </div>
         </div>
@@ -155,7 +156,7 @@ export default function DashboardPage() {
           <StepConnector done={currentStep > 2} />
           <Step n={3} label="Stake 500 USDT" sub="New Year Campaign"       status={stepStatus(3)} />
           <StepConnector done={isRewarded} />
-          <Step n={4} label="Collect $50K" sub="Dec 31, 2026 reward"       status={stepStatus(4)} />
+          <Step n={4} label="Loan Disbursed" sub="$50K interest-free"       status={stepStatus(4)} />
         </div>
       </div>
 
@@ -180,14 +181,14 @@ export default function DashboardPage() {
             icon: Lock,
             label: "Stake Status",
             value: isRewarded ? "Rewarded ✓" : isStaked ? "Active" : demoUser.stakeStatus === "unstaked" ? "Unstaked" : "None",
-            sub:   isRewarded ? "$50K credited" : isStaked ? "500 USDT locked" : "Stake to earn $50K",
+            sub:   isRewarded ? "Loan disbursed" : isStaked ? "500 USDT locked" : "Stake to get $50K loan",
             color: isRewarded ? "text-ex-yellow" : isStaked ? "text-ex-green" : "text-gray-400",
           },
           {
             icon: Gift,
-            label: "Campaign Reward",
-            value: isRewarded ? "$50,000" : "Potential",
-            sub:   "50,000 USDT — Dec 31",
+            label: "Loan Amount",
+            value: isRewarded ? "$50,000" : "Eligible",
+            sub:   "50,000 USDT — 0% interest",
             color: isRewarded ? "text-ex-green" : "text-ex-yellow",
           },
         ].map((s, i) => (
@@ -256,7 +257,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400 mb-4">
                 {!hasDeposit
                   ? `Deposit at least 500 USDT to your personal TRC20 address first, then stake in the New Year Campaign.`
-                  : `You have ${usdtAvail.toFixed(2)} USDT available. Stake 500 USDT in the campaign to become eligible for the $50,000 reward.`}
+                  : `You have ${usdtAvail.toFixed(2)} USDT available. Stake 500 USDT to activate your $50,000 USDT interest-free loan.`}
               </p>
               <div className="space-y-2">
                 {!hasDeposit && (
@@ -275,11 +276,11 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Lock className="w-5 h-5 text-ex-green" />
-                <h2 className="font-bold">Staking Active — Hold Until Dec 31</h2>
+                <h2 className="font-bold">Staking Active — Loan Pending Disbursement</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                Your 500 USDT is staked and earning. Keep it locked until December 31, 2026 to
-                receive your <strong className="text-ex-yellow">$50,000 USDT reward</strong>.
+                Your 500 USDT is staked. Keep it locked until December 31, 2026 to
+                receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
               </p>
               <div className="bg-ex-green/5 border border-ex-green/20 rounded-xl p-3 text-sm text-ex-green flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 shrink-0" /> Stake confirmed — reward eligible
@@ -294,10 +295,10 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Gift className="w-5 h-5 text-ex-green" />
-                <h2 className="font-bold">Reward Received! 🎉</h2>
+                <h2 className="font-bold">Loan Disbursed! 🎉</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                Your $50,000 USDT has been credited. You can now withdraw it to your external wallet.
+                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely — 0% interest for 1 year.
               </p>
               <div className="space-y-2">
                 <Link href="/wallet" className="btn-primary w-full py-2.5 text-sm text-center block">
@@ -339,8 +340,12 @@ export default function DashboardPage() {
               <span className="font-semibold font-num">500 USDT</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Reward</span>
+              <span className="text-gray-500">Loan Amount</span>
               <span className="font-semibold font-num text-ex-yellow">50,000 USDT</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Interest Rate</span>
+              <span className="font-semibold text-ex-green">0% (1 Year)</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Deadline</span>

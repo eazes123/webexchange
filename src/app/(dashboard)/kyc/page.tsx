@@ -155,7 +155,7 @@ export default function KycPage() {
       <div className="bg-ex-green/10 border border-ex-green/30 rounded-2xl p-8 text-center">
         <CheckCircle className="w-16 h-16 text-ex-green mx-auto mb-4" />
         <h1 className="text-2xl font-black text-ex-green mb-2">KYC Verified ✅</h1>
-        <p className="text-gray-400">Your identity has been fully verified. You qualify for the staking campaign.</p>
+        <p className="text-gray-400">Your identity has been fully verified. You qualify for the New Year interest-free loan campaign.</p>
         <div className="mt-6 grid grid-cols-2 gap-4 text-left">
           {[
             { label: "Full Name",   value: demoUser.name },
@@ -179,7 +179,7 @@ export default function KycPage() {
     <div className="p-6 max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-black mb-1">KYC Verification</h1>
-        <p className="text-gray-400">Complete identity verification to qualify for the staking campaign</p>
+        <p className="text-gray-400">Complete identity verification to qualify for the $50,000 USDT interest-free loan</p>
       </div>
 
       {/* Security notice */}

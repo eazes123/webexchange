@@ -14,10 +14,10 @@ import { useStore } from "@/lib/store";
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number; }
 
 const STEPS = [
-  { icon: Users,      title: "Create Account",  desc: "Register with your email and basic details to get your unique deposit address." },
-  { icon: Shield,     title: "Complete KYC",    desc: "Submit your ID, selfie, and proof of address for full identity verification." },
-  { icon: Lock,       title: "Stake 500 USDT",  desc: "Deposit and stake 500 USDT to activate your New Year campaign slot." },
-  { icon: Award,      title: "Collect $50,000", desc: "On Dec 31, 2026 receive $50,500 USDT (stake + reward) in your account." },
+  { icon: Users,      title: "Create Account",   desc: "Register with your email and basic details to get your unique deposit address." },
+  { icon: Shield,     title: "Complete KYC",     desc: "Submit your ID, selfie, and proof of address for full identity verification." },
+  { icon: Lock,       title: "Stake 500 USDT",   desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
+  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 1-year interest-free loan — withdraw or trade freely." },
 ];
 
 const FEATURES = [
@@ -25,18 +25,22 @@ const FEATURES = [
   { icon: Zap,     title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
   { icon: Globe,   title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
   { icon: Lock,    title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
-  { icon: Award,   title: "New Year Campaign",      desc: "Stake 500 USDT, earn $50,000 USDT reward on December 31st, 2026." },
+  { icon: Award,   title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 1-year interest-free loan." },
   { icon: Users,   title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
 ];
 
 const FAQS = [
   {
-    q: "How do I qualify for the $50,000 USDT reward?",
-    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps qualify for the $50,000 USDT New Year reward."
+    q: "How do I qualify for the $50,000 USDT loan?",
+    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account."
   },
   {
-    q: "What happens to my staked 500 USDT?",
-    a: "Your 500 USDT is locked as collateral for the campaign duration. On December 31st, 2026 you receive your 500 USDT stake back plus $50,000 USDT reward — a total of $50,500 USDT credited to your account."
+    q: "Is the loan really interest-free?",
+    a: "Yes — 0% interest for the full 1-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
+  },
+  {
+    q: "Can I withdraw or trade with the loan funds?",
+    a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 1-year period."
   },
   {
     q: "What documents are required for KYC?",
@@ -44,15 +48,11 @@ const FAQS = [
   },
   {
     q: "How long does KYC verification take?",
-    a: "KYC verification typically takes 24-48 hours. You'll receive an email notification when your status is updated. Incomplete submissions may require re-upload."
+    a: "KYC verification typically takes 24-48 hours. You'll receive an email notification when your status is updated."
   },
   {
-    q: "When does the campaign end?",
-    a: "The staking campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis based on KYC completion and stake activation date."
-  },
-  {
-    q: "Can I trade with my account balance?",
-    a: "Yes! Once your reward is credited on December 31st, 2026, you can use the USDT to trade any available spot pairs or withdraw to your external wallet."
+    q: "When does the New Year Campaign end?",
+    a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours."
   },
 ];
 
@@ -131,15 +131,15 @@ export default function LandingPage() {
 
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
-              Stake 500 USDT
+              Get{" "}
+              <span className="gradient-text">$50,000 USDT</span>
               <br />
-              Earn <span className="gradient-text">$50,000 USDT</span>
-              <br />
-              New Year Reward
+              Interest-Free Loan
             </h1>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              First <strong className="text-white">1,000 users</strong> who stake 500 USDT
-              after completing KYC receive a <strong className="text-ex-green">$50,000 USDT New Year reward</strong> on December 31st, 2026.
+              First <strong className="text-white">1,000 users</strong> who stake 500 USDT after KYC receive a{" "}
+              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 1 year —
+              trade freely or withdraw anytime.
             </p>
 
             {/* CTAs */}
@@ -157,10 +157,10 @@ export default function LandingPage() {
             {/* Stats row */}
             <div className="flex flex-wrap justify-center gap-6 mb-12">
               {[
-                { label: "Stake Amount",  value: "500 USDT",     color: "text-ex-yellow" },
-                { label: "Reward",        value: "$50,000 USDT", color: "text-ex-green" },
-                { label: "Spots Left",    value: spotsLeft.toString(), color: "text-ex-red" },
-                { label: "Deadline",      value: "Dec 31, 2026", color: "text-white" },
+                { label: "Loan Amount",   value: "$50,000 USDT", color: "text-ex-green" },
+                { label: "Interest Rate", value: "0%",           color: "text-ex-yellow" },
+                { label: "Loan Term",     value: "1 Year",       color: "text-white" },
+                { label: "Stake Required",value: "500 USDT",     color: "text-ex-red" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <div className={`text-2xl font-black font-num ${s.color}`}>{s.value}</div>
@@ -244,7 +244,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black mb-3">How It Works</h2>
-            <p className="text-gray-400">4 simple steps to earn your $50,000 USDT reward</p>
+            <p className="text-gray-400">4 simple steps to get your $50,000 USDT interest-free loan</p>
           </div>
           <div className="relative">
             {/* Connecting line */}
@@ -338,11 +338,11 @@ export default function LandingPage() {
               <Award className="w-8 h-8 text-ex-yellow" />
             </div>
             <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Earn <span className="gradient-text">$50,000 USDT</span>
+              Claim Your <span className="gradient-text">$50,000 USDT</span>
             </h2>
             <p className="text-gray-400 mb-6 text-lg">
               Only <strong className="text-white">{spotsLeft} spots</strong> remaining.
-              Stake 500 USDT after KYC before December 31st, 2026 to claim your reward.
+              Complete KYC + stake 500 USDT before December 31st, 2026 to unlock your 1-year interest-free loan.
             </p>
             <Link href="/register"
               className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-10 py-4 rounded-xl text-xl hover:bg-yellow-400 transition-all glow-yellow">
