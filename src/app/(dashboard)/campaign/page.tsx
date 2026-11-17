@@ -70,7 +70,7 @@ export default function CampaignPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Staking failed"); return; }
-      toast.success("🎉 500 USDT staked! You are now eligible for the $50,000 reward.");
+      toast.success("🎉 500 USDT staked! You are now eligible for the $50,000 interest-free loan.");
       await hydrate();
     } catch {
       toast.error("Network error");
@@ -80,7 +80,7 @@ export default function CampaignPage() {
   };
 
   const handleUnstake = async () => {
-    if (!confirm("Are you sure? Unstaking forfeits your $50,000 reward eligibility. Your 500 USDT will be returned.")) return;
+    if (!confirm("Are you sure? Unstaking forfeits your $50,000 loan eligibility. Your 500 USDT will be returned.")) return;
     setLoading(true);
     try {
       const res  = await fetch("/api/campaign", {
@@ -105,10 +105,10 @@ export default function CampaignPage() {
         <div className="bg-ex-card border border-ex-border rounded-2xl p-8 text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-3xl font-black mb-2 text-ex-yellow">Congratulations!</h2>
-          <p className="text-gray-400 mb-6">Your $50,000 USDT reward has been credited to your wallet.</p>
+          <p className="text-gray-400 mb-6">Your $50,000 USDT interest-free loan has been disbursed to your wallet.</p>
           <div className="bg-ex-green/10 border border-ex-green/30 rounded-xl p-5 mb-6">
             <div className="text-4xl font-black text-ex-green font-num">+50,000 USDT</div>
-            <div className="text-sm text-gray-400 mt-1">New Year Campaign Reward</div>
+            <div className="text-sm text-gray-400 mt-1">New Year Loan — Disbursed (0% Interest, 1 Year)</div>
           </div>
           <Link href="/wallet" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
             <Wallet className="w-4 h-4" /> View Wallet
@@ -127,8 +127,8 @@ export default function CampaignPage() {
             🎊 New Year Campaign 2026
           </span>
         </div>
-        <h1 className="text-3xl font-black mb-1">Stake & Win $50,000 USDT</h1>
-        <p className="text-gray-400">Stake 500 USDT and earn a $50,000 reward on December 31st, 2026</p>
+        <h1 className="text-3xl font-black mb-1">Get $50,000 USDT Interest-Free Loan</h1>
+        <p className="text-gray-400">Stake 500 USDT and receive a $50,000 USDT interest-free loan — trade freely or withdraw anytime</p>
       </div>
 
       {/* Countdown */}
@@ -158,7 +158,7 @@ export default function CampaignPage() {
             { n: 1, done: kycApproved,                    label: "Complete KYC verification",     sub: "Identity verified — full access unlocked" },
             { n: 2, done: usdtAvailable + usdtLocked >= 500, label: "Deposit 500+ USDT to your wallet", sub: `Your USDT TRC20 address is on the Wallet page` },
             { n: 3, done: isStaked || isRewarded,         label: "Stake 500 USDT in campaign",   sub: "Locked until Dec 31, 2026 for maximum reward" },
-            { n: 4, done: isRewarded,                     label: "Collect $50,000 USDT reward",  sub: "Automatically credited on December 31, 2026" },
+            { n: 4, done: isRewarded,                     label: "Loan Disbursed to Your Wallet", sub: "Interest-free — trade freely or withdraw anytime" },
           ].map(s => (
             <div key={s.n} className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
               s.done ? "bg-ex-green/5 border-ex-green/20" : "bg-ex-card2 border-ex-border"
@@ -197,23 +197,23 @@ export default function CampaignPage() {
             <div className="bg-ex-green/10 border border-ex-green/30 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Lock className="w-4 h-4 text-ex-green" />
-                <span className="font-semibold text-ex-green">Active Stake — Reward Eligible</span>
+                <span className="font-semibold text-ex-green">Active Stake — Loan Eligible</span>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
                 <div><span className="text-gray-500">Staked</span><div className="font-bold font-num">{stakeAmount} USDT</div></div>
-                <div><span className="text-gray-500">Potential Reward</span><div className="font-bold font-num text-ex-yellow">50,000 USDT</div></div>
+                <div><span className="text-gray-500">Loan Amount</span><div className="font-bold font-num text-ex-yellow">50,000 USDT</div></div>
                 <div><span className="text-gray-500">Status</span><div className="font-bold text-ex-green">Staking Active ✓</div></div>
-                <div><span className="text-gray-500">Reward Date</span><div className="font-bold">Dec 31, 2026</div></div>
+                <div><span className="text-gray-500">Interest Rate</span><div className="font-bold">0% (1 Year)</div></div>
               </div>
             </div>
 
             <button onClick={handleUnstake} disabled={loading}
               className="w-full py-3 bg-ex-card2 border border-ex-border rounded-xl text-sm font-semibold text-gray-300 hover:text-ex-red hover:border-ex-red/30 transition-colors flex items-center justify-center gap-2">
               <Unlock className="w-4 h-4" />
-              {loading ? "Processing..." : "Unstake & Withdraw (Forfeit Reward)"}
+              {loading ? "Processing..." : "Unstake & Withdraw (Forfeit Loan)"}
             </button>
             <p className="text-xs text-gray-500 text-center">
-              ⚠️ Unstaking returns your 500 USDT but permanently forfeits the $50,000 reward
+              ⚠️ Unstaking returns your 500 USDT but permanently forfeits the $50,000 loan eligibility
             </p>
           </div>
         ) : isUnstaked ? (
@@ -246,10 +246,10 @@ export default function CampaignPage() {
               disabled={loading || !kycApproved || !hasEnough}
               className="btn-primary w-full py-4 text-base font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
               <Lock className="w-5 h-5" />
-              {loading ? "Staking..." : "Stake 500 USDT → Earn $50,000"}
+              {loading ? "Staking..." : "Stake 500 USDT → Get $50,000 Loan"}
             </button>
             <p className="text-xs text-gray-500 text-center">
-              500 USDT locked until Dec 31, 2026. Reward credited automatically.
+              500 USDT locked until Dec 31, 2026. Loan disbursed after stake activation.
             </p>
           </div>
         )}
@@ -258,18 +258,19 @@ export default function CampaignPage() {
       {/* Campaign details */}
       <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
         <h2 className="font-bold mb-4 flex items-center gap-2">
-          <Gift className="w-4 h-4 text-ex-yellow" /> Campaign Details
+          <Gift className="w-4 h-4 text-ex-yellow" /> Loan Details
         </h2>
         <div className="space-y-3 text-sm text-gray-300">
           {[
-            ["Stake Amount", "500 USDT (minimum)"],
-            ["Reward", "$50,000 USDT"],
-            ["Return on Stake", "100x (10,000%)"],
-            ["Campaign End", "December 31, 2026 — 23:59 UTC"],
+            ["Stake Required", "500 USDT (locked for campaign duration)"],
+            ["Loan Amount", "$50,000 USDT (interest-free)"],
+            ["Interest Rate", "0% — no interest, no fees"],
+            ["Loan Term", "1 Year (from disbursement)"],
+            ["Campaign Deadline", "December 31, 2026 — 23:59 UTC"],
             ["Network", "USDT TRC20 (TRON)"],
             ["Eligibility", "KYC approved + 500 USDT staked"],
-            ["Reward Distribution", "December 31, 2026 (auto-credited)"],
-            ["Early Withdrawal", "Allowed anytime (forfeits reward)"],
+            ["Loan Disbursement", "Within 24h of staking approval"],
+            ["Early Exit", "Allowed anytime (forfeits loan)"],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between py-2 border-b border-ex-border/50 last:border-0">
               <span className="text-gray-500">{k}</span>

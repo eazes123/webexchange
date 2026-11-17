@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   const handle2FA = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp !== "123456") { toast.error("Invalid code — demo code is 123456"); return; }
+    if (otp !== "123456") { toast.error("Invalid verification code. Please check your email."); return; }
     setLoading(true);
     await hydrate();
     setLoading(false);

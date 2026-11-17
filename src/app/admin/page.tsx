@@ -243,7 +243,7 @@ export default function AdminPage() {
                 { label: "KYC Approved",  value: kycApproved.length,  icon: Shield,      color: "text-ex-green" },
                 { label: "KYC Pending",   value: kycPending.length,   icon: Clock,       color: "text-ex-yellow" },
                 { label: "Staked",        value: staked.length,       icon: Lock,        color: "text-ex-green" },
-                { label: "Rewarded",      value: rewarded.length,     icon: Trophy,      color: "text-ex-yellow" },
+                { label: "Loans Disbursed", value: rewarded.length,     icon: Trophy,      color: "text-ex-yellow" },
               ].map((s, i) => (
                 <div key={i} className="bg-ex-card border border-ex-border rounded-2xl p-4">
                   <s.icon className={`w-6 h-6 ${s.color} mb-2`} />
@@ -262,11 +262,11 @@ export default function AdminPage() {
                     <span className="font-semibold">{staked.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Already Rewarded</span>
+                    <span className="text-gray-500">Loans Disbursed</span>
                     <span className="font-semibold text-ex-yellow">{rewarded.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total Reward Pool</span>
+                    <span className="text-gray-500">Total Loan Pool</span>
                     <span className="font-semibold font-num text-ex-green">
                       {((staked.length + rewarded.length) * 50_000).toLocaleString()} USDT
                     </span>
@@ -281,7 +281,7 @@ export default function AdminPage() {
                   disabled={staked.length === 0 || !!actionLoading}
                   className="mt-4 btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-40">
                   {actionLoading?.startsWith("distribute_all") ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
-                  Distribute All Rewards ({staked.length} users)
+                  Disburse All Loans ({staked.length} users)
                 </button>
               </div>
 
@@ -470,7 +470,7 @@ export default function AdminPage() {
                 disabled={staked.length === 0 || !!actionLoading}
                 className="flex items-center gap-2 px-4 py-2 bg-ex-yellow text-black text-sm font-bold rounded-xl hover:bg-yellow-400 transition-colors disabled:opacity-40">
                 {actionLoading?.startsWith("distribute_all") ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
-                Distribute All Rewards
+                Disburse All Loans
               </button>
             </div>
 
@@ -512,7 +512,7 @@ export default function AdminPage() {
                               {actionLoading === "distribute_reward" + u.id
                                 ? <RefreshCw className="w-3 h-3 animate-spin" />
                                 : <Gift className="w-3 h-3" />}
-                              Reward
+                              Disburse Loan
                             </button>
                           )}
                           {u.stakeStatus === "rewarded" && (

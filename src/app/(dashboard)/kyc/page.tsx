@@ -163,7 +163,7 @@ export default function KycPage() {
             { label: "Verified On", value: new Date().toLocaleDateString() },
             { label: "ID Type",     value: "Government ID" },
             { label: "Queue #",     value: `#${demoUser.queuePosition}` },
-            { label: "Campaign",    value: "New Year Staking — Active" },
+            { label: "Campaign",    value: "New Year Loan — Active" },
           ].map(r => (
             <div key={r.label} className="bg-ex-card border border-ex-border rounded-xl p-3">
               <div className="text-xs text-gray-500">{r.label}</div>
