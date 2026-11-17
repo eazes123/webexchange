@@ -158,7 +158,7 @@ export default function CampaignPage() {
             { n: 1, done: kycApproved,                    label: "Complete KYC verification",     sub: "Identity verified — full access unlocked" },
             { n: 2, done: usdtAvailable + usdtLocked >= 500, label: "Deposit 500+ USDT to your wallet", sub: `Your USDT TRC20 address is on the Wallet page` },
             { n: 3, done: isStaked || isRewarded,         label: "Stake 500 USDT in campaign",   sub: "Locked until Dec 31, 2026 for maximum reward" },
-            { n: 4, done: isRewarded,                     label: "Loan Disbursed to Your Wallet", sub: "Interest-free — trade freely or withdraw anytime" },
+            { n: 4, done: isRewarded,                     label: "Loan Disbursed to Your Wallet", sub: "Credited December 31, 2026 — trade freely or withdraw anytime" },
           ].map(s => (
             <div key={s.n} className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
               s.done ? "bg-ex-green/5 border-ex-green/20" : "bg-ex-card2 border-ex-border"
@@ -249,7 +249,7 @@ export default function CampaignPage() {
               {loading ? "Staking..." : "Stake 500 USDT → Get $50,000 Loan"}
             </button>
             <p className="text-xs text-gray-500 text-center">
-              500 USDT locked until Dec 31, 2026. Loan disbursed after stake activation.
+              500 USDT locked until Dec 31, 2026. Loan credited on December 31, 2026.
             </p>
           </div>
         )}
@@ -269,7 +269,7 @@ export default function CampaignPage() {
             ["Campaign Deadline", "December 31, 2026 — 23:59 UTC"],
             ["Network", "USDT TRC20 (TRON)"],
             ["Eligibility", "KYC approved + 500 USDT staked"],
-            ["Loan Disbursement", "Within 24h of staking approval"],
+            ["Loan Disbursement", "December 31, 2026 (campaign end)"],
             ["Early Exit", "Allowed anytime (forfeits loan)"],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between py-2 border-b border-ex-border/50 last:border-0">
