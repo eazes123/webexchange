@@ -330,9 +330,7 @@ export default function KycPage() {
                     }`} onClick={() => document.getElementById("selfie")?.click()}>
                       <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                       <p className="text-sm text-gray-400">
-                        {formData.selfie && cameraMode !== "captured"
-                          ? `✅ ${formData.selfie.name}`
-                          : "Upload a photo from your device"}
+                        {formData.selfie ? `✅ ${formData.selfie.name}` : "Upload a photo from your device"}
                       </p>
                       <p className="text-xs text-gray-600 mt-1">JPG, PNG up to 5MB</p>
                       <input id="selfie" type="file" className="hidden" accept=".jpg,.jpeg,.png"
