@@ -330,6 +330,20 @@ export async function unstakeFromCampaign(userId: string, stakeAmount: number): 
   });
 }
 
+export async function getCampaignStats(): Promise<{ totalParticipants: number; totalStaked: number }> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("users")
+      .select("stake_amount")
+      .in("stake_status", ["active", "rewarded"]);
+    const rows = data ?? [];
+    return {
+      totalParticipants: rows.length,
+      totalStaked: rows.reduce((s, r) => s + (r.stake_amount ?? 0), 0),
+    };
+  } catch { return { totalParticipants: 0, totalStaked: 0 }; }
+}
+
 export async function distributeReward(userId: string, stakeAmount: number): Promise<void> {
   const reward = 50_000;
   // Return stake + credit reward

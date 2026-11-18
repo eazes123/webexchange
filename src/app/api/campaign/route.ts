@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getSessionUser, getUserWallet,
   stakeForCampaign, unstakeFromCampaign, distributeReward,
-  getSetting,
+  getSetting, getCampaignStats,
 } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
 
@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
   const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const wallets = await getUserWallet(user.id);
+  const [wallets, stats] = await Promise.all([
+    getUserWallet(user.id),
+    getCampaignStats(),
+  ]);
   const usdt    = wallets.find((w) => w.symbol === "USDT");
   const campaignActive = (await getSetting("campaign_active")) === "true";
   const deadline = new Date("2026-12-31T23:59:59");
@@ -32,6 +35,10 @@ export async function GET(request: NextRequest) {
     deadline:           deadline.toISOString(),
     campaignActive,
     kycApproved:        user.kycStatus === "approved",
+    totalParticipants:  stats.totalParticipants,
+    totalStaked:        stats.totalStaked,
+    spotsLeft:          Math.max(0, 1000 - stats.totalParticipants),
+    queuePosition:      user.queuePosition,
   });
 }
 
