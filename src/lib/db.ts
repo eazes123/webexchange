@@ -292,7 +292,8 @@ export async function upsertKyc(kyc: Omit<DbKyc, "submittedAt">): Promise<void> 
 }
 
 export async function updateKycStatus(userId: string, status: string): Promise<void> {
-  await supabaseAdmin.from("kyc_submissions").update({ status }).eq("user_id", userId);
+  const { error } = await supabaseAdmin.from("kyc_submissions").update({ status }).eq("user_id", userId);
+  if (error) throw new Error(`updateKycStatus failed: ${error.message}`);
 }
 
 export interface AdminKycSubmission extends DbKyc {

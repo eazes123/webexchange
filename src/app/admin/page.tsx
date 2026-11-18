@@ -28,20 +28,31 @@ interface AdminUser {
   createdAt: string;
 }
 
-interface KycSubmission {
+interface KycPendingUser {
   userId: string;
   fullName: string;
-  dob: string;
-  address: string;
-  idType: string;
-  idNumber: string;
+  email: string;
+  country: string;
+  kycStatus: string;
+  createdAt: string;
+  kycDetail: {
+    fullName: string;
+    dob: string;
+    nationality: string;
+    idType: string;
+    address: string;
+    submittedAt: string;
+  } | null;
+}
+
+interface KycCompleted {
+  userId: string;
+  fullName: string;
+  email: string;
   nationality: string;
+  idType: string;
   status: string;
   submittedAt: string;
-  userFullName: string;
-  userEmail: string;
-  userCountry: string;
-  userKycStatus: string;
 }
 
 interface WithdrawalRequest {
@@ -185,7 +196,8 @@ export default function AdminPage() {
   // Data state
   const [stats, setStats]           = useState<AdminStats | null>(null);
   const [users, setUsers]           = useState<AdminUser[]>([]);
-  const [kycList, setKycList]       = useState<KycSubmission[]>([]);
+  const [kycPendingList, setKycPendingList] = useState<KycPendingUser[]>([]);
+  const [kycCompletedList, setKycCompletedList] = useState<KycCompleted[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
   const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
@@ -228,7 +240,11 @@ export default function AdminPage() {
     setLoadingKyc(true);
     try {
       const r = await fetch("/api/admin/kyc");
-      if (r.ok) { const d = await r.json(); setKycList(d.submissions ?? []); }
+      if (r.ok) {
+        const d = await r.json();
+        setKycPendingList(d.pending ?? []);
+        setKycCompletedList(d.completed ?? []);
+      }
     } finally { setLoadingKyc(false); }
   }, []);
 
@@ -278,7 +294,7 @@ export default function AdminPage() {
 
   // Lazy load per tab
   useEffect(() => {
-    if (tab === "kyc" && kycList.length === 0)       fetchKyc();
+    if (tab === "kyc" && kycPendingList.length === 0 && kycCompletedList.length === 0) fetchKyc();
     if (tab === "campaign" && !campaign)             fetchCampaign();
     if (tab === "transactions" && transactions.length === 0) fetchTransactions();
   }, [tab]);
@@ -370,13 +386,11 @@ export default function AdminPage() {
   };
 
   // ── Derived / Filtered ─────────────────────────────────────────────────────
-  const kycPending  = kycList.filter(k => k.status === "under_review");
-  const kycDone     = kycList.filter(k => k.status !== "under_review");
   const filteredKyc = kycSearch
-    ? kycPending.filter(k =>
-        k.userFullName.toLowerCase().includes(kycSearch.toLowerCase()) ||
-        k.userEmail.toLowerCase().includes(kycSearch.toLowerCase()))
-    : kycPending;
+    ? kycPendingList.filter(k =>
+        k.fullName.toLowerCase().includes(kycSearch.toLowerCase()) ||
+        k.email.toLowerCase().includes(kycSearch.toLowerCase()))
+    : kycPendingList;
 
   const filteredUsers = users.filter(u => {
     const matchSearch = !search ||
@@ -404,7 +418,7 @@ export default function AdminPage() {
   const TABS: { id: TabType; label: string; icon: any; badge?: number }[] = [
     { id: "overview",     label: "Overview",     icon: LayoutDashboard },
     { id: "users",        label: "Users",        icon: Users,         badge: users.length },
-    { id: "kyc",          label: "KYC Review",   icon: Shield,        badge: kycPending.length },
+    { id: "kyc",          label: "KYC Review",   icon: Shield,        badge: kycPendingList.length },
     { id: "campaign",     label: "Campaign",     icon: Trophy,        badge: campaign?.stats.activeStakers },
     { id: "withdrawals",  label: "Withdrawals",  icon: ArrowUpRight,  badge: pendingWdCount },
     { id: "transactions", label: "Transactions", icon: Activity },
@@ -688,8 +702,8 @@ export default function AdminPage() {
                 <h2 className="font-bold flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-ex-yellow" />
                   Pending Review
-                  {kycPending.length > 0 && (
-                    <span className="bg-ex-yellow text-black text-xs font-black px-2 py-0.5 rounded-full">{kycPending.length}</span>
+                  {kycPendingList.length > 0 && (
+                    <span className="bg-ex-yellow text-black text-xs font-black px-2 py-0.5 rounded-full">{kycPendingList.length}</span>
                   )}
                 </h2>
                 <div className="relative">
@@ -723,15 +737,15 @@ export default function AdminPage() {
                       {filteredKyc.map(k => (
                         <tr key={k.userId}>
                           <td>
-                            <div className="font-semibold text-sm">{k.userFullName || k.fullName}</div>
-                            <div className="text-xs text-gray-500">{k.userEmail}</div>
-                            <div className="text-xs text-gray-600 mt-0.5">{k.userCountry}</div>
+                            <div className="font-semibold text-sm">{k.fullName}</div>
+                            <div className="text-xs text-gray-500">{k.email}</div>
+                            <div className="text-xs text-gray-600 mt-0.5">{k.country}</div>
                           </td>
-                          <td className="text-gray-300 text-sm hidden sm:table-cell">{k.nationality || "-"}</td>
-                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.dob || "-"}</td>
-                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.idType || "-"}</td>
+                          <td className="text-gray-300 text-sm hidden sm:table-cell">{k.kycDetail?.nationality || "-"}</td>
+                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.kycDetail?.dob || "-"}</td>
+                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.kycDetail?.idType || "-"}</td>
                           <td className="text-gray-400 text-xs hidden lg:table-cell">
-                            {k.submittedAt ? new Date(k.submittedAt).toLocaleDateString() : "-"}
+                            {k.kycDetail?.submittedAt ? new Date(k.kycDetail.submittedAt).toLocaleDateString() : "-"}
                           </td>
                           <td>
                             <div className="flex items-center justify-center gap-2">
@@ -764,10 +778,10 @@ export default function AdminPage() {
             </div>
 
             {/* Completed section */}
-            {kycDone.length > 0 && (
+            {kycCompletedList.length > 0 && (
               <div>
                 <h3 className="font-semibold text-gray-400 text-sm mb-3">
-                  Completed ({kycDone.length})
+                  Completed ({kycCompletedList.length})
                 </h3>
                 <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
                   <table className="w-full exchange-table">
@@ -781,11 +795,11 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {kycDone.map(k => (
+                      {kycCompletedList.map(k => (
                         <tr key={k.userId}>
                           <td>
-                            <div className="font-semibold text-sm">{k.userFullName || k.fullName}</div>
-                            <div className="text-xs text-gray-500">{k.userEmail}</div>
+                            <div className="font-semibold text-sm">{k.fullName}</div>
+                            <div className="text-xs text-gray-500">{k.email}</div>
                           </td>
                           <td className="text-gray-400 text-sm hidden sm:table-cell">{k.nationality || "-"}</td>
                           <td className="text-gray-400 text-xs hidden md:table-cell">{k.idType || "-"}</td>

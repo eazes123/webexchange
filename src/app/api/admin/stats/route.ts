@@ -23,9 +23,12 @@ export async function GET(request: NextRequest) {
   const activeStakers = users.filter(u => u.stakeStatus === "active").length;
   const rewarded      = users.filter(u => u.stakeStatus === "rewarded").length;
   const pendingWd     = withdrawals.filter(w => w.status === "pending").length;
-  const totalStaked   = users.reduce((s, u) => s + (u.stakeAmount ?? 0), 0);
-  const avgStake      = activeStakers > 0
-    ? totalStaked / (activeStakers + rewarded)
+  const totalParticipants = activeStakers + rewarded;
+  const totalStaked   = users
+    .filter(u => u.stakeStatus === "active" || u.stakeStatus === "rewarded")
+    .reduce((s, u) => s + (u.stakeAmount ?? 0), 0);
+  const avgStake      = totalParticipants > 0
+    ? totalStaked / totalParticipants
     : 0;
 
   return NextResponse.json({
