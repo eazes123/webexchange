@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, updateKycStatus, updateWalletBalance, createTransaction } from "@/lib/db";
+import { requireAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminSession(request);
+  if (auth instanceof NextResponse) return auth;
+
   const { userId, action } = await request.json();
   if (!userId || !action) {
     return NextResponse.json({ error: "userId and action required" }, { status: 400 });
