@@ -630,7 +630,7 @@ export default function TradePage() {
     <div className="bg-[#0b0e1a] min-h-screen">
 
       {/* ── Top bar ── */}
-      <div className="relative z-[50] border-b border-[#2d3548] px-4 py-2 flex items-center gap-6 overflow-x-auto">
+      <div className="relative z-[50] border-b border-[#2d3548] px-4 py-2 flex items-center gap-6">
 
         {/* Mode tabs */}
         <div className="flex gap-0.5 bg-[#111827] rounded-lg p-0.5 flex-shrink-0">
