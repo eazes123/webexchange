@@ -598,6 +598,16 @@ export default function TradePage() {
   const [pairSearch, setPairSearch] = useState("");
   const [showPairs, setShowPairs]   = useState(false);
 
+  const { fetchLivePrices } = useStore();
+
+  // Fetch live prices immediately on mount, then every 15s
+  useEffect(() => {
+    fetchLivePrices();
+    const id = setInterval(() => fetchLivePrices(), 15_000);
+    return () => clearInterval(id);
+  }, [fetchLivePrices]);
+
+  // Small fluctuations between API refreshes
   useEffect(() => {
     const id = setInterval(() => updatePrices(), 3000);
     return () => clearInterval(id);
