@@ -195,7 +195,11 @@ async function callGemini(
     }
   );
 
-  if (!res.ok) return "I'm having trouble right now. Please try again in a moment.";
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    console.error(`Gemini API error ${res.status}:`, errBody);
+    return "I'm having trouble right now. Please try again in a moment.";
+  }
   const data = await res.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
     "Sorry, I couldn't generate a response. Please try again.";

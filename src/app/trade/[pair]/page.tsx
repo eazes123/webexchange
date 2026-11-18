@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowUpDown, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
+import { ArrowUpDown, TrendingUp, TrendingDown, ChevronDown, Clock } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { COINS } from "@/lib/mock-data";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
@@ -74,7 +74,24 @@ export default function TradePage() {
   const iframeUrl = `https://s.tradingview.com/widgetembed/?frameid=tradingview_chart&symbol=${tvSymbol}&interval=60&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en&utm_source=demo&utm_medium=widget&utm_campaign=chart`;
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-4">
+    <div className="relative max-w-[1400px] mx-auto px-4 py-4">
+
+      {/* Coming Soon overlay */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0b0e1a]/80 backdrop-blur-sm rounded-xl" style={{ minHeight: "60vh" }}>
+        <div className="text-center px-6">
+          <div className="w-16 h-16 rounded-2xl bg-[#f0b90b]/10 border border-[#f0b90b]/30 flex items-center justify-center mx-auto mb-5">
+            <Clock className="w-8 h-8 text-[#f0b90b]" />
+          </div>
+          <h2 className="text-3xl font-black text-white mb-3">Coming Soon</h2>
+          <p className="text-gray-400 text-sm max-w-xs mx-auto leading-relaxed">
+            Trading is currently under development. Complete your KYC and staking to be ready when it launches.
+          </p>
+          <Link href="/dashboard" className="inline-block mt-6 px-6 py-2.5 bg-[#f0b90b] text-black text-sm font-bold rounded-lg hover:bg-[#f0b90b]/90 transition-colors">
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-4 flex-wrap">
         <div className="flex items-center gap-3">
