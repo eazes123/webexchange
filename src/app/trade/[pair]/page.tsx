@@ -11,6 +11,53 @@ import { useStore } from "@/lib/store";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
 import { toast } from "sonner";
 
+// ── TradingView JS widget (more reliable than widgetembed iframe) ───────────────
+function TradingViewWidget({ symbol }: { symbol: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.innerHTML = "";
+
+    const widgetId = "tv_widget_" + symbol.replace(/[^a-z0-9]/gi, "");
+    const widgetDiv = document.createElement("div");
+    widgetDiv.id = widgetId;
+    widgetDiv.style.cssText = "width:100%;height:100%";
+    container.appendChild(widgetDiv);
+
+    const init = () => {
+      new (window as any).TradingView.widget({
+        autosize: true, symbol, interval: "60",
+        timezone: "Etc/UTC", theme: "dark", style: "1", locale: "en",
+        toolbar_bg: "#0b0e1a", enable_publishing: false,
+        allow_symbol_change: false, hide_side_toolbar: false,
+        container_id: widgetId,
+      });
+    };
+
+    if ((window as any).TradingView) {
+      init();
+    } else {
+      const existing = document.getElementById("tv-script");
+      if (existing) {
+        existing.addEventListener("load", init);
+      } else {
+        const s = document.createElement("script");
+        s.id = "tv-script";
+        s.src = "https://s3.tradingview.com/tv.js";
+        s.async = true;
+        s.onload = init;
+        document.head.appendChild(s);
+      }
+    }
+
+    return () => { container.innerHTML = ""; };
+  }, [symbol]);
+
+  return <div ref={containerRef} className="w-full h-full" />;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function rand(min: number, max: number) { return Math.random() * (max - min) + min; }
 function fmtVol(n: number) {
@@ -623,8 +670,7 @@ export default function TradePage() {
   const fundingRate = 0.0001;
   const nextFunding = "02:14:33";
 
-  const tvSymbol  = `BINANCE:${base}USDT`;
-  const iframeUrl = `https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=60&theme=dark&style=1&locale=en&timezone=Etc%2FUTC&hide_side_toolbar=0&allow_symbol_change=0`;
+  const tvSymbol = `BINANCE:${base}USDT`;
 
   return (
     <div className="bg-[#0b0e1a] min-h-screen">
@@ -761,10 +807,7 @@ export default function TradePage() {
 
         {/* Center col: chart */}
         <div className="h-[300px] sm:h-[400px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
-          <iframe src={iframeUrl}
-            className="w-full h-full border-none"
-            style={{ visibility: showPairs ? "hidden" : "visible" }}
-            title={`${base} Chart`} allow="clipboard-write" />
+          <TradingViewWidget symbol={tvSymbol} />
         </div>
 
         {/* Right col: order form */}
