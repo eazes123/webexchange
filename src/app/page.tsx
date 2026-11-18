@@ -60,7 +60,10 @@ export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [spotsLeft, setSpotsLeft] = useState(CAMPAIGN_STATS.spotsRemaining);
+  const [spotsUsed, setSpotsUsed] = useState(CAMPAIGN_STATS.spotsUsed);
   const { coins, updatePrices } = useStore();
+
+  const BASE_OFFSET = 15;
 
   useEffect(() => {
     const deadline = new Date("2026-12-31T23:59:59");
@@ -83,6 +86,17 @@ export default function LandingPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, [updatePrices]);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then(r => r.json())
+      .then(d => {
+        const taken = (d.stakedCount ?? 0) + BASE_OFFSET;
+        setSpotsUsed(taken);
+        setSpotsLeft(Math.max(10, CAMPAIGN_STATS.totalSpots - taken));
+      })
+      .catch(() => {});
+  }, [BASE_OFFSET]);
 
   // Simulate spot count slowly decreasing
   useEffect(() => {
@@ -197,13 +211,13 @@ export default function LandingPage() {
             {/* Progress bar */}
             <div className="mt-5">
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>{CAMPAIGN_STATS.spotsUsed} registered</span>
+                <span>{spotsUsed} registered</span>
                 <span>{spotsLeft} spots left</span>
               </div>
               <div className="h-2.5 bg-ex-card2 rounded-full overflow-hidden border border-ex-border">
                 <div
                   className="h-full bg-gradient-to-r from-ex-yellow to-orange-400 rounded-full transition-all duration-1000"
-                  style={{ width: `${(CAMPAIGN_STATS.spotsUsed / CAMPAIGN_STATS.totalSpots) * 100}%` }}
+                  style={{ width: `${(spotsUsed / CAMPAIGN_STATS.totalSpots) * 100}%` }}
                 />
               </div>
             </div>

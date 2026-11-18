@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw, CheckCircle } from "lucide-react";
@@ -18,6 +18,14 @@ export default function RegisterPage() {
   const [loading, setLoading]     = useState(false);
   const [showPw, setShowPw]       = useState(false);
   const [otp, setOtp]             = useState("");
+  const [spotsLeft, setSpotsLeft] = useState(985);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then(r => r.json())
+      .then(d => setSpotsLeft(Math.max(10, 1000 - (d.stakedCount ?? 0) - 15)))
+      .catch(() => {});
+  }, []);
 
   const [form, setForm] = useState({
     fullName:        "",
@@ -112,7 +120,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow text-sm px-3 py-1.5 rounded-full mb-4">
-            <Zap className="w-4 h-4" /> Limited: {985} spots remaining
+            <Zap className="w-4 h-4" /> Limited: {spotsLeft} spots remaining
           </div>
           <h1 className="text-3xl font-black">Create Account</h1>
           <p className="text-gray-400 mt-1">Join the $50,000 USDT loan campaign</p>

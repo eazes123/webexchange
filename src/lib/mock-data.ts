@@ -195,12 +195,12 @@ export const COINS: Coin[] = [
 
 export const CAMPAIGN_STATS = {
   totalSpots: 1000,
-  spotsUsed: 847,
-  spotsRemaining: 153,
+  spotsUsed: 15,        // initial offset — updated live from /api/stats
+  spotsRemaining: 985,  // initial display value before fetch
   deadline: new Date("2026-12-31T23:59:59"),
   stakeAmount: 500,
   rewardAmount: 50_000,
-  campaignNote: "Stake 500 USDT and earn $50,000 USDT reward on December 31, 2026.",
+  campaignNote: "Stake 500 USDT and get a $50,000 USDT interest-free loan on December 31, 2026.",
 };
 
 export const MOCK_USER = {
