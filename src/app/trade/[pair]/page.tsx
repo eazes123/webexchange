@@ -1,4 +1,5 @@
 "use client";
+import { createChart, CandlestickSeries, ColorType } from "lightweight-charts";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -11,51 +12,86 @@ import { useStore } from "@/lib/store";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
 import { toast } from "sonner";
 
-// ── TradingView JS widget (more reliable than widgetembed iframe) ───────────────
-function TradingViewWidget({ symbol }: { symbol: string }) {
+// ── Lightweight candle chart — Binance klines, ~40KB, no external loading ──────
+const IV_LABELS = ["1m","5m","15m","1h","4h","1d"] as const;
+type IV = typeof IV_LABELS[number];
+
+function CandleChart({ base }: { base: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef     = useRef<ReturnType<typeof createChart> | null>(null);
+  const seriesRef    = useRef<any>(null);
+  const wsRef        = useRef<WebSocket | null>(null);
+  const [iv, setIv]  = useState<IV>("1h");
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.innerHTML = "";
+    const el = containerRef.current;
+    if (!el) return;
 
-    const widgetId = "tv_widget_" + symbol.replace(/[^a-z0-9]/gi, "");
-    const widgetDiv = document.createElement("div");
-    widgetDiv.id = widgetId;
-    widgetDiv.style.cssText = "width:100%;height:100%";
-    container.appendChild(widgetDiv);
+    // Build chart
+    const chart = createChart(el, {
+      layout: { background: { type: ColorType.Solid, color: "#0b0e1a" }, textColor: "#9ca3af" },
+      grid:   { vertLines: { color: "#1a2035" }, horzLines: { color: "#1a2035" } },
+      crosshair: { mode: 1 },
+      rightPriceScale: { borderColor: "#2d3548" },
+      timeScale: { borderColor: "#2d3548", timeVisible: true, secondsVisible: false },
+      width: el.clientWidth, height: el.clientHeight,
+    });
+    chartRef.current = chart;
 
-    const init = () => {
-      new (window as any).TradingView.widget({
-        autosize: true, symbol, interval: "60",
-        timezone: "Etc/UTC", theme: "dark", style: "1", locale: "en",
-        toolbar_bg: "#0b0e1a", enable_publishing: false,
-        allow_symbol_change: false, hide_side_toolbar: false,
-        container_id: widgetId,
+    const series = chart.addSeries(CandlestickSeries, {
+      upColor: "#0ecb81", downColor: "#f6465d",
+      borderVisible: false,
+      wickUpColor: "#0ecb81", wickDownColor: "#f6465d",
+    });
+    seriesRef.current = series;
+
+    // Resize
+    const ro = new ResizeObserver(() => {
+      chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+    });
+    ro.observe(el);
+
+    // Fetch historical klines from Binance
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${base}USDT&interval=${iv}&limit=500`)
+      .then(r => r.json())
+      .then((data: any[]) => {
+        series.setData(data.map(k => ({
+          time: Math.floor(k[0] / 1000) as any,
+          open: parseFloat(k[1]), high: parseFloat(k[2]),
+          low:  parseFloat(k[3]), close: parseFloat(k[4]),
+        })));
+        chart.timeScale().fitContent();
+      })
+      .catch(() => {});
+
+    // WebSocket for live candle updates
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${base.toLowerCase()}usdt@kline_${iv}`);
+    wsRef.current = ws;
+    ws.onmessage = (e) => {
+      const { k } = JSON.parse(e.data);
+      series.update({
+        time: Math.floor(k.t / 1000) as any,
+        open: parseFloat(k.o), high: parseFloat(k.h),
+        low:  parseFloat(k.l), close: parseFloat(k.c),
       });
     };
 
-    if ((window as any).TradingView) {
-      init();
-    } else {
-      const existing = document.getElementById("tv-script");
-      if (existing) {
-        existing.addEventListener("load", init);
-      } else {
-        const s = document.createElement("script");
-        s.id = "tv-script";
-        s.src = "https://s3.tradingview.com/tv.js";
-        s.async = true;
-        s.onload = init;
-        document.head.appendChild(s);
-      }
-    }
+    return () => { ws.close(); ro.disconnect(); chart.remove(); };
+  }, [base, iv]);
 
-    return () => { container.innerHTML = ""; };
-  }, [symbol]);
-
-  return <div ref={containerRef} className="w-full h-full" />;
+  return (
+    <div className="flex flex-col h-full bg-[#0b0e1a]">
+      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-[#2d3548] flex-shrink-0">
+        {IV_LABELS.map(i => (
+          <button key={i} onClick={() => setIv(i)}
+            className={`px-2.5 py-1 text-xs rounded font-semibold transition-colors ${
+              iv === i ? "bg-[#f0b90b] text-black" : "text-gray-500 hover:text-gray-300"
+            }`}>{i}</button>
+        ))}
+      </div>
+      <div ref={containerRef} className="flex-1 min-h-0" />
+    </div>
+  );
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -670,7 +706,6 @@ export default function TradePage() {
   const fundingRate = 0.0001;
   const nextFunding = "02:14:33";
 
-  const tvSymbol = `BINANCE:${base}USDT`;
 
   return (
     <div className="bg-[#0b0e1a] min-h-screen">
@@ -806,8 +841,8 @@ export default function TradePage() {
         </div>
 
         {/* Center col: chart */}
-        <div className="h-[300px] sm:h-[400px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
-          <TradingViewWidget symbol={tvSymbol} />
+        <div className="h-[320px] sm:h-[420px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
+          <CandleChart base={base} />
         </div>
 
         {/* Right col: order form */}
