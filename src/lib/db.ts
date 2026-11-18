@@ -202,7 +202,8 @@ export async function updateUser(userId: string, fields: Partial<{
   if (fields.stakeStatus !== undefined)                row.stake_status = fields.stakeStatus;
   if (Object.prototype.hasOwnProperty.call(fields, "stakedAt")) row.staked_at = fields.stakedAt;
   if (fields.rewardDistributed !== undefined)          row.reward_distributed = fields.rewardDistributed;
-  await supabaseAdmin.from("users").update(row).eq("id", userId);
+  const { error } = await supabaseAdmin.from("users").update(row).eq("id", userId);
+  if (error) throw new Error(`updateUser failed: ${error.message}`);
 }
 
 export async function countUsers(): Promise<number> {
@@ -292,6 +293,46 @@ export async function upsertKyc(kyc: Omit<DbKyc, "submittedAt">): Promise<void> 
 
 export async function updateKycStatus(userId: string, status: string): Promise<void> {
   await supabaseAdmin.from("kyc_submissions").update({ status }).eq("user_id", userId);
+}
+
+export interface AdminKycSubmission extends DbKyc {
+  userFullName: string;
+  userEmail: string;
+  userCountry: string;
+  userKycStatus: string;
+}
+
+export async function getAllKycSubmissions(): Promise<AdminKycSubmission[]> {
+  const { data } = await supabaseAdmin
+    .from("kyc_submissions")
+    .select("*, users!inner(full_name, email, country, kyc_status)")
+    .order("submitted_at", { ascending: false });
+  return (data ?? []).map(r => ({
+    ...rowToKyc(r),
+    userId: r.user_id,
+    userFullName: r.users?.full_name ?? "",
+    userEmail: r.users?.email ?? "",
+    userCountry: r.users?.country ?? "",
+    userKycStatus: r.users?.kyc_status ?? "none",
+  }));
+}
+
+export interface AdminTransaction extends DbTransaction {
+  userFullName: string;
+  userEmail: string;
+}
+
+export async function getAllTransactions(limit = 200): Promise<AdminTransaction[]> {
+  const { data } = await supabaseAdmin
+    .from("transactions")
+    .select("*, users!inner(full_name, email)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []).map(r => ({
+    ...rowToTx(r),
+    userFullName: r.users?.full_name ?? "",
+    userEmail: r.users?.email ?? "",
+  }));
 }
 
 // ── Deposit helpers ────────────────────────────────────────────────────────────
