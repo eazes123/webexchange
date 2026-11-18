@@ -5,7 +5,7 @@ import {
   Users, Shield, Gift, Search, Check, X,
   TrendingUp, Clock, CheckCircle, XCircle,
   LayoutDashboard, ArrowUpRight, RefreshCw,
-  Lock, Wallet, AlertTriangle, Power, Trophy
+  Lock, Wallet, Power, Trophy
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,7 +64,6 @@ export default function AdminPage() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
   const [loading, setLoading]   = useState(true);
-  const [isAdmin, setIsAdmin]   = useState<boolean | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [exchangeWallet, setExchangeWallet] = useState<string | null>(null);
 
@@ -72,12 +71,8 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/users");
-      if (res.status === 401 || res.status === 403) {
-        setIsAdmin(false);
-        return;
-      }
+      if (!res.ok) return;
       const { users: data } = await res.json();
-      setIsAdmin(true);
       setUsers(data ?? []);
     } catch {
       toast.error("Failed to load users");
@@ -200,19 +195,6 @@ export default function AdminPage() {
     { id: "campaign",    label: "Campaign",    icon: Trophy,      badge: staked.length },
     { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight, badge: pendingWd.length },
   ];
-
-  if (isAdmin === false) {
-    return (
-      <div className="min-h-screen bg-ex-bg flex items-center justify-center px-4">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-ex-red mx-auto mb-4" />
-          <h1 className="text-2xl font-black mb-2">Access Denied</h1>
-          <p className="text-gray-400 mb-6">You do not have admin privileges.</p>
-          <Link href="/dashboard" className="btn-primary px-6 py-2.5 text-sm">Go to Dashboard</Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-ex-bg">
