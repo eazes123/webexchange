@@ -319,6 +319,7 @@ export default function AdminPage() {
       toast.success(data.message);
       await fetchKyc();
       await fetchStats();
+      await fetchUsers();
     } catch { toast.error("Action failed"); }
     finally { setActionLoading(null); }
   };
