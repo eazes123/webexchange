@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 <h2 className="font-bold">Loan Disbursed! 🎉</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely. 0% interest for 1 year.
+                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely. 0% interest for 10 years.
               </p>
               <div className="space-y-2">
                 <Link href="/wallet" className="btn-primary w-full py-2.5 text-sm text-center block">
@@ -345,7 +345,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Interest Rate</span>
-              <span className="font-semibold text-ex-green">0% (1 Year)</span>
+              <span className="font-semibold text-ex-green">0% (10 Years)</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Deadline</span>

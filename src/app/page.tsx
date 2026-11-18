@@ -17,7 +17,7 @@ const STEPS = [
   { icon: Users,      title: "Create Account",   desc: "Register with your email and basic details to get your unique deposit address." },
   { icon: Shield,     title: "Complete KYC",     desc: "Submit your ID, selfie, and proof of address for full identity verification." },
   { icon: Lock,       title: "Stake 500 USDT",   desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
-  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 1-year interest-free loan. Withdraw or trade freely." },
+  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 10-year interest-free loan. Withdraw or trade freely." },
 ];
 
 const FEATURES = [
@@ -25,7 +25,7 @@ const FEATURES = [
   { icon: Zap,     title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
   { icon: Globe,   title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
   { icon: Lock,    title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
-  { icon: Award,   title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 1-year interest-free loan." },
+  { icon: Award,   title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 10-year interest-free loan." },
   { icon: Users,   title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
 ];
 
@@ -36,11 +36,11 @@ const FAQS = [
   },
   {
     q: "Is the loan really interest-free?",
-    a: "Yes, 0% interest for the full 1-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
+    a: "Yes, 0% interest for the full 10-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
   },
   {
     q: "Can I withdraw or trade with the loan funds?",
-    a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 1-year period."
+    a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 10-year period."
   },
   {
     q: "What documents are required for KYC?",
@@ -152,7 +152,7 @@ export default function LandingPage() {
             </h1>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
               First <strong className="text-white">1,000 users</strong> who stake 500 USDT after KYC receive a{" "}
-              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 1 year.
+              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 10 years.
               Trade freely or withdraw anytime.
             </p>
 
@@ -173,7 +173,7 @@ export default function LandingPage() {
               {[
                 { label: "Loan Amount",   value: "$50,000 USDT", color: "text-ex-green" },
                 { label: "Interest Rate", value: "0%",           color: "text-ex-yellow" },
-                { label: "Loan Term",     value: "1 Year",       color: "text-white" },
+                { label: "Loan Term",     value: "10 Years",     color: "text-white" },
                 { label: "Stake Required",value: "500 USDT",     color: "text-ex-red" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
@@ -356,7 +356,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-gray-400 mb-6 text-lg">
               Only <strong className="text-white">{spotsLeft} spots</strong> remaining.
-              Complete KYC + stake 500 USDT before December 31st, 2026 to unlock your 1-year interest-free loan.
+              Complete KYC + stake 500 USDT before December 31st, 2026 to unlock your 10-year interest-free loan.
             </p>
             <Link href="/register"
               className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-10 py-4 rounded-xl text-xl hover:bg-yellow-400 transition-all glow-yellow">

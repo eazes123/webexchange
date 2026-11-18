@@ -188,7 +188,7 @@ export default function CampaignPage() {
           <p className="text-gray-400 mb-6 text-sm">Your interest-free loan has been credited to your wallet.</p>
           <div className="bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-2xl p-6 mb-6">
             <div className="text-4xl font-black text-[#0ecb81] font-mono">+50,000 USDT</div>
-            <div className="text-sm text-gray-400 mt-1">Interest-free · 1 Year · No repayment required</div>
+            <div className="text-sm text-gray-400 mt-1">Interest-free · 10 Years · Monthly installments apply</div>
           </div>
           <Link href="/wallet"
             className="inline-flex items-center gap-2 bg-[#f0b90b] hover:bg-[#f0b90b]/90 text-black font-bold px-6 py-3 rounded-xl transition-colors">
@@ -274,7 +274,7 @@ export default function CampaignPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatTile icon={Users}     label="Participants"    value={totalParticipants.toLocaleString()}  sub="Staked & active"          color="text-white" />
         <StatTile icon={Trophy}    label="Loan Reward"     value="$50,000"      sub="Per eligible user"        color="text-[#f0b90b]" />
-        <StatTile icon={Shield}    label="Interest Rate"   value="0%"           sub="Zero interest, 1 year"    color="text-[#0ecb81]" />
+        <StatTile icon={Shield}    label="Interest Rate"   value="0%"           sub="Zero interest, 10 years"  color="text-[#0ecb81]" />
         <StatTile icon={Calendar}  label="Disbursement"    value="Dec 31"       sub="2026, 23:59 UTC"          color="text-white" />
       </div>
 
@@ -327,7 +327,7 @@ export default function CampaignPage() {
                 { label: "Staked",        val: `${stakeAmount} USDT`,    color: "text-white" },
                 { label: "Loan Amount",   val: "50,000 USDT",             color: "text-[#f0b90b]" },
                 { label: "Status",        val: "Active ✓",                color: "text-[#0ecb81]" },
-                { label: "Interest",      val: "0% (1 Year)",             color: "text-white" },
+                { label: "Interest",      val: "0% (10 Years)",           color: "text-white" },
               ].map(({ label, val, color }) => (
                 <div key={label} className="bg-[#0b0e1a] border border-[#2d3548] rounded-xl p-3">
                   <div className="text-[11px] text-gray-500 font-semibold mb-1">{label}</div>
@@ -412,7 +412,7 @@ export default function CampaignPage() {
                 <span className="text-gray-500">You receive on Dec 31</span>
                 <span className="font-black font-mono text-[#f0b90b] text-lg">50,000 USDT</span>
               </div>
-              <div className="text-[11px] text-gray-600 text-right mt-0.5">Interest-free · 1 Year · No repayment required</div>
+              <div className="text-[11px] text-gray-600 text-right mt-0.5">Interest-free · 10 Years · Monthly installments apply</div>
             </div>
 
             <button onClick={handleStake}
@@ -494,7 +494,7 @@ export default function CampaignPage() {
           {
             icon: Shield,
             title: "Zero Interest",
-            desc: "No interest, no hidden fees. The $50,000 loan is completely free for the first year.",
+            desc: "No interest, no hidden fees. The $50,000 loan is completely free for 10 years.",
             color: "text-[#2196f3]",
             bg: "bg-[#2196f3]/5 border-[#2196f3]/15",
           },
@@ -520,7 +520,7 @@ export default function CampaignPage() {
             ["Maximum Stake",        "50,000 USDT"],
             ["Loan Amount",          "$50,000 USDT (fixed for all users)"],
             ["Interest Rate",        "0% — no interest, no hidden fees"],
-            ["Loan Term",            "1 Year from disbursement"],
+            ["Loan Term",            "10 Years from disbursement"],
             ["Disbursement Date",    "December 31, 2026 at 23:59 UTC"],
             ["Network",              "USDT TRC20 (TRON only)"],
             ["KYC Required",         "Yes — approved before Dec 31"],

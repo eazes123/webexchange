@@ -330,6 +330,18 @@ export async function unstakeFromCampaign(userId: string, stakeAmount: number): 
   });
 }
 
+export async function getLoanRepaymentTotal(userId: string): Promise<number> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("transactions")
+      .select("amount")
+      .eq("user_id", userId)
+      .eq("type", "loan_repayment")
+      .eq("status", "completed");
+    return (data ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0);
+  } catch { return 0; }
+}
+
 export async function getCampaignStats(): Promise<{ totalParticipants: number; totalStaked: number }> {
   try {
     const { data } = await supabaseAdmin

@@ -58,7 +58,8 @@ NovaBit Exchange is a crypto platform running a limited-time staking campaign. U
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Every user who stakes (min 500 USDT) and passes KYC receives exactly 50,000 USDT.
 - Disbursement date: December 31, 2026.
-- The loan is interest-free. No repayment required during the campaign period.
+- The loan is interest-free (0%) over 10 years. Monthly installments apply after disbursement.
+- Monthly installment = $50,000 / 120 months = $416.67 USDT/month. Users pay from their wallet on the Loan Repayment page.
 - After disbursement, users can withdraw this 50,000 USDT to any external TRON wallet.
 - Withdrawal of the loan amount goes through the same withdrawal process (see section 6).
 
