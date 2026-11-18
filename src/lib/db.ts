@@ -377,21 +377,66 @@ export async function getUserWithdrawalRequests(userId: string): Promise<DbWithd
   return (data ?? []).map(rowToWithdrawal);
 }
 
+export async function getWithdrawalById(id: string): Promise<DbWithdrawalRequest | null> {
+  const { data } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", id).single();
+  return data ? rowToWithdrawal(data) : null;
+}
+
 export async function approveWithdrawal(id: string): Promise<void> {
   const { data } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", id).single();
   if (!data || data.status !== "pending") throw new Error("Not found or already processed");
   await supabaseAdmin.from("withdrawal_requests").update({
     status: "approved", processed_at: new Date().toISOString(),
   }).eq("id", id);
-  // Deduct the locked amount (already deducted from available on request creation)
   await updateWalletBalance(data.user_id, data.asset, { locked: -Number(data.amount) });
-  // Update the pending transaction to completed
   await supabaseAdmin.from("transactions")
     .update({ status: "completed" })
     .eq("user_id", data.user_id)
     .eq("type", "withdrawal")
     .eq("amount", data.amount)
     .eq("status", "pending");
+}
+
+// Two-step USDT auto-send flow:
+// 1. processWithdrawal  — mark as "processing" before sending on-chain
+// 2. finalizeWithdrawal — deduct balance + set approved + store txHash
+// 3. failWithdrawal     — reset to pending so admin can retry
+
+export async function processWithdrawal(id: string): Promise<DbWithdrawalRequest> {
+  const { data, error } = await supabaseAdmin.from("withdrawal_requests")
+    .update({ status: "processing" })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("*")
+    .single();
+  if (error || !data) throw new Error("Withdrawal not found or already processing");
+  return rowToWithdrawal(data);
+}
+
+export async function finalizeWithdrawal(id: string, txHash: string): Promise<void> {
+  const { data } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", id).single();
+  if (!data) throw new Error("Withdrawal not found");
+  await supabaseAdmin.from("withdrawal_requests").update({
+    status: "approved", processed_at: new Date().toISOString(),
+  }).eq("id", id);
+  await updateWalletBalance(data.user_id, data.asset, { locked: -Number(data.amount) });
+  await supabaseAdmin.from("transactions")
+    .update({
+      status: "completed",
+      tx_hash: txHash,
+      description: `${data.asset} Withdrawal: Sent on-chain`,
+    })
+    .eq("user_id", data.user_id)
+    .eq("type", "withdrawal")
+    .eq("asset", data.asset)
+    .eq("status", "pending");
+}
+
+export async function failWithdrawal(id: string, errorMsg: string): Promise<void> {
+  await supabaseAdmin.from("withdrawal_requests").update({
+    status: "pending",
+    admin_note: `Auto-send failed: ${errorMsg.slice(0, 300)}`,
+  }).eq("id", id);
 }
 
 export async function rejectWithdrawal(id: string, adminNote?: string): Promise<void> {

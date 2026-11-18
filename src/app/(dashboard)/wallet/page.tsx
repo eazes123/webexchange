@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Wallet, ArrowDownLeft, ArrowUpRight, Copy, CheckCircle,
   X, Clock, TrendingUp, Eye, EyeOff, RefreshCw, Shield,
   Info, ArrowRightLeft, Loader2, ExternalLink, AlertTriangle,
-  Lock
+  Lock, Zap, Radio
 } from "lucide-react";
 import { useStore, type Transaction } from "@/lib/store";
 import { COINS, WITHDRAWAL_FEES } from "@/lib/mock-data";
@@ -14,6 +14,8 @@ import { toast } from "sonner";
 type ModalType = "deposit" | "withdraw" | null;
 
 const ASSETS = ["USDT", "BTC", "ETH", "BNB", "SOL", "XRP"];
+const TRON_SCAN = "https://tronscan.org/#/transaction";
+const POLL_INTERVAL_MS = 30_000; // auto-check every 30 seconds
 
 const COIN_PRICES: Record<string, number> = Object.fromEntries(
   COINS.map(c => [c.symbol, c.price])
@@ -21,8 +23,22 @@ const COIN_PRICES: Record<string, number> = Object.fromEntries(
 COIN_PRICES["USDT"] = 1;
 COIN_PRICES["USDC"] = 1;
 
+interface IncomingDeposit {
+  txHash: string;
+  amount: number;
+  timestamp: number;
+  confirmed: boolean;
+}
+
 function getUsdValue(symbol: string, amount: number, livePrices: Record<string, number>): number {
   return amount * (livePrices[symbol] ?? COIN_PRICES[symbol] ?? 0);
+}
+
+function timeAgo(ms: number): string {
+  const diff = Math.floor((Date.now() - ms) / 1000);
+  if (diff < 60)  return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
 }
 
 function TxIcon({ type }: { type: string }) {
@@ -56,7 +72,7 @@ function StatusChip({ status }: { status: string }) {
 }
 
 export default function WalletPage() {
-  const { walletBalances, transactions, withdraw, coins, demoUser } = useStore();
+  const { walletBalances, transactions, withdraw, coins, demoUser, hydrate } = useStore();
   const [modal, setModal]               = useState<ModalType>(null);
   const [selectedAsset, setSelectedAsset] = useState("USDT");
   const [copied, setCopied]             = useState(false);
@@ -65,6 +81,10 @@ export default function WalletPage() {
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
+  const [lastChecked, setLastChecked]   = useState<number | null>(null);
+  const [incoming, setIncoming]         = useState<IncomingDeposit[]>([]);
+  const [, setTick]                     = useState(0); // force re-render for timeAgo
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const livePrices: Record<string, number> = { USDT: 1, USDC: 1 };
   coins.forEach(c => { livePrices[c.symbol] = c.price; });
@@ -77,6 +97,58 @@ export default function WalletPage() {
 
   const depositAddress = demoUser.depositAddress;
 
+  // Auto-refresh "X seconds ago" every 10s
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 10_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Fetch incoming (unconfirmed + uncredited confirmed) deposits for display
+  const fetchIncoming = useCallback(async () => {
+    try {
+      const res = await fetch("/api/wallet/incoming");
+      if (!res.ok) return;
+      const { pending = [], unprocessed = [] } = await res.json();
+      const all: IncomingDeposit[] = [
+        ...pending.map((t: any) => ({ ...t, confirmed: false })),
+        ...unprocessed.map((t: any) => ({ ...t, confirmed: true })),
+      ];
+      setIncoming(all);
+    } catch {}
+  }, []);
+
+  // Poll confirmed deposits and auto-credit
+  const runDepositCheck = useCallback(async (silent = true) => {
+    if (!depositAddress) return;
+    if (!silent) setCheckingDeposit(true);
+    try {
+      const res  = await fetch("/api/wallet/check-deposit", { method: "POST" });
+      const data = await res.json();
+      setLastChecked(Date.now());
+      if (data.credited > 0) {
+        toast.success(`${data.credited} USDT deposited to your wallet!`);
+        await hydrate(); // refresh balances without full page reload
+      }
+      await fetchIncoming();
+    } catch {
+      if (!silent) toast.error("Failed to check deposits");
+    } finally {
+      if (!silent) setCheckingDeposit(false);
+    }
+  }, [depositAddress, hydrate, fetchIncoming]);
+
+  // Start auto-polling when page loads
+  useEffect(() => {
+    if (!depositAddress) return;
+    // Initial check on mount
+    runDepositCheck(true);
+    // Poll every 30s
+    intervalRef.current = setInterval(() => runDepositCheck(true), POLL_INTERVAL_MS);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [depositAddress, runDepositCheck]);
+
   const handleCopyAddress = () => {
     if (!depositAddress) return;
     navigator.clipboard.writeText(depositAddress);
@@ -84,23 +156,7 @@ export default function WalletPage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleCheckDeposit = async () => {
-    setCheckingDeposit(true);
-    try {
-      const res  = await fetch("/api/wallet/check-deposit", { method: "POST" });
-      const data = await res.json();
-      if (data.credited > 0) {
-        toast.success(`${data.credited} USDT credited to your wallet!`);
-        window.location.reload();
-      } else {
-        toast.info("No new deposits found");
-      }
-    } catch {
-      toast.error("Failed to check deposits");
-    } finally {
-      setCheckingDeposit(false);
-    }
-  };
+  const handleManualCheck = () => runDepositCheck(false);
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,10 +221,19 @@ export default function WalletPage() {
 
       {/* USDT Deposit Address card */}
       <div className="bg-ex-card border border-ex-border rounded-2xl p-5 mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="w-4 h-4 text-ex-blue" />
-          <h2 className="font-bold">Your USDT Deposit Address</h2>
-          <span className="text-xs bg-ex-blue/10 text-ex-blue border border-ex-blue/30 px-2 py-0.5 rounded-full font-semibold">TRC20</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-ex-blue" />
+            <h2 className="font-bold">Your USDT Deposit Address</h2>
+            <span className="text-xs bg-ex-blue/10 text-ex-blue border border-ex-blue/30 px-2 py-0.5 rounded-full font-semibold">TRC20</span>
+          </div>
+          {/* Live polling indicator */}
+          <div className="flex items-center gap-1.5 text-xs text-ex-green">
+            <span className="w-2 h-2 rounded-full bg-ex-green animate-pulse" />
+            <span className="hidden sm:inline">
+              {lastChecked ? `Checked ${timeAgo(lastChecked)}` : "Starting..."}
+            </span>
+          </div>
         </div>
 
         {depositAddress ? (
@@ -176,16 +241,49 @@ export default function WalletPage() {
             <div className="font-mono text-sm text-gray-200 break-all bg-ex-bg rounded-xl p-4 mb-3 select-all border border-ex-border">
               {depositAddress}
             </div>
+
+            {/* Incoming deposits section */}
+            {incoming.length > 0 && (
+              <div className="mb-3 space-y-2">
+                {incoming.map((tx) => (
+                  <div key={tx.txHash}
+                    className={`flex items-center justify-between p-3 rounded-xl border text-xs ${
+                      tx.confirmed
+                        ? "bg-ex-yellow/10 border-ex-yellow/30"
+                        : "bg-ex-blue/10 border-ex-blue/30"
+                    }`}>
+                    <div className="flex items-center gap-2">
+                      {tx.confirmed
+                        ? <Zap className="w-3.5 h-3.5 text-ex-yellow" />
+                        : <Radio className="w-3.5 h-3.5 text-ex-blue animate-pulse" />}
+                      <div>
+                        <div className={`font-semibold ${tx.confirmed ? "text-ex-yellow" : "text-ex-blue"}`}>
+                          {tx.confirmed ? "Deposit detected" : "Incoming on network"}
+                        </div>
+                        <div className="text-gray-400 font-mono">{tx.txHash.slice(0, 20)}…</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold font-num text-ex-green">+{tx.amount} USDT</div>
+                      <div className={`mt-0.5 font-semibold ${tx.confirmed ? "text-ex-yellow" : "text-ex-blue"}`}>
+                        {tx.confirmed ? "Crediting..." : "Confirming..."}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center gap-3 flex-wrap">
               <button onClick={handleCopyAddress}
                 className="flex items-center gap-2 text-sm text-ex-yellow hover:text-yellow-400 transition-colors font-semibold">
                 {copied ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Address</>}
               </button>
-              <button onClick={handleCheckDeposit} disabled={checkingDeposit}
+              <button onClick={handleManualCheck} disabled={checkingDeposit}
                 className="flex items-center gap-2 text-sm text-ex-blue hover:text-blue-400 transition-colors font-semibold disabled:opacity-50">
                 {checkingDeposit
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</>
-                  : <><RefreshCw className="w-4 h-4" /> Check for Deposits</>}
+                  : <><RefreshCw className="w-4 h-4" /> Check Now</>}
               </button>
             </div>
             <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
@@ -195,6 +293,7 @@ export default function WalletPage() {
                 { label: "Min Deposit", value: "1 USDT" },
                 { label: "Confirmations", value: "20 blocks" },
                 { label: "Credit Time", value: "~1-5 min" },
+                { label: "Auto-detect", value: "Every 30s" },
               ].map(r => (
                 <div key={r.label} className="bg-ex-card2 border border-ex-border rounded-xl p-2.5">
                   <div className="text-gray-500">{r.label}</div>
@@ -203,7 +302,7 @@ export default function WalletPage() {
               ))}
             </div>
             <div className="mt-3 bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow">
-              ⚠️ Only send USDT (TRC20) to this address. Sending other assets or networks may result in permanent loss.
+              Only send USDT (TRC20) to this address. Sending other assets or networks may result in permanent loss.
             </div>
           </>
         ) : (
@@ -292,10 +391,17 @@ export default function WalletPage() {
                 <TxIcon type={tx.type} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm truncate">{tx.desc}</div>
-                  <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                  <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
                     <span>{tx.date}</span>
                     {tx.txHash && (
-                      <span className="font-mono text-gray-600 truncate max-w-[120px]">{tx.txHash.slice(0, 16)}…</span>
+                      <a
+                        href={`${TRON_SCAN}/${tx.txHash}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="font-mono text-ex-blue hover:underline flex items-center gap-0.5 truncate max-w-[140px]"
+                        onClick={e => e.stopPropagation()}>
+                        {tx.txHash.slice(0, 16)}…
+                        <ExternalLink className="w-3 h-3 inline" />
+                      </a>
                     )}
                   </div>
                 </div>
@@ -332,9 +438,15 @@ export default function WalletPage() {
             {selectedAsset === "USDT" ? (
               <>
                 <div className="bg-ex-card2 border border-ex-border rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="w-4 h-4 text-ex-blue" />
-                    <span className="text-sm font-semibold">Network: TRON (TRC20)</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-ex-blue" />
+                      <span className="text-sm font-semibold">Network: TRON (TRC20)</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-ex-green">
+                      <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />
+                      Auto-detecting
+                    </div>
                   </div>
                   <div className="text-xs text-gray-500 mb-2">Your Unique Deposit Address</div>
                   <div className="font-mono text-sm text-gray-200 break-all mb-3 bg-ex-bg rounded-lg p-3 select-all">
@@ -347,15 +459,34 @@ export default function WalletPage() {
                     </button>
                   )}
                 </div>
+                {incoming.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {incoming.map(tx => (
+                      <div key={tx.txHash}
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs ${
+                          tx.confirmed ? "bg-ex-yellow/10 border-ex-yellow/30" : "bg-ex-blue/10 border-ex-blue/30"
+                        }`}>
+                        <div className="flex items-center gap-2">
+                          {tx.confirmed
+                            ? <Zap className="w-3.5 h-3.5 text-ex-yellow" />
+                            : <Radio className="w-3.5 h-3.5 text-ex-blue animate-pulse" />}
+                          <span className={tx.confirmed ? "text-ex-yellow font-semibold" : "text-ex-blue font-semibold"}>
+                            {tx.confirmed ? "Deposit detected" : "Incoming on network"}
+                          </span>
+                        </div>
+                        <span className="font-semibold font-num text-ex-green">+{tx.amount} USDT</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow mb-4">
-                  ⚠️ Only send USDT (TRC20) to this address. Other assets will be lost permanently.
+                  Only send USDT (TRC20) to this address. Other assets will be lost permanently.
                 </div>
-                <button onClick={handleCheckDeposit} disabled={checkingDeposit}
-                  className="btn-primary w-full py-3 flex items-center justify-center gap-2">
-                  {checkingDeposit
-                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Checking blockchain...</>
-                    : <><RefreshCw className="w-4 h-4" /> Check for New Deposits</>}
-                </button>
+                <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />
+                  Automatically checking every 30 seconds
+                  {lastChecked && <span>· last {timeAgo(lastChecked)}</span>}
+                </div>
               </>
             ) : (
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-5 text-center">
@@ -391,10 +522,17 @@ export default function WalletPage() {
               ))}
             </div>
 
-            <div className="bg-ex-blue/10 border border-ex-blue/30 rounded-xl p-3 text-xs text-ex-blue mb-4">
-              <Clock className="w-3.5 h-3.5 inline mr-1" />
-              Withdrawals require admin approval. Processing time: 24-48 hours.
-            </div>
+            {selectedAsset === "USDT" ? (
+              <div className="bg-ex-green/10 border border-ex-green/30 rounded-xl p-3 text-xs text-ex-green mb-4 flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5" />
+                USDT withdrawals are sent automatically on-chain after admin approval.
+              </div>
+            ) : (
+              <div className="bg-ex-blue/10 border border-ex-blue/30 rounded-xl p-3 text-xs text-ex-blue mb-4">
+                <Clock className="w-3.5 h-3.5 inline mr-1" />
+                Withdrawals require admin approval. Processing time: 24-48 hours.
+              </div>
+            )}
 
             <form onSubmit={handleWithdraw} className="space-y-4">
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-3 flex justify-between items-center">
@@ -437,7 +575,7 @@ export default function WalletPage() {
                 </div>
               )}
               <button type="submit" className="btn-primary w-full py-3" disabled={withdrawLoading}>
-                {withdrawLoading ? "Submitting..." : `Request Withdrawal →`}
+                {withdrawLoading ? "Submitting..." : `Request Withdrawal`}
               </button>
             </form>
           </div>

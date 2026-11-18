@@ -66,6 +66,7 @@ export default function AdminPage() {
   const [loading, setLoading]   = useState(true);
   const [isAdmin, setIsAdmin]   = useState<boolean | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [exchangeWallet, setExchangeWallet] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -94,7 +95,16 @@ export default function AdminPage() {
     } catch {}
   }, []);
 
-  useEffect(() => { fetchUsers(); fetchWithdrawals(); }, [fetchUsers, fetchWithdrawals]);
+  useEffect(() => {
+    fetchUsers();
+    fetchWithdrawals();
+    // Load exchange wallet address for admin reference
+    fetch("/api/admin/withdrawals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_exchange_wallet" }),
+    }).then(r => r.json()).then(d => { if (d.exchangeWalletAddress) setExchangeWallet(d.exchangeWalletAddress); }).catch(() => {});
+  }, [fetchUsers, fetchWithdrawals]);
 
   const kycAction = async (userId: string, action: "approve" | "reject") => {
     setActionLoading(userId + action);
@@ -303,6 +313,18 @@ export default function AdminPage() {
                   Disburse All Loans ({staked.length} users)
                 </button>
               </div>
+
+              {exchangeWallet && (
+                <div className="bg-ex-card border border-ex-border rounded-2xl p-5 md:col-span-2">
+                  <h3 className="font-bold mb-2 flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-ex-green" /> Exchange Hot Wallet (USDT auto-send)
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">Fund this address with USDT + TRX (for gas) to enable automatic withdrawal processing.</p>
+                  <div className="font-mono text-xs text-gray-200 break-all bg-ex-bg rounded-xl p-3 select-all border border-ex-border">
+                    {exchangeWallet}
+                  </div>
+                </div>
+              )}
 
               <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
                 <h3 className="font-bold mb-3">Withdrawal Settings</h3>

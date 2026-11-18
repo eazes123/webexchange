@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getWithdrawalRequests, approveWithdrawal, rejectWithdrawal,
-  getAllUsers, distributeReward, getUserById, getSetting, setSetting,
+  getWithdrawalById, getWithdrawalRequests,
+  processWithdrawal, finalizeWithdrawal, failWithdrawal, approveWithdrawal,
+  rejectWithdrawal, getAllUsers, distributeReward, getUserById,
+  getSetting, setSetting,
 } from "@/lib/db";
+import { getExchangeWallet, sendUsdt } from "@/lib/tron";
 import { requireAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -29,14 +32,57 @@ export async function POST(request: NextRequest) {
 
   if (action === "approve") {
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const withdrawal = await getWithdrawalById(id);
+    if (!withdrawal) return NextResponse.json({ error: "Withdrawal not found" }, { status: 404 });
+
+    if (withdrawal.asset === "USDT") {
+      // Auto-send on-chain via exchange hot wallet
+      const mnemonic = process.env.TRON_MASTER_MNEMONIC;
+      if (!mnemonic) {
+        return NextResponse.json({ error: "TRON_MASTER_MNEMONIC not configured" }, { status: 500 });
+      }
+
+      const { address: fromAddress, privateKey } = getExchangeWallet(mnemonic);
+      const sendAmount = withdrawal.amount - withdrawal.fee;
+
+      // Mark as processing before attempting blockchain send
+      await processWithdrawal(id);
+
+      try {
+        const txHash = await sendUsdt(privateKey, fromAddress, withdrawal.destinationAddress, sendAmount);
+        await finalizeWithdrawal(id, txHash);
+        return NextResponse.json({
+          success: true,
+          message: `${sendAmount} USDT sent on-chain`,
+          txHash,
+        });
+      } catch (err: any) {
+        // Reset to pending so admin can retry or handle manually
+        await failWithdrawal(id, err.message);
+        return NextResponse.json(
+          { error: `On-chain send failed: ${err.message}. Withdrawal reset to pending — fund the exchange wallet and retry.` },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Non-USDT: manual approve (no auto-send)
     await approveWithdrawal(id);
-    return NextResponse.json({ success: true, message: "Withdrawal approved" });
+    return NextResponse.json({ success: true, message: `${withdrawal.asset} withdrawal approved (send manually from exchange wallet)` });
   }
 
   if (action === "reject") {
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
     await rejectWithdrawal(id, adminNote);
     return NextResponse.json({ success: true, message: "Withdrawal rejected" });
+  }
+
+  if (action === "get_exchange_wallet") {
+    const mnemonic = process.env.TRON_MASTER_MNEMONIC;
+    if (!mnemonic) return NextResponse.json({ error: "TRON_MASTER_MNEMONIC not configured" }, { status: 500 });
+    const { address } = getExchangeWallet(mnemonic);
+    return NextResponse.json({ exchangeWalletAddress: address });
   }
 
   if (action === "distribute_reward") {
