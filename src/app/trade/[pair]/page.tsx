@@ -5,56 +5,212 @@ import { useParams, useRouter } from "next/navigation";
 import {
   TrendingUp, TrendingDown, ChevronDown, Search, Info,
   BarChart2, Clock, List, Settings2, ArrowUpDown, Zap,
-  RefreshCw, ChevronUp, AlertCircle,
+  RefreshCw, ChevronUp, AlertCircle, Trash2,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
 import { toast } from "sonner";
 
-// ── TradingView Advanced Chart (full tools, indicators, drawing tools) ──────────
-function TradingViewWidget({ symbol }: { symbol: string }) {
+// ── KlineCharts — fast professional chart, bundled, with drawing tools ─────────
+const KSTYLES = {
+  grid: {
+    horizontal: { color: "#1a2035", style: "dashed" as const, dashedValue: [2, 2] },
+    vertical:   { show: false },
+  },
+  candle: {
+    bar: {
+      upColor: "#0ecb81",   downColor: "#f6465d",   noChangeColor: "#888",
+      upBorderColor: "#0ecb81", downBorderColor: "#f6465d",
+      upWickColor: "#0ecb81",   downWickColor: "#f6465d",
+    },
+    priceMark: {
+      last: {
+        upColor: "#0ecb81", downColor: "#f6465d",
+        line: { show: true, style: "dashed" as const, dashedValue: [4, 4] },
+        text: {
+          upBackgroundColor: "#0ecb81", downBackgroundColor: "#f6465d",
+          color: "#fff", upColor: "#fff", downColor: "#fff",
+        },
+      },
+    },
+  },
+  indicator: {
+    lines: [
+      { color: "#f0b90b" }, { color: "#2196F3" },
+      { color: "#E91E63" }, { color: "#00BCD4" }, { color: "#9C27B0" },
+    ],
+    bars: [{ upColor: "rgba(14,203,129,.7)", downColor: "rgba(246,70,93,.7)", noChangeColor: "#888" }],
+    circles: [{ upColor: "rgba(14,203,129,.7)", downColor: "rgba(246,70,93,.7)", noChangeColor: "#888" }],
+  },
+  xAxis: {
+    axisLine: { show: false }, tickLine: { show: false },
+    tickText: { color: "#6b7280", size: 11 },
+  },
+  yAxis: {
+    axisLine: { show: false }, tickLine: { show: false },
+    tickText: { color: "#6b7280", size: 11 },
+  },
+  crosshair: {
+    horizontal: {
+      line: { color: "#555e72", style: "dashed" as const, dashedValue: [4, 4] },
+      text: { color: "#d1d4dc", backgroundColor: "#1a2035", borderColor: "#555e72" },
+    },
+    vertical: {
+      line: { color: "#555e72", style: "dashed" as const, dashedValue: [4, 4] },
+      text: { color: "#d1d4dc", backgroundColor: "#1a2035", borderColor: "#555e72" },
+    },
+  },
+  separator: { color: "#2d3548" },
+};
+
+const IVS   = ["1m","5m","15m","1h","4h","1d"] as const;
+const DRAWS = [
+  { id: "trendLine",              label: "Trend" },
+  { id: "horizontalStraightLine", label: "H Line" },
+  { id: "verticalStraightLine",   label: "V Line" },
+  { id: "fibonacciLine",          label: "Fib" },
+  { id: "rect",                   label: "Rect" },
+] as const;
+const INDS_MAIN = ["MA","EMA","BOLL"] as const;
+const INDS_SUB  = ["VOL","MACD","RSI","KDJ"] as const;
+
+function KlineWidget({ base }: { base: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef     = useRef<any>(null);
+  const wsRef        = useRef<WebSocket | null>(null);
+  const indPanes     = useRef<Record<string, string>>({});
+  const [iv, setIv]  = useState<typeof IVS[number]>("1h");
+  const [activeInds, setActiveInds] = useState<Set<string>>(new Set(["VOL"]));
 
+  // init chart once — dynamic import avoids SSR crash (klinecharts uses window)
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.innerHTML = "";
+    const el = containerRef.current;
+    if (!el) return;
+    let mounted = true;
+    let ro: ResizeObserver | null = null;
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "tradingview-widget-container";
-    wrapper.style.cssText = "width:100%;height:100%";
+    import("klinecharts").then(({ init, dispose }) => {
+      if (!mounted || !el) return;
+      const chart = init(el, { styles: KSTYLES, timezone: "Etc/UTC" });
+      if (!chart) return;
+      chartRef.current = chart;
 
-    const inner = document.createElement("div");
-    inner.className = "tradingview-widget-container__widget";
-    inner.style.cssText = "width:100%;height:100%";
-    wrapper.appendChild(inner);
+      try {
+        const pid = chart.createIndicator("VOL");
+        if (pid) indPanes.current["VOL"] = pid as string;
+      } catch {}
 
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    script.async = true;
-    script.text = JSON.stringify({
-      autosize: true,
-      symbol,
-      interval: "60",
-      timezone: "Etc/UTC",
-      theme: "dark",
-      style: "1",
-      locale: "en",
-      enable_publishing: false,
-      allow_symbol_change: false,
-      calendar: false,
-      withdateranges: true,
-      hide_side_toolbar: false,
-      support_host: "https://www.tradingview.com",
+      ro = new ResizeObserver(() => { try { (chart as any).resize?.(); } catch {} });
+      ro.observe(el);
+
+      // store dispose for cleanup
+      (chartRef as any)._dispose = () => { try { dispose(el); } catch {} };
     });
-    wrapper.appendChild(script);
-    container.appendChild(wrapper);
 
-    return () => { container.innerHTML = ""; };
-  }, [symbol]);
+    return () => {
+      mounted = false;
+      ro?.disconnect();
+      (chartRef as any)._dispose?.();
+      chartRef.current = null;
+    };
+  }, []);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  // fetch + ws whenever base or interval changes
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    wsRef.current?.close();
+
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${base}USDT&interval=${iv}&limit=500`)
+      .then(r => r.json())
+      .then((d: any[]) => {
+        chart.applyNewData(d.map(k => ({
+          timestamp: k[0],
+          open: +k[1], high: +k[2], low: +k[3], close: +k[4],
+          volume: +k[5],
+        })));
+      })
+      .catch(() => {});
+
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${base.toLowerCase()}usdt@kline_${iv}`);
+    wsRef.current = ws;
+    ws.onmessage = e => {
+      const { k } = JSON.parse(e.data);
+      try {
+        chartRef.current?.updateData({
+          timestamp: k.t,
+          open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v,
+        });
+      } catch {}
+    };
+    return () => ws.close();
+  }, [base, iv]);
+
+  const toggleInd = (name: string) => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    if (activeInds.has(name)) {
+      const pid = indPanes.current[name];
+      try {
+        chart.removeIndicator(pid || "candle_pane", name);
+      } catch {}
+      delete indPanes.current[name];
+      setActiveInds(p => { const n = new Set(p); n.delete(name); return n; });
+    } else {
+      try {
+        if ((INDS_MAIN as readonly string[]).includes(name)) {
+          chart.createIndicator(name, false, { id: "candle_pane" });
+          indPanes.current[name] = "candle_pane";
+        } else {
+          const pid = chart.createIndicator(name);
+          if (pid) indPanes.current[name] = pid as string;
+        }
+        setActiveInds(p => new Set(p).add(name));
+      } catch {}
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full" style={{ background: "#0b0e1a" }}>
+      {/* toolbar */}
+      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#2d3548] flex-shrink-0 overflow-x-auto">
+        {IVS.map(i => (
+          <button key={i} onClick={() => setIv(i)}
+            className={`px-2 py-1 text-xs rounded font-semibold transition-colors flex-shrink-0 ${
+              iv === i ? "bg-[#f0b90b] text-black" : "text-gray-500 hover:text-gray-300"
+            }`}>{i}</button>
+        ))}
+
+        <div className="w-px h-4 bg-[#2d3548] mx-1 flex-shrink-0" />
+
+        {DRAWS.map(t => (
+          <button key={t.id}
+            onClick={() => { try { chartRef.current?.createOverlay(t.id); } catch {} }}
+            className="px-2 py-1 text-[11px] rounded text-gray-500 hover:text-gray-200 hover:bg-[#1a2035] transition-colors flex-shrink-0">
+            {t.label}
+          </button>
+        ))}
+        <button onClick={() => { try { chartRef.current?.removeOverlay(); } catch {} }}
+          title="Clear drawings"
+          className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-[#1a2035] transition-colors flex-shrink-0">
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+
+        <div className="w-px h-4 bg-[#2d3548] mx-1 flex-shrink-0" />
+
+        {[...INDS_MAIN, ...INDS_SUB].map(ind => (
+          <button key={ind} onClick={() => toggleInd(ind)}
+            className={`px-2 py-1 text-[11px] rounded font-semibold transition-colors flex-shrink-0 ${
+              activeInds.has(ind)
+                ? "bg-[#f0b90b]/20 text-[#f0b90b]"
+                : "text-gray-500 hover:text-gray-300"
+            }`}>{ind}</button>
+        ))}
+      </div>
+
+      <div ref={containerRef} className="flex-1 min-h-0" />
+    </div>
+  );
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -805,7 +961,7 @@ export default function TradePage() {
 
         {/* Center col: chart */}
         <div className="h-[320px] sm:h-[420px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
-          <TradingViewWidget symbol={`BINANCE:${base}USDT`} />
+          <KlineWidget base={base} />
         </div>
 
         {/* Right col: order form */}
