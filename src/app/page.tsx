@@ -32,7 +32,7 @@ const FEATURES = [
 const FAQS = [
   {
     q: "How do I qualify for the $50,000 USDT loan?",
-    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,200 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account."
+    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account."
   },
   {
     q: "Is the loan really interest-free?",
@@ -52,7 +52,7 @@ const FAQS = [
   },
   {
     q: "When does the New Year Campaign end?",
-    a: "The campaign runs until December 31st, 2026. Spots are limited to 1,200 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours."
+    a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours."
   },
 ];
 
@@ -62,8 +62,6 @@ export default function LandingPage() {
   const [spotsLeft, setSpotsLeft] = useState(CAMPAIGN_STATS.spotsRemaining);
   const [spotsUsed, setSpotsUsed] = useState(CAMPAIGN_STATS.spotsUsed);
   const { coins, updatePrices } = useStore();
-
-  const BASE_OFFSET = 15;
 
   useEffect(() => {
     const deadline = new Date("2026-12-31T23:59:59");
@@ -91,13 +89,11 @@ export default function LandingPage() {
     fetch("/api/stats")
       .then(r => r.json())
       .then(d => {
-        const taken = (d.stakedCount ?? 0) + BASE_OFFSET;
-        const displayMax = d.displayMaxSpots ?? CAMPAIGN_STATS.totalSpots;
-        setSpotsUsed(taken);
-        setSpotsLeft(Math.max(10, displayMax - taken));
+        setSpotsUsed(d.displayFilled ?? d.stakedCount ?? 0);
+        setSpotsLeft(d.spotsLeft ?? Math.max(0, CAMPAIGN_STATS.totalSpots - (d.displayFilled ?? d.stakedCount ?? 0)));
       })
       .catch(() => {});
-  }, [BASE_OFFSET]);
+  }, []);
 
   // Simulate spot count slowly decreasing
   useEffect(() => {
@@ -152,7 +148,7 @@ export default function LandingPage() {
               Interest-Free Loan
             </h1>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              First <strong className="text-white">{(spotsUsed + spotsLeft).toLocaleString()} users</strong> who stake 500 USDT after KYC receive a{" "}
+              First <strong className="text-white">1,000 users</strong> who stake 500 USDT after KYC receive a{" "}
               <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 10 years.
               Trade freely or withdraw anytime.
             </p>
@@ -218,7 +214,7 @@ export default function LandingPage() {
               <div className="h-2.5 bg-ex-card2 rounded-full overflow-hidden border border-ex-border">
                 <div
                   className="h-full bg-gradient-to-r from-ex-yellow to-orange-400 rounded-full transition-all duration-1000"
-                  style={{ width: `${(spotsUsed / (spotsUsed + spotsLeft)) * 100}%` }}
+                  style={{ width: `${(spotsUsed / CAMPAIGN_STATS.totalSpots) * 100}%` }}
                 />
               </div>
             </div>

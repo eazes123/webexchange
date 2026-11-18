@@ -106,6 +106,7 @@ interface CampaignData {
     minStake: number;
     maxStake: number;
     enabled: boolean;
+    displayFilled: number;
   };
   participants: {
     id: string;
@@ -208,7 +209,7 @@ export default function AdminPage() {
   const [editingSettings, setEditingSettings] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     deadline: "2026-12-31", maxSpots: 1000, loanAmount: 50000,
-    minStake: 500, maxStake: 50000, enabled: true,
+    minStake: 500, maxStake: 50000, enabled: true, displayFilled: 0,
   });
 
   // Loading state per section
@@ -870,11 +871,12 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {[
-                      { label: "Campaign Deadline",  key: "deadline",   type: "date",   value: settingsForm.deadline },
-                      { label: "Max Spots",          key: "maxSpots",   type: "number", value: settingsForm.maxSpots },
-                      { label: "Loan Amount (USDT)", key: "loanAmount", type: "number", value: settingsForm.loanAmount },
-                      { label: "Min Stake (USDT)",   key: "minStake",   type: "number", value: settingsForm.minStake },
-                      { label: "Max Stake (USDT)",   key: "maxStake",   type: "number", value: settingsForm.maxStake },
+                      { label: "Campaign Deadline",    key: "deadline",      type: "date",   value: settingsForm.deadline },
+                      { label: "Max Spots",            key: "maxSpots",      type: "number", value: settingsForm.maxSpots },
+                      { label: "Loan Amount (USDT)",   key: "loanAmount",    type: "number", value: settingsForm.loanAmount },
+                      { label: "Min Stake (USDT)",     key: "minStake",      type: "number", value: settingsForm.minStake },
+                      { label: "Max Stake (USDT)",     key: "maxStake",      type: "number", value: settingsForm.maxStake },
+                      { label: "Display Filled (base)", key: "displayFilled", type: "number", value: settingsForm.displayFilled },
                     ].map(f => (
                       <div key={f.key}>
                         <label className="text-xs text-gray-500 block mb-1">{f.label}</label>
@@ -918,6 +920,9 @@ export default function AdminPage() {
                       )}
                     </div>
                   </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    <span className="text-ex-yellow font-semibold">Display Filled</span> = base number you set + real stakers from DB. This controls what homepage &amp; campaign page show — does not block staking.
+                  </p>
                 </div>
 
                 {/* Distribute all */}
