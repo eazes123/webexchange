@@ -83,6 +83,25 @@ export interface TronDeposit {
   confirmed: boolean;
 }
 
+// Returns the confirmed on-chain USDT balance for an address (in USDT, not sun)
+export async function fetchUsdtBalance(address: string): Promise<number> {
+  try {
+    const url = `${TRONGRID}/v1/accounts/${address}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+    if (!res.ok) return 0;
+    const { data = [] } = (await res.json()) as { data?: any[] };
+    if (!data[0]?.trc20) return 0;
+    const entry = (data[0].trc20 as Array<Record<string, string>>).find(
+      (t) => Object.keys(t)[0].toLowerCase() === USDT_TRC20.toLowerCase()
+    );
+    if (!entry) return 0;
+    const raw = Object.values(entry)[0];
+    return Number(raw) / 1_000_000;
+  } catch {
+    return 0;
+  }
+}
+
 export async function fetchUsdtDeposits(address: string): Promise<TronDeposit[]> {
   try {
     const url = `${TRONGRID}/v1/accounts/${address}/transactions/trc20?only_to=true&limit=50&contract_address=${USDT_TRC20}`;

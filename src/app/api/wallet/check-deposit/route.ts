@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, isDepositProcessed, markDepositProcessed, updateWalletBalance, createTransaction } from "@/lib/db";
-import { fetchUsdtDeposits, derivePrivateKey, getExchangeWallet, sendUsdt } from "@/lib/tron";
+import { fetchUsdtDeposits } from "@/lib/tron";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
 
 export const runtime = "nodejs";
@@ -17,9 +17,7 @@ export async function POST(request: NextRequest) {
 
   const deposits = await fetchUsdtDeposits(user.depositAddress);
   let credited = 0;
-  const newDeposits: Array<{ txHash: string; amount: number; sweepTxHash?: string }> = [];
-
-  const mnemonic = process.env.TRON_MASTER_MNEMONIC;
+  const newDeposits: Array<{ txHash: string; amount: number }> = [];
 
   for (const dep of deposits) {
     if (dep.amount <= 0) continue;
@@ -36,23 +34,7 @@ export async function POST(request: NextRequest) {
     });
 
     credited += dep.amount;
-    const entry: { txHash: string; amount: number; sweepTxHash?: string } = { txHash: dep.txHash, amount: dep.amount };
-
-    // Auto-sweep: move USDT from user's deposit address to hot wallet
-    // so withdrawals can be funded without manual hot-wallet top-ups
-    if (mnemonic && user.addressIndex !== null && user.addressIndex !== undefined) {
-      try {
-        const userPrivKey = derivePrivateKey(mnemonic, user.addressIndex);
-        const { address: hotWalletAddress } = getExchangeWallet(mnemonic);
-        const sweepTxHash = await sendUsdt(userPrivKey, user.depositAddress, hotWalletAddress, dep.amount);
-        entry.sweepTxHash = sweepTxHash;
-      } catch {
-        // Sweep failure is non-fatal — user balance is already credited.
-        // Hot wallet will just need manual funding if sweep fails (e.g. insufficient bandwidth/TRX).
-      }
-    }
-
-    newDeposits.push(entry);
+    newDeposits.push({ txHash: dep.txHash, amount: dep.amount });
   }
 
   return NextResponse.json({ credited, newDeposits });

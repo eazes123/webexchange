@@ -5,7 +5,7 @@ import {
   rejectWithdrawal, getAllUsers, distributeReward, getUserById,
   getSetting, setSetting,
 } from "@/lib/db";
-import { getExchangeWallet, sendUsdt } from "@/lib/tron";
+import { getExchangeWallet, derivePrivateKey, fetchUsdtBalance, sendUsdt } from "@/lib/tron";
 import { requireAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -37,31 +37,62 @@ export async function POST(request: NextRequest) {
     if (!withdrawal) return NextResponse.json({ error: "Withdrawal not found" }, { status: 404 });
 
     if (withdrawal.asset === "USDT") {
-      // Auto-send on-chain via exchange hot wallet
       const mnemonic = process.env.TRON_MASTER_MNEMONIC;
       if (!mnemonic) {
         return NextResponse.json({ error: "TRON_MASTER_MNEMONIC not configured" }, { status: 500 });
       }
 
-      const { address: fromAddress, privateKey } = getExchangeWallet(mnemonic);
       const sendAmount = withdrawal.amount - withdrawal.fee;
 
-      // Mark as processing before attempting blockchain send
+      // Determine best source address:
+      // 1. User's own deposit address (zero extra fee — exchange already controls key)
+      // 2. Exchange hot wallet (fallback for loan credits with no on-chain backing)
+      const withdrawalUser = await getUserById(withdrawal.userId);
+      let fromPrivateKey: Uint8Array;
+      let fromAddress: string;
+      let sourceLabel: string;
+
+      const userHasDepositAddr =
+        withdrawalUser?.depositAddress &&
+        withdrawalUser.addressIndex !== null &&
+        withdrawalUser.addressIndex !== undefined;
+
+      if (userHasDepositAddr) {
+        const onChainBalance = await fetchUsdtBalance(withdrawalUser!.depositAddress!);
+        if (onChainBalance >= sendAmount) {
+          // Send directly from user's deposit address — no extra sweep needed
+          fromPrivateKey = derivePrivateKey(mnemonic, withdrawalUser!.addressIndex!);
+          fromAddress    = withdrawalUser!.depositAddress!;
+          sourceLabel    = "user deposit address";
+        } else {
+          // On-chain balance insufficient (e.g. loan credit) — use hot wallet
+          const hw = getExchangeWallet(mnemonic);
+          fromPrivateKey = hw.privateKey;
+          fromAddress    = hw.address;
+          sourceLabel    = "exchange hot wallet";
+        }
+      } else {
+        const hw = getExchangeWallet(mnemonic);
+        fromPrivateKey = hw.privateKey;
+        fromAddress    = hw.address;
+        sourceLabel    = "exchange hot wallet";
+      }
+
       await processWithdrawal(id);
 
       try {
-        const txHash = await sendUsdt(privateKey, fromAddress, withdrawal.destinationAddress, sendAmount);
+        const txHash = await sendUsdt(fromPrivateKey, fromAddress, withdrawal.destinationAddress, sendAmount);
         await finalizeWithdrawal(id, txHash);
         return NextResponse.json({
           success: true,
-          message: `${sendAmount} USDT sent on-chain`,
+          message: `${sendAmount} USDT sent on-chain via ${sourceLabel}`,
           txHash,
+          source: sourceLabel,
         });
       } catch (err: any) {
-        // Reset to pending so admin can retry or handle manually
         await failWithdrawal(id, err.message);
         return NextResponse.json(
-          { error: `On-chain send failed: ${err.message}. Withdrawal reset to pending — fund the exchange wallet and retry.` },
+          { error: `On-chain send failed (${sourceLabel}): ${err.message}. Withdrawal reset to pending.` },
           { status: 500 }
         );
       }
