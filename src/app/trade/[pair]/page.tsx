@@ -73,8 +73,10 @@ const FUTURES_PAIRS = ["BTC-USDT PERP","ETH-USDT PERP","BNB-USDT PERP","SOL-USDT
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function OrderBookPanel({ price, base, quote }: { price: number; base: string; quote: string }) {
-  const [book, setBook] = useState(() => genBook(price));
+  const [book, setBook] = useState<ReturnType<typeof genBook> | null>(null);
   const [view, setView] = useState<"both" | "asks" | "bids">("both");
+
+  useEffect(() => { setBook(genBook(price)); }, []);
 
   useEffect(() => {
     const id = setInterval(() => setBook(genBook(price)), 1200);
@@ -104,7 +106,7 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
       </div>
 
       {/* Asks */}
-      {view !== "bids" && (
+      {view !== "bids" && book && (
         <div className="space-y-[1px] mb-1">
           {book.asks.slice(0, view === "both" ? 10 : 18).map((a, i) => (
             <div key={i} className="relative flex justify-between items-center px-0.5 py-[1px] text-[11px] cursor-pointer hover:bg-white/5 rounded"
@@ -126,12 +128,12 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
         </span>
         <span className="text-[10px] text-gray-500">Spread</span>
         <span className="text-[10px] text-gray-400 font-mono">
-          {((book.asks[book.asks.length - 1]?.price ?? price) - (book.bids[0]?.price ?? price)).toFixed(2)}
+          {book ? ((book.asks[book.asks.length - 1]?.price ?? price) - (book.bids[0]?.price ?? price)).toFixed(2) : "—"}
         </span>
       </div>
 
       {/* Bids */}
-      {view !== "asks" && (
+      {view !== "asks" && book && (
         <div className="space-y-[1px]">
           {book.bids.slice(0, view === "both" ? 10 : 18).map((b, i) => (
             <div key={i} className="relative flex justify-between items-center px-0.5 py-[1px] text-[11px] cursor-pointer hover:bg-white/5 rounded"
@@ -150,7 +152,8 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
 }
 
 function RecentTradesPanel({ price, base, quote }: { price: number; base: string; quote: string }) {
-  const [trades, setTrades] = useState(() => genTrades(price));
+  const [trades, setTrades] = useState<ReturnType<typeof genTrades>>([]);
+  useEffect(() => { setTrades(genTrades(price)); }, []);
   useEffect(() => {
     const id = setInterval(() => {
       setTrades(prev => {
@@ -627,7 +630,7 @@ export default function TradePage() {
     <div className="bg-[#0b0e1a] min-h-screen">
 
       {/* ── Top bar ── */}
-      <div className="border-b border-[#2d3548] px-4 py-2 flex items-center gap-6 overflow-x-auto">
+      <div className="relative z-[50] border-b border-[#2d3548] px-4 py-2 flex items-center gap-6 overflow-x-auto">
 
         {/* Mode tabs */}
         <div className="flex gap-0.5 bg-[#111827] rounded-lg p-0.5 flex-shrink-0">
@@ -651,7 +654,7 @@ export default function TradePage() {
           </button>
 
           {showPairs && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-[#111827] border border-[#2d3548] rounded-xl shadow-2xl z-30 overflow-hidden">
+            <div className="absolute top-full left-0 mt-1 w-56 bg-[#111827] border border-[#2d3548] rounded-xl shadow-2xl z-[200] overflow-hidden">
               <div className="p-2 border-b border-[#2d3548]">
                 <div className="flex items-center gap-2 bg-[#0b0e1a] rounded-lg px-3 py-1.5">
                   <Search className="w-3.5 h-3.5 text-gray-500" />
