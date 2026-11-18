@@ -763,6 +763,7 @@ export default function TradePage() {
         <div className="h-[300px] sm:h-[400px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
           <iframe src={iframeUrl}
             className="w-full h-full border-none"
+            style={{ visibility: showPairs ? "hidden" : "visible" }}
             title={`${base} Chart`} allow="clipboard-write" />
         </div>
 
