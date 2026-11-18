@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser, updateKycStatus, updateWalletBalance, createTransaction } from "@/lib/db";
+import { getUserById, updateUser, updateKycStatus } from "@/lib/db";
 import { requireAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -19,20 +19,9 @@ export async function POST(request: NextRequest) {
   if (action === "approve") {
     await updateUser(userId, { kycStatus: "approved", loanStatus: "approved" });
     await updateKycStatus(userId, "approved");
-    await updateWalletBalance(userId, "USDT", { available: 50_000 });
-    await createTransaction({
-      userId,
-      type: "loan_credit",
-      asset: "USDT",
-      amount: 50_000,
-      status: "completed",
-      date: new Date().toISOString().split("T")[0],
-      desc: "Interest-Free Loan Credit: Campaign Disbursement",
-      txHash: `0x${crypto.randomUUID().replace(/-/g, "")}`,
-    });
     return NextResponse.json({
       success: true,
-      message: `KYC approved, loan approved, $50,000 USDT credited to ${user.fullName}`,
+      message: `KYC approved for ${user.fullName}. Loan will be disbursed via campaign on Dec 31, 2026.`,
     });
   }
 
