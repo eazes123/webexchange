@@ -135,21 +135,27 @@ export const useStore = create<AppStore>((set, get) => ({
 
   fetchLivePrices: async () => {
     try {
-      const res = await fetch("/api/prices");
-      if (!res.ok) return;
-      const prices = await res.json();
+      // Call Binance directly from the browser — Vercel server IPs are blocked by Binance
+      const pairs = ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","ADAUSDT","AVAXUSDT","DOGEUSDT"];
+      const symbolsParam = encodeURIComponent(JSON.stringify(pairs));
+      const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${symbolsParam}`);
+      if (!res.ok) throw new Error("Binance error");
+      const tickers: any[] = await res.json();
+      const PAIR_TO_SYMBOL: Record<string, string> = {
+        BTCUSDT:"BTC", ETHUSDT:"ETH", BNBUSDT:"BNB", SOLUSDT:"SOL",
+        XRPUSDT:"XRP", ADAUSDT:"ADA", AVAXUSDT:"AVAX", DOGEUSDT:"DOGE",
+      };
       set((state) => ({
         coins: state.coins.map((c) => {
-          const p = prices[c.symbol];
-          if (!p) return c;
+          const t = tickers.find((tk: any) => PAIR_TO_SYMBOL[tk.symbol] === c.symbol);
+          if (!t) return c;
           return {
             ...c,
-            price: p.usd,
-            change24h: parseFloat((p.usd_24h_change ?? c.change24h).toFixed(2)),
-            marketCap: p.usd_market_cap ?? c.marketCap,
-            volume24h: p.usd_24h_vol ?? c.volume24h,
-            high24h: p.high24h ?? c.high24h,
-            low24h: p.low24h ?? c.low24h,
+            price:     parseFloat(t.lastPrice),
+            change24h: parseFloat(parseFloat(t.priceChangePercent).toFixed(2)),
+            volume24h: parseFloat(t.quoteVolume),
+            high24h:   parseFloat(t.highPrice),
+            low24h:    parseFloat(t.lowPrice),
           };
         }),
       }));
