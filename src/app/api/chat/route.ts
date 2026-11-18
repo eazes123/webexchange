@@ -46,7 +46,8 @@ NovaBit Exchange is a crypto platform running a limited-time staking campaign. U
 4. STAKING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Minimum stake: 500 USDT. Maximum: 50,000 USDT.
-- Staked amount is locked until December 31, 2026 — it cannot be withdrawn before that.
+- Staked amount CAN be unstaked and withdrawn before Dec 31, but doing so permanently cancels loan eligibility.
+- To receive the 50,000 USDT loan, stake must remain active until December 31, 2026.
 - Staking requires KYC approval first.
 - Once staked, the user's status becomes "Active" and they are queued for the loan.
 - Higher stake = same 50,000 USDT loan (the loan amount is fixed for all users).
@@ -99,7 +100,7 @@ Q: How long does KYC take?
 A: 24–48 hours. You'll see your status update in the dashboard.
 
 Q: Can I withdraw my staked amount before Dec 31?
-A: No. Staked funds are locked until December 31, 2026.
+A: Yes, you can unstake and withdraw your staked amount at any time. However, unstaking cancels your loan eligibility — you will NOT receive the 50,000 USDT loan on December 31. To receive the loan, your stake must remain active until Dec 31.
 
 Q: Is the 50,000 USDT loan real?
 A: Yes. It is credited to your account on Dec 31 and can be withdrawn after disbursement.
