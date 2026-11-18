@@ -22,6 +22,7 @@ function uid() {
 }
 
 export default function ChatWidget() {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen]       = useState(false);
   const [input, setInput]     = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,8 @@ export default function ChatWidget() {
       text: "Hi! I'm Nova, NovaBit's AI assistant. How can I help you today?",
     },
   ]);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const bottomRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
@@ -87,6 +90,8 @@ export default function ChatWidget() {
   };
 
   const unreadCount = 0;
+
+  if (!mounted) return null;
 
   return (
     <>
