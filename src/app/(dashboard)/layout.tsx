@@ -4,16 +4,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ArrowUpRight,
-  LogOut, TrendingUp, Shield, Wallet
+  LogOut, TrendingUp, Shield, Wallet, Trophy
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/kyc",        label: "KYC Status", icon: Shield },
+  { href: "/campaign",   label: "Campaign",   icon: Trophy },
+  { href: "/kyc",        label: "KYC",        icon: Shield },
   { href: "/wallet",     label: "Wallet",     icon: Wallet },
-  { href: "/withdraw",   label: "Withdraw",   icon: ArrowUpRight },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -100,9 +100,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto pb-16 md:pb-0">
         {children}
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0b0e1a]/95 backdrop-blur-md border-t border-[#2d3548] flex safe-area-inset-bottom">
+        {NAV.map(item => (
+          <Link key={item.href} href={item.href}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-[10px] font-semibold transition-colors",
+              pathname === item.href
+                ? "text-[#f0b90b]"
+                : "text-gray-500 hover:text-gray-300"
+            )}>
+            <item.icon className={cn("w-5 h-5", pathname === item.href ? "text-[#f0b90b]" : "text-gray-500")} />
+            {item.label}
+          </Link>
+        ))}
+        <button onClick={handleLogout}
+          className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-[10px] font-semibold text-gray-500 hover:text-red-400 transition-colors">
+          <LogOut className="w-5 h-5" />
+          Sign Out
+        </button>
+      </nav>
     </div>
   );
 }

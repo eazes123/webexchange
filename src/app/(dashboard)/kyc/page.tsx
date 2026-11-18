@@ -151,7 +151,7 @@ export default function KycPage() {
   };
 
   if (demoUser.kycStatus === "approved") return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
       <div className="bg-ex-green/10 border border-ex-green/30 rounded-2xl p-8 text-center">
         <CheckCircle className="w-16 h-16 text-ex-green mx-auto mb-4" />
         <h1 className="text-2xl font-black text-ex-green mb-2">KYC Verified ✅</h1>
@@ -176,7 +176,7 @@ export default function KycPage() {
   );
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-black mb-1">KYC Verification</h1>
         <p className="text-gray-400">Complete identity verification to qualify for the $50,000 USDT interest-free loan</p>

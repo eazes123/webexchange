@@ -177,7 +177,7 @@ export default function CampaignPage() {
   // ── Rewarded state ────────────────────────────────────────────────────────
   if (isRewarded) {
     return (
-      <div className="p-4 sm:p-6 max-w-2xl">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
         <div className="relative overflow-hidden bg-gradient-to-br from-[#0ecb81]/10 via-[#111827] to-[#f0b90b]/5 border border-[#0ecb81]/30 rounded-3xl p-8 text-center">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#0ecb81_0%,_transparent_60%)] opacity-5 pointer-events-none" />
           <div className="text-5xl mb-4">🎉</div>
@@ -201,7 +201,7 @@ export default function CampaignPage() {
 
   // ── Main view ─────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 sm:p-6 pb-16 max-w-3xl space-y-6">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-6">
 
       {/* ── Hero ── */}
       <div className="relative overflow-hidden rounded-3xl border border-[#2d3548] bg-gradient-to-br from-[#0b0e1a] via-[#111827] to-[#0b0e1a]">
