@@ -624,13 +624,13 @@ export default function TradePage() {
   const nextFunding = "02:14:33";
 
   const tvSymbol  = `BINANCE:${base}USDT`;
-  const iframeUrl = `https://s.tradingview.com/widgetembed/?frameid=tradingview_chart&symbol=${tvSymbol}&interval=60&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en`;
+  const iframeUrl = `https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=60&theme=dark&style=1&locale=en&timezone=Etc%2FUTC&hide_side_toolbar=0&allow_symbol_change=0`;
 
   return (
     <div className="bg-[#0b0e1a] min-h-screen">
 
       {/* ── Top bar ── */}
-      <div className="relative z-[50] border-b border-[#2d3548] px-4 py-2 flex items-center gap-6">
+      <div className="relative z-[50] border-b border-[#2d3548] px-3 sm:px-4 py-2 flex items-center gap-3 sm:gap-6 overflow-x-auto">
 
         {/* Mode tabs */}
         <div className="flex gap-0.5 bg-[#111827] rounded-lg p-0.5 flex-shrink-0">
@@ -723,7 +723,7 @@ export default function TradePage() {
         </div>
 
         {/* Quick pair chips */}
-        <div className="ml-auto flex gap-1 flex-shrink-0">
+        <div className="ml-auto hidden sm:flex gap-1 flex-shrink-0">
           {coins.slice(0, 5).map(c => (
             <Link key={c.id} href={`/trade/${c.symbol}-USDT`}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 ${
@@ -738,10 +738,10 @@ export default function TradePage() {
       </div>
 
       {/* ── Main 3-column layout ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-[220px_1fr_260px] gap-0 h-[calc(100vh-180px)] overflow-hidden">
+      <div className="flex flex-col xl:grid xl:grid-cols-[220px_1fr_260px] xl:h-[calc(100vh-130px)] xl:overflow-hidden">
 
         {/* Left col: order book / trades */}
-        <div className="border-r border-[#2d3548] flex flex-col hidden xl:flex">
+        <div className="border-r border-[#2d3548] flex-col hidden xl:flex xl:overflow-hidden">
           <div className="flex border-b border-[#2d3548]">
             {(["book","trades"] as const).map(t => (
               <button key={t} onClick={() => setLeftTab(t)}
@@ -760,14 +760,14 @@ export default function TradePage() {
         </div>
 
         {/* Center col: chart */}
-        <div className="flex flex-col border-r border-[#2d3548]">
+        <div className="h-[300px] sm:h-[400px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
           <iframe src={iframeUrl}
-            style={{ width: "100%", flex: 1, border: "none", minHeight: 400 }}
+            className="w-full h-full border-none"
             title={`${base} Chart`} allow="clipboard-write" />
         </div>
 
         {/* Right col: order form */}
-        <div className="flex flex-col border-t xl:border-t-0 border-[#2d3548]">
+        <div className="flex flex-col xl:overflow-hidden border-t xl:border-t-0 border-[#2d3548]">
           <div className="p-3 border-b border-[#2d3548]">
             <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
               <span>Avbl Balance</span>

@@ -61,7 +61,7 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [spotsLeft, setSpotsLeft] = useState(CAMPAIGN_STATS.spotsRemaining);
   const [spotsUsed, setSpotsUsed] = useState(CAMPAIGN_STATS.spotsUsed);
-  const { coins, updatePrices } = useStore();
+  const { coins, updatePrices, fetchLivePrices } = useStore();
 
   useEffect(() => {
     const deadline = new Date("2026-12-31T23:59:59");
@@ -79,11 +79,11 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      updatePrices();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [updatePrices]);
+    fetchLivePrices();
+    const bigPoll  = setInterval(fetchLivePrices, 30_000);
+    const miniTick = setInterval(updatePrices, 3_000);
+    return () => { clearInterval(bigPoll); clearInterval(miniTick); };
+  }, [fetchLivePrices, updatePrices]);
 
   useEffect(() => {
     fetch("/api/stats")

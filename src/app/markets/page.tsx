@@ -32,16 +32,18 @@ function Sparkline({ data, change }: { data: number[]; change: number }) {
 }
 
 export default function MarketsPage() {
-  const { coins, updatePrices } = useStore();
+  const { coins, updatePrices, fetchLivePrices } = useStore();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("All");
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   useEffect(() => {
-    const interval = setInterval(updatePrices, 3000);
-    return () => clearInterval(interval);
-  }, [updatePrices]);
+    fetchLivePrices();
+    const bigPoll  = setInterval(fetchLivePrices, 30_000);
+    const miniTick = setInterval(updatePrices, 3_000);
+    return () => { clearInterval(bigPoll); clearInterval(miniTick); };
+  }, [fetchLivePrices, updatePrices]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
