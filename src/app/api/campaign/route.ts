@@ -15,13 +15,15 @@ export async function GET(request: NextRequest) {
   const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [wallets, stats] = await Promise.all([
+  const [wallets, stats, maxSpotsSetting] = await Promise.all([
     getUserWallet(user.id),
     getCampaignStats(),
+    getSetting("campaign_max_spots"),
   ]);
   const usdt    = wallets.find((w) => w.symbol === "USDT");
   const campaignActive = (await getSetting("campaign_active")) === "true";
   const deadline = new Date("2026-12-31T23:59:59");
+  const displayMaxSpots = Number(maxSpotsSetting ?? 1000) + 200;
 
   return NextResponse.json({
     stakeAmount:        user.stakeAmount,
@@ -37,7 +39,8 @@ export async function GET(request: NextRequest) {
     kycApproved:        user.kycStatus === "approved",
     totalParticipants:  stats.totalParticipants,
     totalStaked:        stats.totalStaked,
-    spotsLeft:          Math.max(0, 1000 - stats.totalParticipants),
+    displayMaxSpots:    displayMaxSpots,
+    spotsLeft:          Math.max(0, displayMaxSpots - stats.totalParticipants),
     queuePosition:      user.queuePosition,
   });
 }

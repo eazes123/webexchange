@@ -136,9 +136,10 @@ export default function CampaignPage() {
   const isUnstaked    = stakeStatus === "unstaked";
 
   const totalParticipants = campaignData?.totalParticipants ?? 0;
-  const spotsLeft         = campaignData?.spotsLeft ?? 1000;
+  const displayMaxSpots   = campaignData?.displayMaxSpots ?? 1200;
+  const spotsLeft         = campaignData?.spotsLeft ?? displayMaxSpots;
   const queuePosition     = campaignData?.queuePosition ?? demoUser.queuePosition ?? 0;
-  const fillPct           = Math.min(100, ((1000 - spotsLeft) / 1000) * 100);
+  const fillPct           = Math.min(100, ((displayMaxSpots - spotsLeft) / displayMaxSpots) * 100);
 
   const handleStake = async () => {
     if (!kycApproved) { toast.error("Complete KYC first"); return; }
@@ -228,7 +229,7 @@ export default function CampaignPage() {
               <div className="bg-[#111827] border border-[#2d3548] rounded-2xl px-4 py-3 text-center min-w-[100px]">
                 <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold mb-0.5">Queue #</div>
                 <div className="text-2xl font-black text-[#f0b90b] font-mono">{queuePosition}</div>
-                <div className="text-[10px] text-gray-500">of 1,000</div>
+                <div className="text-[10px] text-gray-500">of {displayMaxSpots.toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -254,7 +255,7 @@ export default function CampaignPage() {
           <div>
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-gray-500 font-semibold">Campaign Spots Filled</span>
-              <span className="text-[#f0b90b] font-bold">{totalParticipants} / 1,000</span>
+              <span className="text-[#f0b90b] font-bold">{totalParticipants} / {displayMaxSpots.toLocaleString()}</span>
             </div>
             <div className="h-2 bg-[#1a2035] rounded-full overflow-hidden">
               <div

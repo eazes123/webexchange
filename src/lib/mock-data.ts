@@ -194,9 +194,9 @@ export const COINS: Coin[] = [
 ];
 
 export const CAMPAIGN_STATS = {
-  totalSpots: 1000,
+  totalSpots: 1200,
   spotsUsed: 15,        // initial offset — updated live from /api/stats
-  spotsRemaining: 985,  // initial display value before fetch
+  spotsRemaining: 1185, // initial display value before fetch
   deadline: new Date("2026-12-31T23:59:59"),
   stakeAmount: 500,
   rewardAmount: 50_000,
