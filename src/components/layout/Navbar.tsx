@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   TrendingUp, Menu, X, ChevronDown,
-  User, Settings, LogOut, LayoutDashboard, FileText
+  Settings, LogOut, LayoutDashboard, FileText
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const { isLoggedIn, setLoggedIn, demoUser, logout } = useStore();
+  const { isLoggedIn, demoUser, logout, hydrate } = useStore();
+
+  useEffect(() => { hydrate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <nav className="bg-ex-card border-b border-ex-border sticky top-0 z-40">
