@@ -82,6 +82,36 @@ function KlineWidget({ base }: { base: string }) {
   const [iv, setIv]  = useState<typeof IVS[number]>("1h");
   const [activeInds, setActiveInds] = useState<Set<string>>(new Set(["VOL"]));
 
+  // subscribe to Binance klines for the given symbol/interval
+  const subscribe = useCallback((sym: string, interval: string) => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    wsRef.current?.close();
+
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}USDT&interval=${interval}&limit=500`)
+      .then(r => r.json())
+      .then((d: any[]) => {
+        chartRef.current?.applyNewData(d.map(k => ({
+          timestamp: k[0],
+          open: +k[1], high: +k[2], low: +k[3], close: +k[4],
+          volume: +k[5],
+        })));
+      })
+      .catch(() => {});
+
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${sym.toLowerCase()}usdt@kline_${interval}`);
+    wsRef.current = ws;
+    ws.onmessage = e => {
+      try {
+        const { k } = JSON.parse(e.data);
+        chartRef.current?.updateData({
+          timestamp: k.t,
+          open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v,
+        });
+      } catch {}
+    };
+  }, []);
+
   // init chart once — dynamic import avoids SSR crash (klinecharts uses window)
   useEffect(() => {
     const el = containerRef.current;
@@ -102,49 +132,24 @@ function KlineWidget({ base }: { base: string }) {
 
       ro = new ResizeObserver(() => { try { (chart as any).resize?.(); } catch {} });
       ro.observe(el);
-
-      // store dispose for cleanup
       (chartRef as any)._dispose = () => { try { dispose(el); } catch {} };
+
+      subscribe(base, iv); // load initial data now that chart is ready
     });
 
     return () => {
       mounted = false;
       ro?.disconnect();
+      wsRef.current?.close();
       (chartRef as any)._dispose?.();
       chartRef.current = null;
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // fetch + ws whenever base or interval changes
+  // re-subscribe when base or interval changes (chart already initialized by then)
   useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
-    wsRef.current?.close();
-
-    fetch(`https://api.binance.com/api/v3/klines?symbol=${base}USDT&interval=${iv}&limit=500`)
-      .then(r => r.json())
-      .then((d: any[]) => {
-        chart.applyNewData(d.map(k => ({
-          timestamp: k[0],
-          open: +k[1], high: +k[2], low: +k[3], close: +k[4],
-          volume: +k[5],
-        })));
-      })
-      .catch(() => {});
-
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${base.toLowerCase()}usdt@kline_${iv}`);
-    wsRef.current = ws;
-    ws.onmessage = e => {
-      const { k } = JSON.parse(e.data);
-      try {
-        chartRef.current?.updateData({
-          timestamp: k.t,
-          open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v,
-        });
-      } catch {}
-    };
-    return () => ws.close();
-  }, [base, iv]);
+    subscribe(base, iv);
+  }, [base, iv, subscribe]);
 
   const toggleInd = (name: string) => {
     const chart = chartRef.current;
