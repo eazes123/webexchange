@@ -1,11 +1,11 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
+﻿"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Shield, Zap, Globe, Users,
-  CheckCircle, ChevronDown, ChevronUp, TrendingUp,
-  Lock, Award, Clock, Star
+  ChevronDown, ChevronUp, TrendingUp,
+  Lock, Award, Clock
 } from "lucide-react";
 import { COINS, CAMPAIGN_STATS } from "@/lib/mock-data";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
@@ -14,51 +14,33 @@ import { useStore } from "@/lib/store";
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number; }
 
 const STEPS = [
-  { icon: Users,      title: "Create Account",   desc: "Register with your email and basic details to get your unique deposit address." },
-  { icon: Shield,     title: "Complete KYC",     desc: "Submit your ID, selfie, and proof of address for full identity verification." },
-  { icon: Lock,       title: "Stake 500 USDT",   desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
-  { icon: Award,      title: "Loan Disbursed",   desc: "Receive $50,000 USDT as a 10-year interest-free loan. Withdraw or trade freely." },
+  { icon: Users,  title: "Create Account", desc: "Register with your email and basic details to get your unique deposit address." },
+  { icon: Shield, title: "Complete KYC",   desc: "Submit your ID, selfie, and proof of address for full identity verification." },
+  { icon: Lock,   title: "Stake 500 USDT", desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
+  { icon: Award,  title: "Loan Disbursed", desc: "Receive $50,000 USDT as a 10-year interest-free loan. Withdraw or trade freely." },
 ];
 
 const FEATURES = [
-  { icon: Shield,  title: "Bank-Level Security",  desc: "256-bit SSL encryption, 2FA, and cold storage for all assets." },
-  { icon: Zap,     title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
-  { icon: Globe,   title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
-  { icon: Lock,    title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
-  { icon: Award,   title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 10-year interest-free loan." },
-  { icon: Users,   title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
+  { icon: Shield, title: "Bank-Level Security",  desc: "256-bit SSL encryption, 2FA, and cold storage for all assets." },
+  { icon: Zap,    title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
+  { icon: Globe,  title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
+  { icon: Lock,   title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
+  { icon: Award,  title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 10-year interest-free loan." },
+  { icon: Users,  title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
 ];
 
 const FAQS = [
-  {
-    q: "How do I qualify for the $50,000 USDT loan?",
-    a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account."
-  },
-  {
-    q: "Is the loan really interest-free?",
-    a: "Yes, 0% interest for the full 10-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading."
-  },
-  {
-    q: "Can I withdraw or trade with the loan funds?",
-    a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 10-year period."
-  },
-  {
-    q: "What documents are required for KYC?",
-    a: "You need: (1) Valid government ID: passport, national ID, or driver's license, (2) A selfie/liveness check for face matching, and (3) Proof of address: utility bill or bank statement dated within 3 months."
-  },
-  {
-    q: "How long does KYC verification take?",
-    a: "KYC verification typically takes 24-48 hours. You'll receive an email notification when your status is updated."
-  },
-  {
-    q: "When does the New Year Campaign end?",
-    a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours."
-  },
+  { q: "How do I qualify for the $50,000 USDT loan?", a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account." },
+  { q: "Is the loan really interest-free?", a: "Yes, 0% interest for the full 10-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading." },
+  { q: "Can I withdraw or trade with the loan funds?", a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 10-year period." },
+  { q: "What documents are required for KYC?", a: "You need: (1) Valid government ID: passport, national ID, or driver's license, (2) A selfie/liveness check for face matching, and (3) Proof of address: utility bill or bank statement dated within 3 months." },
+  { q: "How long does KYC verification take?", a: "KYC verification typically takes 24-48 hours. You'll receive an email notification when your status is updated." },
+  { q: "When does the New Year Campaign end?", a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours." },
 ];
 
 export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq]   = useState<number | null>(null);
   const [spotsLeft, setSpotsLeft] = useState(CAMPAIGN_STATS.spotsRemaining);
   const [spotsUsed, setSpotsUsed] = useState(CAMPAIGN_STATS.spotsUsed);
   const { coins, updatePrices, fetchLivePrices } = useStore();
@@ -95,29 +77,26 @@ export default function LandingPage() {
       .catch(() => {});
   }, []);
 
-  // Simulate spot count slowly decreasing
   useEffect(() => {
-    const t = setInterval(() => {
-      setSpotsLeft((s) => s > 0 ? s - 1 : 0);
-    }, 45_000);
+    const t = setInterval(() => { setSpotsLeft(s => s > 0 ? s - 1 : 0); }, 45_000);
     return () => clearInterval(t);
   }, []);
 
   const topCoins = coins.slice(0, 5);
+  const fillPct  = Math.min(100, (spotsUsed / CAMPAIGN_STATS.totalSpots) * 100);
 
   return (
-    <div className="bg-ex-bg">
+    <div style={{ background: "#070707" }}>
+
       {/* ─── TICKER ─── */}
-      <div className="bg-ex-card border-b border-ex-border overflow-hidden">
+      <div style={{ background: "#0a0a0a", borderBottom: "1px solid #141414", overflow: "hidden" }}>
         <div className="ticker-wrap py-2">
           <div className="ticker-inner animate-ticker-scroll">
             {[...topCoins, ...topCoins].map((c, i) => (
-              <span key={i} className="inline-flex items-center gap-2 mr-10 text-sm">
-                <span className="font-semibold">{c.symbol}/USDT</span>
-                <span className="font-num">{formatPrice(c.price)}</span>
-                <span className={getChangeColor(c.change24h)}>
-                  {formatChange(c.change24h)}
-                </span>
+              <span key={i} className="inline-flex items-center gap-2 mr-10 text-xs" style={{ color: "#555" }}>
+                <span className="font-semibold" style={{ color: "#888" }}>{c.symbol}/USDT</span>
+                <span className="font-num" style={{ color: "#aaa" }}>{formatPrice(c.price)}</span>
+                <span className={getChangeColor(c.change24h)}>{formatChange(c.change24h)}</span>
               </span>
             ))}
           </div>
@@ -125,57 +104,85 @@ export default function LandingPage() {
       </div>
 
       {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden py-20 px-4" id="hero">
-        {/* Background glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-96 h-96 bg-ex-yellow/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-ex-blue/10 rounded-full blur-3xl" />
+      <section className="relative overflow-hidden" style={{ padding: "88px 16px 80px" }}>
+        {/* Background radial glows */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div style={{
+            position: "absolute", top: "-120px", left: "50%", transform: "translateX(-50%)",
+            width: "600px", height: "600px",
+            background: "radial-gradient(ellipse, rgba(240,185,11,0.06) 0%, transparent 65%)",
+            pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute", bottom: "-80px", right: "-100px",
+            width: "400px", height: "400px",
+            background: "radial-gradient(ellipse, rgba(14,203,129,0.04) 0%, transparent 65%)",
+            pointerEvents: "none",
+          }} />
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 rounded-full px-4 py-1.5 text-ex-yellow text-sm font-semibold mb-6">
-              <span className="w-2 h-2 bg-ex-yellow rounded-full animate-pulse" />
-              Limited Time Campaign: {spotsLeft} spots remaining
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold mb-8"
+              style={{
+                background: "rgba(240,185,11,0.07)",
+                border: "1px solid rgba(240,185,11,0.2)",
+                color: "#f0b90b",
+                letterSpacing: "0.04em",
+              }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#f0b90b" }} />
+              LIMITED — {spotsLeft} SPOTS REMAINING
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
+            <h1 style={{ fontSize: "clamp(40px, 7vw, 80px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.04em", marginBottom: "20px", color: "#fff" }}>
               Get{" "}
               <span className="gradient-text">$50,000 USDT</span>
               <br />
-              Interest-Free Loan
+              Interest-Free
             </h1>
-            <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              First <strong className="text-white">1,000 users</strong> who stake 500 USDT after KYC receive a{" "}
-              <strong className="text-ex-green">$50,000 USDT interest-free loan</strong> for 10 years.
-              Trade freely or withdraw anytime.
+            <p style={{ fontSize: "16px", color: "#888", marginBottom: "36px", maxWidth: "480px", margin: "0 auto 36px", lineHeight: 1.7 }}>
+              First <strong style={{ color: "#aaa", fontWeight: 600 }}>1,000 verified users</strong> who stake 500 USDT receive a{" "}
+              <strong style={{ color: "#0ecb81", fontWeight: 600 }}>$50,000 USDT loan</strong> for 10 years — zero interest.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center" style={{ marginBottom: "60px" }}>
               <Link href="/register"
-                className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-400 transition-all glow-yellow">
-                Sign Up Now <ArrowRight className="w-5 h-5" />
+                className="inline-flex items-center justify-center gap-2 font-bold px-8 py-4 rounded-xl text-base transition-all glow-yellow"
+                style={{ background: "#f0b90b", color: "#000", letterSpacing: "-0.01em" }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
+              >
+                Sign Up Now <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/#how-it-works"
-                className="inline-flex items-center gap-2 border border-ex-border text-gray-300 px-8 py-4 rounded-xl text-lg hover:border-gray-500 hover:text-white transition-all">
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base transition-all"
+                style={{ border: "1px solid #1e1e1e", color: "#555" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a"; (e.currentTarget as HTMLElement).style.color = "#aaa"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e"; (e.currentTarget as HTMLElement).style.color = "#555"; }}
+              >
                 How It Works
               </Link>
             </div>
 
             {/* Stats row */}
-            <div className="flex flex-wrap justify-center gap-6 mb-12">
+            <div className="flex flex-wrap justify-center gap-8" style={{ marginBottom: "60px" }}>
               {[
-                { label: "Loan Amount",   value: "$50,000 USDT", color: "text-ex-green" },
-                { label: "Interest Rate", value: "0%",           color: "text-ex-yellow" },
-                { label: "Loan Term",     value: "10 Years",     color: "text-white" },
-                { label: "Stake Required",value: "500 USDT",     color: "text-ex-red" },
+                { label: "Loan Amount",    value: "$50,000 USDT", color: "#0ecb81" },
+                { label: "Interest Rate",  value: "0%",           color: "#f0b90b" },
+                { label: "Loan Term",      value: "10 Years",     color: "#fff" },
+                { label: "Stake Required", value: "500 USDT",     color: "#f6465d" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
-                  <div className={`text-2xl font-black font-num ${s.color}`}>{s.value}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+                  <div style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.03em", color: s.color, fontVariantNumeric: "tabular-nums" }}>
+                    {s.value}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#555", marginTop: "2px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    {s.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -183,38 +190,51 @@ export default function LandingPage() {
 
           {/* ─── COUNTDOWN ─── */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-ex-card border border-ex-border rounded-2xl p-6 max-w-lg mx-auto"
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.7 }}
+            className="max-w-md mx-auto"
+            style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: "16px", padding: "24px" }}
           >
-            <p className="text-sm text-gray-400 mb-4 font-semibold tracking-widest uppercase">Campaign Ends In</p>
-            <div className="flex justify-center gap-4">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "16px" }}>
+              <Clock className="w-3.5 h-3.5" style={{ color: "#f0b90b" }} />
+              <span style={{ fontSize: "10px", color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>
+                Campaign Ends In
+              </span>
+            </div>
+            <div className="flex justify-center gap-3" style={{ marginBottom: "20px" }}>
               {[
                 { label: "Days",    value: timeLeft.days },
                 { label: "Hours",   value: timeLeft.hours },
-                { label: "Minutes", value: timeLeft.minutes },
-                { label: "Seconds", value: timeLeft.seconds },
+                { label: "Min",     value: timeLeft.minutes },
+                { label: "Sec",     value: timeLeft.seconds },
               ].map((t, i) => (
                 <div key={i} className="text-center">
-                  <div className="bg-ex-card2 border border-ex-border rounded-xl px-4 py-3 min-w-[64px]">
-                    <span className="text-3xl font-black font-num text-ex-yellow">
+                  <div style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "10px", padding: "10px 14px", minWidth: "58px" }}>
+                    <span style={{ fontSize: "28px", fontWeight: 900, color: "#f0b90b", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}>
                       {String(t.value).padStart(2, "0")}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{t.label}</div>
+                  <div style={{ fontSize: "10px", color: "#444", marginTop: "6px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    {t.label}
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Progress bar */}
-            <div className="mt-5">
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888", marginBottom: "8px" }}>
                 <span>{spotsUsed} registered</span>
-                <span>{spotsLeft} spots left</span>
+                <span style={{ color: "#f0b90b" }}>{spotsLeft} spots left</span>
               </div>
-              <div className="h-2.5 bg-ex-card2 rounded-full overflow-hidden border border-ex-border">
+              <div style={{ height: "3px", background: "#111", borderRadius: "4px", overflow: "hidden" }}>
                 <div
-                  className="h-full bg-gradient-to-r from-ex-yellow to-orange-400 rounded-full transition-all duration-1000"
-                  style={{ width: `${(spotsUsed / CAMPAIGN_STATS.totalSpots) * 100}%` }}
+                  style={{
+                    height: "100%",
+                    width: `${fillPct}%`,
+                    background: "linear-gradient(90deg, #f0b90b, #ffd966)",
+                    borderRadius: "4px",
+                    transition: "width 1s ease",
+                  }}
                 />
               </div>
             </div>
@@ -223,26 +243,39 @@ export default function LandingPage() {
       </section>
 
       {/* ─── LIVE MARKET PREVIEW ─── */}
-      <section className="py-16 px-4 max-w-7xl mx-auto" id="markets">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Live Markets</h2>
-          <Link href="/markets" className="text-ex-yellow text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-            View All <ArrowRight className="w-4 h-4" />
+      <section style={{ padding: "60px 16px", maxWidth: "1280px", margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <div>
+            <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#e8e8e8", letterSpacing: "-0.02em" }}>Live Markets</h2>
+            <p style={{ fontSize: "12px", color: "#555", marginTop: "2px" }}>Real-time prices · Updates every 3s</p>
+          </div>
+          <Link href="/markets"
+            className="inline-flex items-center gap-1 text-sm font-semibold transition-all"
+            style={{ color: "#f0b90b", fontSize: "12px" }}
+          >
+            View All <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
           {topCoins.map((coin) => (
             <Link href={`/trade/${coin.symbol}-USDT`} key={coin.id}
-              className="bg-ex-card border border-ex-border rounded-xl p-4 card-hover group">
-              <div className="flex items-center gap-2 mb-3">
-                <img src={coin.image} alt={coin.symbol} className="w-8 h-8 rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              className="group"
+              style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: "12px", padding: "16px", transition: "border-color 0.15s, background 0.15s", display: "block" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a"; (e.currentTarget as HTMLElement).style.background = "#111"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#1a1a1a"; (e.currentTarget as HTMLElement).style.background = "#0d0d0d"; }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                <img src={coin.image} alt={coin.symbol} style={{ width: "28px", height: "28px", borderRadius: "50%" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 <div>
-                  <div className="font-semibold text-sm">{coin.symbol}</div>
-                  <div className="text-xs text-gray-500">{coin.name}</div>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#e8e8e8" }}>{coin.symbol}</div>
+                  <div style={{ fontSize: "10px", color: "#555" }}>{coin.name}</div>
                 </div>
               </div>
-              <div className="font-bold font-num">{formatPrice(coin.price)}</div>
-              <div className={`text-sm font-semibold mt-0.5 ${getChangeColor(coin.change24h)}`}>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+                {formatPrice(coin.price)}
+              </div>
+              <div style={{ fontSize: "12px", fontWeight: 600, marginTop: "2px" }} className={getChangeColor(coin.change24h)}>
                 {formatChange(coin.change24h)}
               </div>
             </Link>
@@ -250,88 +283,133 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <hr className="section-divider" style={{ margin: "0 5%" }} />
+
       {/* ─── HOW IT WORKS ─── */}
-      <section className="py-20 px-4 bg-ex-card/30" id="how-it-works">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-black mb-3">How It Works</h2>
-            <p className="text-gray-400">4 simple steps to get your $50,000 USDT interest-free loan</p>
+      <section style={{ padding: "80px 16px" }} id="how-it-works">
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "56px" }}>
+            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Process</span>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
+              How It Works
+            </h2>
+            <p style={{ color: "#444", fontSize: "14px" }}>4 simple steps to get your $50,000 USDT interest-free loan</p>
           </div>
-          <div className="relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-ex-border to-transparent" />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {STEPS.map((step, i) => (
-                <motion.div key={i}
-                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
-                  className="flex flex-col items-center text-center">
-                  <div className="relative mb-4">
-                    <div className="w-20 h-20 rounded-2xl bg-ex-card border border-ex-border flex items-center justify-center">
-                      <step.icon className="w-8 h-8 text-ex-yellow" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-ex-yellow text-black text-xs font-black flex items-center justify-center">
-                      {i + 1}
-                    </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {STEPS.map((step, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
+                style={{ textAlign: "center" }}
+              >
+                <div style={{ position: "relative", display: "inline-block", marginBottom: "16px" }}>
+                  <div style={{
+                    width: "60px", height: "60px", borderRadius: "16px",
+                    background: "#0d0d0d", border: "1px solid #1e1e1e",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    margin: "0 auto",
+                  }}>
+                    <step.icon className="w-6 h-6" style={{ color: "#f0b90b" }} />
                   </div>
-                  <h3 className="font-bold mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
-                </motion.div>
-              ))}
-            </div>
+                  <div style={{
+                    position: "absolute", top: "-6px", right: "-6px",
+                    width: "20px", height: "20px", borderRadius: "50%",
+                    background: "#f0b90b", color: "#000",
+                    fontSize: "9px", fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {i + 1}
+                  </div>
+                </div>
+                <h3 style={{ fontWeight: 700, fontSize: "13px", color: "#e8e8e8", marginBottom: "8px" }}>{step.title}</h3>
+                <p style={{ fontSize: "12px", color: "#777", lineHeight: 1.6 }}>{step.desc}</p>
+              </motion.div>
+            ))}
           </div>
-          <div className="text-center mt-12">
+          <div style={{ textAlign: "center", marginTop: "48px" }}>
             <Link href="/register"
-              className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-400 transition-all">
-              Sign Up Now ({spotsLeft} Spots Left) <ArrowRight className="w-5 h-5" />
+              className="inline-flex items-center gap-2 font-bold px-8 py-4 rounded-xl text-base transition-all glow-yellow"
+              style={{ background: "#f0b90b", color: "#000" }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
+            >
+              Sign Up Now ({spotsLeft} Spots Left) <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
+      <hr className="section-divider" style={{ margin: "0 5%" }} />
+
       {/* ─── FEATURES ─── */}
-      <section className="py-20 px-4 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-black mb-3">Why NovaBit?</h2>
-          <p className="text-gray-400">Built for security, speed, and your financial growth</p>
+      <section style={{ padding: "80px 16px", maxWidth: "1280px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "48px" }}>
+          <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Why NovaBit</span>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
+            Built Different
+          </h2>
+          <p style={{ color: "#444", fontSize: "14px" }}>Security, speed, and your financial growth — all in one platform</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {FEATURES.map((f, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08, duration: 0.5 }} viewport={{ once: true }}
-              className="bg-ex-card border border-ex-border rounded-2xl p-6 card-hover">
-              <div className="w-12 h-12 rounded-xl bg-ex-yellow/10 flex items-center justify-center mb-4">
-                <f.icon className="w-6 h-6 text-ex-yellow" />
+              style={{
+                background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: "14px",
+                padding: "24px", transition: "border-color 0.15s",
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = "#1a1a1a")}
+            >
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "10px",
+                background: "rgba(240,185,11,0.08)", border: "1px solid rgba(240,185,11,0.12)",
+                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px",
+              }}>
+                <f.icon className="w-5 h-5" style={{ color: "#f0b90b" }} />
               </div>
-              <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+              <h3 style={{ fontWeight: 700, fontSize: "14px", color: "#e8e8e8", marginBottom: "8px" }}>{f.title}</h3>
+              <p style={{ fontSize: "12px", color: "#777", lineHeight: 1.6 }}>{f.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
+      <hr className="section-divider" style={{ margin: "0 5%" }} />
+
       {/* ─── FAQ ─── */}
-      <section className="py-20 px-4 bg-ex-card/30" id="faq">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-3">Frequently Asked Questions</h2>
-            <p className="text-gray-400">Everything you need to know about the campaign</p>
+      <section style={{ padding: "80px 16px" }} id="faq">
+        <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>FAQ</span>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
+              Questions
+            </h2>
           </div>
-          <div className="space-y-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {FAQS.map((faq, i) => (
-              <div key={i} className="bg-ex-card border border-ex-border rounded-xl overflow-hidden">
+              <div key={i} style={{
+                background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: "12px",
+                overflow: "hidden", transition: "border-color 0.15s",
+              }}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors"
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "16px 20px", textAlign: "left", background: "transparent", border: "none", cursor: "pointer",
+                  }}
                 >
-                  <span className="font-semibold pr-4">{faq.q}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: openFaq === i ? "#fff" : "#aaa", paddingRight: "16px", lineHeight: 1.4 }}>
+                    {faq.q}
+                  </span>
                   {openFaq === i
-                    ? <ChevronUp className="w-5 h-5 text-ex-yellow shrink-0" />
-                    : <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />}
+                    ? <ChevronUp className="w-4 h-4 shrink-0" style={{ color: "#f0b90b" }} />
+                    : <ChevronDown className="w-4 h-4 shrink-0" style={{ color: "#555" }} />
+                  }
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-5 text-sm text-gray-400 leading-relaxed border-t border-ex-border pt-4">
+                  <div style={{ padding: "0 20px 16px", fontSize: "13px", color: "#888", lineHeight: 1.7, borderTop: "1px solid #141414", paddingTop: "16px" }}>
                     {faq.a}
                   </div>
                 )}
@@ -342,26 +420,50 @@ export default function LandingPage() {
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-20 px-4" id="campaign">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-ex-card to-ex-card2 border border-ex-border rounded-3xl p-10">
-            <div className="w-16 h-16 bg-ex-yellow/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Award className="w-8 h-8 text-ex-yellow" />
+      <section style={{ padding: "60px 16px 80px" }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+          <div style={{
+            background: "#0d0d0d",
+            border: "1px solid #1e1e1e",
+            borderRadius: "20px",
+            padding: "48px 32px",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            {/* subtle glow behind */}
+            <div style={{
+              position: "absolute", top: "-60px", left: "50%", transform: "translateX(-50%)",
+              width: "300px", height: "200px",
+              background: "radial-gradient(ellipse, rgba(240,185,11,0.08) 0%, transparent 70%)",
+              pointerEvents: "none",
+            }} />
+            <div style={{ position: "relative" }}>
+              <div style={{
+                width: "56px", height: "56px", borderRadius: "14px",
+                background: "rgba(240,185,11,0.1)", border: "1px solid rgba(240,185,11,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px",
+              }}>
+                <Award className="w-7 h-7" style={{ color: "#f0b90b" }} />
+              </div>
+              <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: "12px" }}>
+                Claim Your <span className="gradient-text">$50,000 USDT</span>
+              </h2>
+              <p style={{ color: "#888", marginBottom: "28px", fontSize: "14px", lineHeight: 1.7 }}>
+                Only <strong style={{ color: "#aaa" }}>{spotsLeft} spots</strong> remaining.
+                Complete KYC + stake 500 USDT before December 31st, 2026.
+              </p>
+              <Link href="/register"
+                className="inline-flex items-center gap-2 font-bold px-10 py-4 rounded-xl text-lg transition-all glow-yellow"
+                style={{ background: "#f0b90b", color: "#000", letterSpacing: "-0.01em" }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
+              >
+                Sign Up Now <ArrowRight className="w-5 h-5" />
+              </Link>
+              <p style={{ fontSize: "11px", color: "#444", marginTop: "16px" }}>
+                By signing up you agree to our Terms & Conditions and Privacy Policy.
+              </p>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Claim Your <span className="gradient-text">$50,000 USDT</span>
-            </h2>
-            <p className="text-gray-400 mb-6 text-lg">
-              Only <strong className="text-white">{spotsLeft} spots</strong> remaining.
-              Complete KYC + stake 500 USDT before December 31st, 2026 to unlock your 10-year interest-free loan.
-            </p>
-            <Link href="/register"
-              className="inline-flex items-center gap-2 bg-ex-yellow text-black font-bold px-10 py-4 rounded-xl text-xl hover:bg-yellow-400 transition-all glow-yellow">
-              Sign Up Now <ArrowRight className="w-6 h-6" />
-            </Link>
-            <p className="text-xs text-gray-600 mt-4">
-              By signing up you agree to our Terms & Conditions and Privacy Policy.
-            </p>
           </div>
         </div>
       </section>

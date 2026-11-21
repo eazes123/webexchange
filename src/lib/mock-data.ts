@@ -207,8 +207,8 @@ export const MOCK_USER = {
   id: "demo-001",
   name: "Demo User",
   email: "demo@novabit.demo",
-  phone: "+92 300 1234567",
-  country: "Pakistan",
+  phone: "+1 212 555 0147",
+  country: "United States",
   kycStatus: "approved" as const,
   queuePosition: 234,
   loanStatus: "approved" as const,
@@ -238,14 +238,14 @@ export type KycStatus = "none" | "pending" | "under_review" | "approved" | "reje
 export type LoanStatus = "none" | "pending" | "approved" | "disbursed";
 
 export const MOCK_ADMIN_USERS = [
-  { id: "001", name: "Ahmed Khan",     email: "ahmed@example.com",  kycStatus: "approved",     loanStatus: "approved",  queue: 1,   joinDate: "2024-11-01" },
-  { id: "002", name: "Sara Ali",       email: "sara@example.com",   kycStatus: "approved",     loanStatus: "pending",   queue: 2,   joinDate: "2024-11-02" },
+  { id: "001", name: "James Carter",    email: "james@example.com",  kycStatus: "approved",     loanStatus: "approved",  queue: 1,   joinDate: "2024-11-01" },
+  { id: "002", name: "Emily Davis",    email: "emily@example.com",  kycStatus: "approved",     loanStatus: "pending",   queue: 2,   joinDate: "2024-11-02" },
   { id: "003", name: "John Smith",     email: "john@example.com",   kycStatus: "under_review", loanStatus: "none",      queue: 847, joinDate: "2024-11-15" },
   { id: "004", name: "Maria Garcia",   email: "maria@example.com",  kycStatus: "approved",     loanStatus: "approved",  queue: 3,   joinDate: "2024-11-03" },
-  { id: "005", name: "Wei Chen",       email: "wei@example.com",    kycStatus: "pending",      loanStatus: "none",      queue: 848, joinDate: "2024-11-16" },
-  { id: "006", name: "Fatima Malik",   email: "fatima@example.com", kycStatus: "approved",     loanStatus: "approved",  queue: 5,   joinDate: "2024-11-04" },
+  { id: "005", name: "Kevin Park",     email: "kevin@example.com",  kycStatus: "pending",      loanStatus: "none",      queue: 848, joinDate: "2024-11-16" },
+  { id: "006", name: "Jessica Brown",  email: "jessica@example.com",kycStatus: "approved",     loanStatus: "approved",  queue: 5,   joinDate: "2024-11-04" },
   { id: "007", name: "David Wilson",   email: "david@example.com",  kycStatus: "rejected",     loanStatus: "none",      queue: 0,   joinDate: "2024-11-05" },
-  { id: "008", name: "Aisha Siddiqui", email: "aisha@example.com",  kycStatus: "approved",     loanStatus: "disbursed", queue: 4,   joinDate: "2024-11-03" },
+  { id: "008", name: "Ashley Johnson", email: "ashley@example.com", kycStatus: "approved",     loanStatus: "disbursed", queue: 4,   joinDate: "2024-11-03" },
 ];
 
 export const TRADING_PAIRS = COINS.filter(c => c.symbol !== "USDC").map(c => ({

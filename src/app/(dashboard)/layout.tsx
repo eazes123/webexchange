@@ -66,9 +66,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] bg-ex-bg">
+    <div className="flex bg-ex-bg">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-56 bg-ex-card border-r border-ex-border p-4 gap-1">
+      <aside className="hidden md:flex flex-col w-56 bg-ex-card border-r border-ex-border p-4 gap-1 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
         {/* User info */}
         <div className="flex items-center gap-3 p-3 mb-4 bg-ex-card2 rounded-xl border border-ex-border">
           <div className="w-10 h-10 rounded-full bg-ex-yellow flex items-center justify-center text-black font-black text-lg">
@@ -114,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0b0e1a]/95 backdrop-blur-md border-t border-[#2d3548] flex">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#080808]/95 backdrop-blur-md border-t border-[#1e1e1e] flex">
         {BOTTOM_NAV.map(item => (
           <Link key={item.href} href={item.href}
             className={cn(

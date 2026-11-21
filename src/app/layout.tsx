@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Toaster
           theme="dark"
           toastOptions={{
-            style: { background: "#1a2035", border: "1px solid #2d3548", color: "white" },
+            style: { background: "#0d0d0d", border: "1px solid #1e1e1e", color: "white" },
           }}
         />
       </body>

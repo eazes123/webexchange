@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import {
   Trophy, Clock, CheckCircle, Shield, Wallet,
@@ -10,7 +10,7 @@ import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import Link from "next/link";
 
-// ── Animated countdown block ───────────────────────────────────────────────────
+// -- Animated countdown block ---------------------------------------------------
 function CountdownBlock({ value, label, prev }: { value: number; label: string; prev: number }) {
   const [flip, setFlip] = useState(false);
   useEffect(() => {
@@ -18,7 +18,7 @@ function CountdownBlock({ value, label, prev }: { value: number; label: string; 
   }, [value, prev]);
   return (
     <div className="flex flex-col items-center">
-      <div className={`relative w-16 sm:w-20 h-16 sm:h-20 bg-[#111827] border border-[#2d3548] rounded-2xl flex items-center justify-center overflow-hidden transition-transform ${flip ? "scale-95" : "scale-100"}`}>
+      <div className={`relative w-16 sm:w-20 h-16 sm:h-20 bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl flex items-center justify-center overflow-hidden transition-transform ${flip ? "scale-95" : "scale-100"}`}>
         <div className="absolute inset-0 bg-gradient-to-b from-[#f0b90b]/5 to-transparent pointer-events-none" />
         <span className="text-2xl sm:text-3xl font-black font-mono text-[#f0b90b] tabular-nums select-none">
           {String(value).padStart(2, "0")}
@@ -29,12 +29,12 @@ function CountdownBlock({ value, label, prev }: { value: number; label: string; 
   );
 }
 
-// ── Campaign stat tile ─────────────────────────────────────────────────────────
+// -- Campaign stat tile ---------------------------------------------------------
 function StatTile({ icon: Icon, label, value, sub, color = "text-white" }: {
   icon: React.ElementType; label: string; value: string; sub?: string; color?: string;
 }) {
   return (
-    <div className="bg-[#111827] border border-[#2d3548] rounded-2xl p-4 flex flex-col gap-1">
+    <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-4 flex flex-col gap-1">
       <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">
         <Icon className="w-3.5 h-3.5" />
         {label}
@@ -45,7 +45,7 @@ function StatTile({ icon: Icon, label, value, sub, color = "text-white" }: {
   );
 }
 
-// ── Step row ──────────────────────────────────────────────────────────────────
+// -- Step row ------------------------------------------------------------------
 function StepRow({ n, done, active, label, sub, action }: {
   n: number; done: boolean; active: boolean; label: string; sub: string; action?: React.ReactNode;
 }) {
@@ -53,12 +53,12 @@ function StepRow({ n, done, active, label, sub, action }: {
     <div className={`flex items-start gap-4 p-4 rounded-2xl border transition-all ${
       done    ? "bg-[#0ecb81]/5 border-[#0ecb81]/20"
       : active ? "bg-[#f0b90b]/5 border-[#f0b90b]/30 ring-1 ring-[#f0b90b]/20"
-      : "bg-[#111827] border-[#2d3548] opacity-60"
+      : "bg-[#0d0d0d] border-[#1e1e1e] opacity-60"
     }`}>
       <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-bold text-sm transition-all ${
         done    ? "bg-[#0ecb81] text-black"
         : active ? "bg-[#f0b90b] text-black"
-        : "bg-[#1a2035] border border-[#2d3548] text-gray-500"
+        : "bg-[#111] border border-[#1e1e1e] text-gray-500"
       }`}>
         {done ? <CheckCircle className="w-5 h-5" /> : active ? <Zap className="w-4 h-4" /> : n}
       </div>
@@ -73,18 +73,18 @@ function StepRow({ n, done, active, label, sub, action }: {
   );
 }
 
-// ── FAQ item ──────────────────────────────────────────────────────────────────
+// -- FAQ item ------------------------------------------------------------------
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-[#2d3548] rounded-xl overflow-hidden">
+    <div className="border border-[#1e1e1e] rounded-xl overflow-hidden">
       <button onClick={() => setOpen(p => !p)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-[#111827]/60 transition-colors">
+        className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-[#0d0d0d]/60 transition-colors">
         <span className="text-sm font-semibold text-white pr-4">{q}</span>
         {open ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 text-sm text-gray-400 leading-relaxed border-t border-[#2d3548]/50">
+        <div className="px-4 pb-4 text-sm text-gray-400 leading-relaxed border-t border-[#1e1e1e]/50">
           <div className="pt-3">{a}</div>
         </div>
       )}
@@ -92,12 +92,13 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// -- Main page -----------------------------------------------------------------
 export default function CampaignPage() {
   const { demoUser, walletBalances, hydrate } = useStore();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const prevTime = useRef({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading]   = useState(false);
+  const [unstakeConfirm, setUnstakeConfirm] = useState(false);
   const [campaignData, setCampaignData] = useState<any>(null);
 
   useEffect(() => {
@@ -140,6 +141,8 @@ export default function CampaignPage() {
   const maxSpots          = campaignData?.maxSpots ?? 1000;
   const spotsLeft         = campaignData?.spotsLeft ?? maxSpots;
   const queuePosition     = campaignData?.queuePosition ?? demoUser.queuePosition ?? 0;
+  const baseFilled        = displayFilled - totalParticipants;
+  const displayedQueue    = queuePosition > 0 ? baseFilled + queuePosition : 0;
   const fillPct           = Math.min(100, (displayFilled / maxSpots) * 100);
 
   const handleStake = async () => {
@@ -161,7 +164,7 @@ export default function CampaignPage() {
   };
 
   const handleUnstake = async () => {
-    if (!confirm("Unstaking returns your 500 USDT but permanently forfeits your $50,000 loan. Continue?")) return;
+    setUnstakeConfirm(false);
     setLoading(true);
     try {
       const res  = await fetch("/api/campaign", {
@@ -176,11 +179,11 @@ export default function CampaignPage() {
     finally { setLoading(false); }
   };
 
-  // ── Rewarded state ────────────────────────────────────────────────────────
+  // -- Rewarded state --------------------------------------------------------
   if (isRewarded) {
     return (
       <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#0ecb81]/10 via-[#111827] to-[#f0b90b]/5 border border-[#0ecb81]/30 rounded-3xl p-8 text-center">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#0ecb81]/10 via-[#0d0d0d] to-[#f0b90b]/5 border border-[#0ecb81]/30 rounded-3xl p-8 text-center">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#0ecb81_0%,_transparent_60%)] opacity-5 pointer-events-none" />
           <div className="text-5xl mb-4">🎉</div>
           <div className="inline-flex items-center gap-2 bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-full px-3 py-1 text-xs font-bold text-[#0ecb81] mb-4">
@@ -201,12 +204,12 @@ export default function CampaignPage() {
     );
   }
 
-  // ── Main view ─────────────────────────────────────────────────────────────
+  // -- Main view -------------------------------------------------------------
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-6">
 
-      {/* ── Hero ── */}
-      <div className="relative overflow-hidden rounded-3xl border border-[#2d3548] bg-gradient-to-br from-[#0b0e1a] via-[#111827] to-[#0b0e1a]">
+      {/* -- Hero -- */}
+      <div className="relative overflow-hidden rounded-3xl border border-[#1e1e1e] bg-gradient-to-br from-[#080808] via-[#0d0d0d] to-[#080808]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#f0b90b22_0%,_transparent_60%)] pointer-events-none" />
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#f0b90b]/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -226,11 +229,11 @@ export default function CampaignPage() {
             </div>
 
             {/* Queue badge */}
-            {queuePosition > 0 && (
-              <div className="bg-[#111827] border border-[#2d3548] rounded-2xl px-4 py-3 text-center min-w-[100px]">
+            {displayedQueue > 0 && (
+              <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl px-4 py-3 text-center min-w-[100px]">
                 <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold mb-0.5">Queue #</div>
-                <div className="text-2xl font-black text-[#f0b90b] font-mono">{queuePosition}</div>
-                <div className="text-[10px] text-gray-500">of 1,000</div>
+                <div className="text-2xl font-black text-[#f0b90b] font-mono">{displayedQueue.toLocaleString()}</div>
+                <div className="text-[10px] text-gray-500">of {maxSpots.toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -258,7 +261,7 @@ export default function CampaignPage() {
               <span className="text-gray-500 font-semibold">Campaign Spots Filled</span>
               <span className="text-[#f0b90b] font-bold">{displayFilled} / {maxSpots.toLocaleString()}</span>
             </div>
-            <div className="h-2 bg-[#1a2035] rounded-full overflow-hidden">
+            <div className="h-2 bg-[#111] rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#f0b90b] to-[#f0b90b]/70 rounded-full transition-all duration-700"
                 style={{ width: `${Math.max(2, fillPct)}%` }}
@@ -272,15 +275,15 @@ export default function CampaignPage() {
         </div>
       </div>
 
-      {/* ── Stats row ── */}
+      {/* -- Stats row -- */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatTile icon={Users}     label="Participants"    value={totalParticipants.toLocaleString()}  sub="Staked & active"          color="text-white" />
+        <StatTile icon={Users}     label="Participants"    value={displayFilled.toLocaleString()}      sub="Staked & active"          color="text-white" />
         <StatTile icon={Trophy}    label="Loan Reward"     value="$50,000"      sub="Per eligible user"        color="text-[#f0b90b]" />
         <StatTile icon={Shield}    label="Interest Rate"   value="0%"           sub="Zero interest, 10 years"  color="text-[#0ecb81]" />
         <StatTile icon={Calendar}  label="Disbursement"    value="Dec 31"       sub="2026, 23:59 UTC"          color="text-white" />
       </div>
 
-      {/* ── Status alert ── */}
+      {/* -- Status alert -- */}
       {!kycApproved && (
         <div className="flex items-start gap-3 bg-[#f0b90b]/8 border border-[#f0b90b]/25 rounded-2xl p-4">
           <AlertTriangle className="w-5 h-5 text-[#f0b90b] shrink-0 mt-0.5" />
@@ -314,8 +317,8 @@ export default function CampaignPage() {
         </div>
       )}
 
-      {/* ── Main action card ── */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      {/* -- Main action card -- */}
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <Star className="w-5 h-5 text-[#f0b90b]" />
           {isStaked ? "Your Campaign Status" : "Stake & Join Campaign"}
@@ -331,7 +334,7 @@ export default function CampaignPage() {
                 { label: "Status",        val: "Active ✓",                color: "text-[#0ecb81]" },
                 { label: "Interest",      val: "0% (10 Years)",           color: "text-white" },
               ].map(({ label, val, color }) => (
-                <div key={label} className="bg-[#0b0e1a] border border-[#2d3548] rounded-xl p-3">
+                <div key={label} className="bg-[#080808] border border-[#1e1e1e] rounded-xl p-3">
                   <div className="text-[11px] text-gray-500 font-semibold mb-1">{label}</div>
                   <div className={`text-sm font-bold font-mono ${color}`}>{val}</div>
                 </div>
@@ -339,12 +342,12 @@ export default function CampaignPage() {
             </div>
 
             {/* Progress to loan */}
-            <div className="bg-[#0b0e1a] border border-[#0ecb81]/20 rounded-2xl p-4">
+            <div className="bg-[#080808] border border-[#0ecb81]/20 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-[#0ecb81]">Loan Disbursement Progress</span>
                 <span className="text-xs text-gray-500">Dec 31, 2026</span>
               </div>
-              <div className="h-1.5 bg-[#1a2035] rounded-full overflow-hidden mb-2">
+              <div className="h-1.5 bg-[#111] rounded-full overflow-hidden mb-2">
                 <div className="h-full bg-[#0ecb81] rounded-full" style={{ width: "100%" }} />
               </div>
               <div className="flex justify-between text-[11px] text-gray-500">
@@ -354,13 +357,31 @@ export default function CampaignPage() {
               </div>
             </div>
 
-            <button onClick={handleUnstake} disabled={loading}
-              className="w-full py-3 bg-[#1a2035] border border-[#2d3548] rounded-xl text-sm font-semibold text-gray-400 hover:text-[#f6465d] hover:border-[#f6465d]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-40">
-              <Unlock className="w-4 h-4" />
-              {loading ? "Processing..." : "Exit Campaign (Returns 500 USDT, Forfeits Loan)"}
-            </button>
+            {unstakeConfirm ? (
+              <div className="space-y-3 p-4 bg-[#f6465d]/5 border border-[#f6465d]/20 rounded-xl">
+                <p className="text-xs text-[#f6465d] font-semibold text-center">
+                  Exiting permanently forfeits your $50,000 loan. Your 500 USDT will be returned. This cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => setUnstakeConfirm(false)}
+                    className="flex-1 py-2.5 bg-[#111] border border-[#1e1e1e] rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors">
+                    Keep Stake
+                  </button>
+                  <button onClick={handleUnstake} disabled={loading}
+                    className="flex-1 py-2.5 bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl text-xs font-semibold text-[#f6465d] hover:bg-[#f6465d]/20 transition-colors disabled:opacity-40">
+                    {loading ? "Processing..." : "Exit Campaign"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setUnstakeConfirm(true)} disabled={loading}
+                className="w-full py-3 bg-[#111] border border-[#1e1e1e] rounded-xl text-sm font-semibold text-gray-400 hover:text-[#f6465d] hover:border-[#f6465d]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-40">
+                <Unlock className="w-4 h-4" />
+                {loading ? "Processing..." : "Exit Campaign (Returns 500 USDT, Forfeits Loan)"}
+              </button>
+            )}
             <p className="text-[11px] text-gray-600 text-center leading-relaxed">
-              ⚠️ Exiting the campaign permanently forfeits your $50,000 loan eligibility. Your staked 500 USDT will be returned immediately.
+              Exiting the campaign permanently forfeits your $50,000 loan eligibility. Your staked 500 USDT will be returned immediately.
             </p>
           </div>
         ) : (
@@ -384,10 +405,10 @@ export default function CampaignPage() {
                 },
               ].map(({ done, label, sub, link, linkLabel }) => (
                 <div key={label} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                  done ? "bg-[#0ecb81]/5 border-[#0ecb81]/20" : "bg-[#1a2035] border-[#2d3548]"
+                  done ? "bg-[#0ecb81]/5 border-[#0ecb81]/20" : "bg-[#111] border-[#1e1e1e]"
                 }`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                    done ? "bg-[#0ecb81] text-black" : "bg-[#2d3548] text-gray-500"
+                    done ? "bg-[#0ecb81] text-black" : "bg-[#1e1e1e] text-gray-500"
                   }`}>
                     {done ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="text-xs font-bold">!</span>}
                   </div>
@@ -405,8 +426,8 @@ export default function CampaignPage() {
             </div>
 
             {/* Stake summary */}
-            <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-2xl p-4">
-              <div className="flex items-center justify-between text-sm mb-3 pb-3 border-b border-[#2d3548]">
+            <div className="bg-[#080808] border border-[#1e1e1e] rounded-2xl p-4">
+              <div className="flex items-center justify-between text-sm mb-3 pb-3 border-b border-[#1e1e1e]">
                 <span className="text-gray-500">You stake</span>
                 <span className="font-bold font-mono">500 USDT</span>
               </div>
@@ -420,7 +441,7 @@ export default function CampaignPage() {
             <button onClick={handleStake}
               disabled={loading || !kycApproved || !hasEnough}
               className="relative w-full py-4 rounded-2xl text-base font-black flex items-center justify-center gap-2 overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: (!kycApproved || !hasEnough) ? "#1a2035" : "linear-gradient(135deg, #f0b90b 0%, #d4a017 100%)", color: (!kycApproved || !hasEnough) ? "#6b7280" : "#000" }}
+              style={{ background: (!kycApproved || !hasEnough) ? "#111" : "linear-gradient(135deg, #f0b90b 0%, #d4a017 100%)", color: (!kycApproved || !hasEnough) ? "#6b7280" : "#000" }}
             >
               {(!kycApproved || !hasEnough) ? null : (
                 <div className="absolute inset-0 bg-white/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
@@ -437,8 +458,8 @@ export default function CampaignPage() {
         )}
       </div>
 
-      {/* ── Steps ── */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      {/* -- Steps -- */}
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-[#f0b90b]" /> How It Works
         </h2>
@@ -476,34 +497,35 @@ export default function CampaignPage() {
         </div>
       </div>
 
-      {/* ── Benefit cards ── */}
+      {/* -- Benefit cards -- */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           {
             icon: TrendingUp,
             title: "Trade with $50K",
             desc: "Use the full loan balance to trade on NovaBit Exchange when live trading launches.",
-            color: "text-[#f0b90b]",
+            color: "#f0b90b",
             bg: "bg-[#f0b90b]/5 border-[#f0b90b]/15",
           },
           {
             icon: Wallet,
             title: "Withdraw Anytime",
             desc: "After disbursement on Dec 31, withdraw the loan to any TRON wallet — no lock-up.",
-            color: "text-[#0ecb81]",
+            color: "#0ecb81",
             bg: "bg-[#0ecb81]/5 border-[#0ecb81]/15",
           },
           {
             icon: Shield,
             title: "Zero Interest",
             desc: "No interest, no hidden fees. The $50,000 loan is completely free for 10 years.",
-            color: "text-[#2196f3]",
+            color: "#2196f3",
             bg: "bg-[#2196f3]/5 border-[#2196f3]/15",
           },
         ].map(({ icon: Icon, title, desc, color, bg }) => (
           <div key={title} className={`border rounded-2xl p-5 ${bg}`}>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color} bg-current/10`}>
-              <Icon className="w-5 h-5" style={{ color: "inherit" }} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+              style={{ background: `${color}1a`, color }}>
+              <Icon className="w-5 h-5" />
             </div>
             <div className="font-bold text-sm text-white mb-1">{title}</div>
             <div className="text-xs text-gray-400 leading-relaxed">{desc}</div>
@@ -511,12 +533,12 @@ export default function CampaignPage() {
         ))}
       </div>
 
-      {/* ── Loan terms table ── */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      {/* -- Loan terms table -- */}
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <Gift className="w-5 h-5 text-[#f0b90b]" /> Loan Terms & Details
         </h2>
-        <div className="divide-y divide-[#2d3548]/60 text-sm">
+        <div className="divide-y divide-[#1e1e1e]/60 text-sm">
           {[
             ["Minimum Stake",        "500 USDT"],
             ["Maximum Stake",        "50,000 USDT"],
@@ -537,8 +559,8 @@ export default function CampaignPage() {
         </div>
       </div>
 
-      {/* ── FAQ ── */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      {/* -- FAQ -- */}
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <Info className="w-5 h-5 text-[#f0b90b]" /> Frequently Asked Questions
         </h2>
@@ -577,3 +599,4 @@ export default function CampaignPage() {
     </div>
   );
 }
+

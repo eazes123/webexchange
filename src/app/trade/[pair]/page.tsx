@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 const KlineWidget = dynamic(() => import("./KlineWidget"), {
   ssr: false,
-  loading: () => <div className="w-full h-full" style={{ background: "#0b0e1a" }} />,
+  loading: () => <div className="w-full h-full" style={{ background: "#080808" }} />,
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
           {(["both","bids","asks"] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors ${
-                view === v ? "bg-[#2d3548] text-white" : "text-gray-500 hover:text-gray-300"
+                view === v ? "bg-[#1e1e1e] text-white" : "text-gray-500 hover:text-gray-300"
               }`}>
               {v === "both" ? "⬛" : v === "bids" ? "🟩" : "🟥"}
             </button>
@@ -129,7 +129,7 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
       )}
 
       {/* Mid spread */}
-      <div className="flex items-center justify-between px-0.5 py-1.5 border-y border-[#2d3548]/60 my-0.5">
+      <div className="flex items-center justify-between px-0.5 py-1.5 border-y border-[#1e1e1e]/60 my-0.5">
         <span className={`font-bold text-sm font-mono ${price > 0 ? "text-[#0ecb81]" : "text-[#f6465d]"}`}>
           {formatPrice(price)}
         </span>
@@ -234,11 +234,11 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto pr-0.5">
       {/* Order type */}
-      <div className="flex gap-0.5 bg-[#0b0e1a] rounded-lg p-0.5">
+      <div className="flex gap-0.5 bg-[#080808] rounded-lg p-0.5">
         {(["limit","market","stop-limit","oco"] as const).map(t => (
           <button key={t} onClick={() => setOrderType(t)}
             className={`flex-1 py-1.5 text-[11px] font-semibold capitalize rounded-md transition-colors ${
-              orderType === t ? "bg-[#1a2035] text-white" : "text-gray-500 hover:text-gray-300"
+              orderType === t ? "bg-[#111] text-white" : "text-gray-500 hover:text-gray-300"
             }`}>
             {t === "stop-limit" ? "Stop" : t === "oco" ? "OCO" : t}
           </button>
@@ -278,7 +278,7 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
             <span>Stop ({quote})</span>
           </div>
           <input type="number" value={stopPrice} onChange={e => setStopPrice(e.target.value)}
-            className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
+            className="w-full bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
         </div>
       )}
 
@@ -290,11 +290,11 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
             <span className="text-[#f0b90b] cursor-pointer" onClick={() => setLimitPrice(price.toFixed(2))}>Last</span>
           </div>
           <input type="number" value={limitPrice} onChange={e => setLimitPrice(e.target.value)}
-            className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
+            className="w-full bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
         </div>
       )}
       {orderType === "market" && (
-        <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 flex justify-between text-sm">
+        <div className="bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 flex justify-between text-sm">
           <span className="text-gray-500">Market Price</span>
           <span className="font-mono text-white">{formatPrice(price)}</span>
         </div>
@@ -308,7 +308,7 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
         </div>
         <input type="number" value={amount} onChange={e => { setAmount(e.target.value); setPct(0); }}
           placeholder="0.00000"
-          className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
+          className="w-full bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
       </div>
 
       {/* % slider */}
@@ -327,7 +327,7 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400">Take Profit / Stop Loss</span>
         <button onClick={() => setTpsl(!tpsl)}
-          className={`w-9 h-5 rounded-full transition-colors relative ${tpsl ? "bg-[#f0b90b]" : "bg-[#2d3548]"}`}>
+          className={`w-9 h-5 rounded-full transition-colors relative ${tpsl ? "bg-[#f0b90b]" : "bg-[#1e1e1e]"}`}>
           <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${tpsl ? "right-0.5" : "left-0.5"}`} />
         </button>
       </div>
@@ -336,18 +336,18 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
           <div>
             <div className="text-[10px] text-[#0ecb81] mb-1">Take Profit</div>
             <input type="number" value={tp} onChange={e => setTp(e.target.value)} placeholder={`> ${price.toFixed(2)}`}
-              className="w-full bg-[#0b0e1a] border border-[#0ecb81]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white focus:border-[#0ecb81]/60 outline-none" />
+              className="w-full bg-[#080808] border border-[#0ecb81]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white focus:border-[#0ecb81]/60 outline-none" />
           </div>
           <div>
             <div className="text-[10px] text-[#f6465d] mb-1">Stop Loss</div>
             <input type="number" value={sl} onChange={e => setSl(e.target.value)} placeholder={`< ${price.toFixed(2)}`}
-              className="w-full bg-[#0b0e1a] border border-[#f6465d]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white focus:border-[#f6465d]/60 outline-none" />
+              className="w-full bg-[#080808] border border-[#f6465d]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white focus:border-[#f6465d]/60 outline-none" />
           </div>
         </div>
       )}
 
       {/* Fee summary */}
-      <div className="bg-[#0b0e1a] rounded-lg p-2.5 space-y-1 text-xs">
+      <div className="bg-[#080808] rounded-lg p-2.5 space-y-1 text-xs">
         <div className="flex justify-between text-gray-500">
           <span>Total ({quote})</span>
           <span className="font-mono text-white">{total > 0 ? total.toFixed(2) : "—"}</span>
@@ -396,16 +396,16 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
     <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
       {/* Margin type + leverage */}
       <div className="flex items-center gap-2">
-        <div className="flex gap-0.5 bg-[#0b0e1a] rounded-lg p-0.5">
+        <div className="flex gap-0.5 bg-[#080808] rounded-lg p-0.5">
           {(["isolated","cross"] as const).map(m => (
             <button key={m} onClick={() => setMarginType(m)}
               className={`px-2.5 py-1 text-[11px] font-semibold capitalize rounded-md transition-colors ${
-                marginType === m ? "bg-[#1a2035] text-white" : "text-gray-500 hover:text-gray-300"
+                marginType === m ? "bg-[#111] text-white" : "text-gray-500 hover:text-gray-300"
               }`}>{m}</button>
           ))}
         </div>
         <button onClick={comingSoon}
-          className="ml-auto flex items-center gap-1 px-3 py-1 bg-[#0b0e1a] border border-[#2d3548] rounded-lg text-xs font-bold text-[#f0b90b] hover:border-[#f0b90b]/40 transition-colors">
+          className="ml-auto flex items-center gap-1 px-3 py-1 bg-[#080808] border border-[#1e1e1e] rounded-lg text-xs font-bold text-[#f0b90b] hover:border-[#f0b90b]/40 transition-colors">
           {leverage}x <ChevronDown className="w-3 h-3" />
         </button>
       </div>
@@ -427,11 +427,11 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
       </div>
 
       {/* Order type */}
-      <div className="flex gap-0.5 bg-[#0b0e1a] rounded-lg p-0.5 overflow-x-auto">
+      <div className="flex gap-0.5 bg-[#080808] rounded-lg p-0.5 overflow-x-auto">
         {(["limit","market","stop-market","stop-limit","trailing"] as const).map(t => (
           <button key={t} onClick={() => setOrderType(t)}
             className={`flex-shrink-0 px-2 py-1 text-[10px] font-semibold capitalize rounded-md transition-colors whitespace-nowrap ${
-              orderType === t ? "bg-[#1a2035] text-white" : "text-gray-500 hover:text-gray-300"
+              orderType === t ? "bg-[#111] text-white" : "text-gray-500 hover:text-gray-300"
             }`}>
             {t === "stop-market" ? "Stop Mkt" : t === "stop-limit" ? "Stop Lmt" : t === "trailing" ? "Trail" : t}
           </button>
@@ -456,7 +456,7 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
 
       {/* Price */}
       {orderType === "market" || orderType === "stop-market" ? (
-        <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 flex justify-between text-sm">
+        <div className="bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 flex justify-between text-sm">
           <span className="text-gray-500">Market Price</span>
           <span className="font-mono text-white">{formatPrice(price)}</span>
         </div>
@@ -464,7 +464,7 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
         <div>
           <div className="text-xs text-gray-500 mb-1">Price (USDT)</div>
           <input type="number" value={limitPrice} onChange={e => setLimitPrice(e.target.value)}
-            className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
+            className="w-full bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
         </div>
       )}
 
@@ -472,14 +472,14 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
       <div>
         <div className="text-xs text-gray-500 mb-1">Size ({base})</div>
         <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.000"
-          className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
+          className="w-full bg-[#080808] border border-[#1e1e1e] rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-[#f0b90b]/50 outline-none" />
       </div>
 
       {/* % */}
       <div className="flex gap-1">
         {[10,25,50,75,100].map(p => (
           <button key={p} onClick={comingSoon}
-            className="flex-1 py-1 text-[10px] text-gray-500 bg-[#0b0e1a] border border-[#2d3548] hover:border-[#f0b90b]/30 hover:text-gray-300 rounded transition-colors">
+            className="flex-1 py-1 text-[10px] text-gray-500 bg-[#080808] border border-[#1e1e1e] hover:border-[#f0b90b]/30 hover:text-gray-300 rounded transition-colors">
             {p}%
           </button>
         ))}
@@ -489,7 +489,7 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400">TP / SL</span>
         <button onClick={() => setTpsl(!tpsl)}
-          className={`w-9 h-5 rounded-full transition-colors relative ${tpsl ? "bg-[#f0b90b]" : "bg-[#2d3548]"}`}>
+          className={`w-9 h-5 rounded-full transition-colors relative ${tpsl ? "bg-[#f0b90b]" : "bg-[#1e1e1e]"}`}>
           <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${tpsl ? "right-0.5" : "left-0.5"}`} />
         </button>
       </div>
@@ -498,25 +498,25 @@ function FuturesOrderForm({ base, quote, price }: { base: string; quote: string;
           <div>
             <div className="text-[10px] text-[#0ecb81] mb-1">Take Profit</div>
             <input type="number" value={tp} onChange={e => setTp(e.target.value)} placeholder="Price"
-              className="w-full bg-[#0b0e1a] border border-[#0ecb81]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#0ecb81]/60" />
+              className="w-full bg-[#080808] border border-[#0ecb81]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#0ecb81]/60" />
           </div>
           <div>
             <div className="text-[10px] text-[#f6465d] mb-1">Stop Loss</div>
             <input type="number" value={sl} onChange={e => setSl(e.target.value)} placeholder="Price"
-              className="w-full bg-[#0b0e1a] border border-[#f6465d]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#f6465d]/60" />
+              className="w-full bg-[#080808] border border-[#f6465d]/30 rounded-lg px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#f6465d]/60" />
           </div>
         </div>
       )}
 
       {/* Reduce Only */}
       <label className="flex items-center gap-2 cursor-pointer" onClick={comingSoon}>
-        <div className={`w-3.5 h-3.5 rounded border ${reduceOnly ? "bg-[#f0b90b] border-[#f0b90b]" : "border-[#2d3548]"}`} />
+        <div className={`w-3.5 h-3.5 rounded border ${reduceOnly ? "bg-[#f0b90b] border-[#f0b90b]" : "border-[#1e1e1e]"}`} />
         <span className="text-xs text-gray-400">Reduce Only</span>
       </label>
 
       {/* Stats */}
       {qty > 0 && (
-        <div className="bg-[#0b0e1a] rounded-lg p-2.5 space-y-1 text-xs">
+        <div className="bg-[#080808] rounded-lg p-2.5 space-y-1 text-xs">
           {[
             { label: "Notional Value", value: `$${notional.toFixed(2)}` },
             { label: `Margin (${leverage}x)`, value: `$${margin.toFixed(2)}` },
@@ -553,8 +553,8 @@ function BottomPanel({ base, quote }: { base: string; quote: string }) {
   ] as const;
 
   return (
-    <div className="bg-[#111827] border border-[#2d3548] rounded-2xl overflow-hidden">
-      <div className="flex items-center border-b border-[#2d3548] px-4 overflow-x-auto">
+    <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl overflow-hidden">
+      <div className="flex items-center border-b border-[#1e1e1e] px-4 overflow-x-auto">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`py-3 px-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
@@ -575,7 +575,7 @@ function BottomPanel({ base, quote }: { base: string; quote: string }) {
       </div>
 
       <div className="px-4 py-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#1a2035] flex items-center justify-center mx-auto mb-3">
+        <div className="w-12 h-12 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-3">
           <BarChart2 className="w-6 h-6 text-gray-600" />
         </div>
         <p className="text-sm text-gray-500">
@@ -610,14 +610,12 @@ export default function TradePage() {
 
   const { fetchLivePrices } = useStore();
 
-  // Fetch live prices immediately on mount, then every 15s
   useEffect(() => {
     fetchLivePrices();
     const id = setInterval(() => fetchLivePrices(), 15_000);
     return () => clearInterval(id);
   }, [fetchLivePrices]);
 
-  // Small fluctuations between API refreshes
   useEffect(() => {
     const id = setInterval(() => updatePrices(), 3000);
     return () => clearInterval(id);
@@ -630,19 +628,18 @@ export default function TradePage() {
   const fundingRate = 0.0001;
   const nextFunding = "02:14:33";
 
-
   return (
-    <div className="bg-[#0b0e1a] min-h-screen">
+    <div className="min-h-screen" style={{ background: "#080808" }}>
 
       {/* ── Top bar ── */}
-      <div className="relative z-[50] border-b border-[#2d3548] px-3 sm:px-4 py-2 flex items-center gap-3 sm:gap-6">
+      <div className="relative z-[50] border-b border-[#1e1e1e] px-3 sm:px-4 py-2 flex items-center gap-3 sm:gap-6" style={{ background: "#080808" }}>
 
         {/* Mode tabs */}
-        <div className="flex gap-0.5 bg-[#111827] rounded-lg p-0.5 flex-shrink-0">
+        <div className="flex gap-0.5 bg-[#0d0d0d] rounded-lg p-0.5 flex-shrink-0">
           {(["spot","futures"] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
               className={`px-4 py-1.5 text-sm font-semibold capitalize rounded-md transition-colors ${
-                mode === m ? "bg-[#1a2035] text-white" : "text-gray-500 hover:text-gray-300"
+                mode === m ? "bg-[#111] text-white" : "text-gray-500 hover:text-gray-300"
               }`}>{m}</button>
           ))}
         </div>
@@ -650,7 +647,7 @@ export default function TradePage() {
         {/* Pair selector */}
         <div className="relative flex-shrink-0">
           <button onClick={() => setShowPairs(!showPairs)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#111827] border border-[#2d3548] rounded-xl hover:border-[#f0b90b]/40 transition-colors">
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl hover:border-[#f0b90b]/40 transition-colors">
             <img src={coin.image} alt={base} className="w-5 h-5 rounded-full"
               onError={e => { (e.target as HTMLImageElement).style.display="none"; }} />
             <span className="font-black text-base">{base}/{quote}</span>
@@ -659,9 +656,9 @@ export default function TradePage() {
           </button>
 
           {showPairs && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-[#111827] border border-[#2d3548] rounded-xl shadow-2xl z-[200] overflow-hidden">
-              <div className="p-2 border-b border-[#2d3548]">
-                <div className="flex items-center gap-2 bg-[#0b0e1a] rounded-lg px-3 py-1.5">
+            <div className="absolute top-full left-0 mt-1 w-56 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl shadow-2xl z-[200] overflow-hidden">
+              <div className="p-2 border-b border-[#1e1e1e]">
+                <div className="flex items-center gap-2 bg-[#080808] rounded-lg px-3 py-1.5">
                   <Search className="w-3.5 h-3.5 text-gray-500" />
                   <input autoFocus value={pairSearch} onChange={e => setPairSearch(e.target.value)}
                     placeholder="Search pair..." className="bg-transparent text-xs text-white outline-none flex-1 placeholder-gray-600" />
@@ -673,7 +670,7 @@ export default function TradePage() {
                   const c = coins.find(x => x.symbol === sym);
                   return (
                     <button key={p} onClick={() => { router.push(`/trade/${p.replace(" ","-")}`); setShowPairs(false); setPairSearch(""); }}
-                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#1a2035] transition-colors text-xs">
+                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#111] transition-colors text-xs">
                       <div className="flex items-center gap-2">
                         {p.includes("PERP") && <span className="text-[9px] text-[#f0b90b] bg-[#f0b90b]/10 px-1 rounded">PERP</span>}
                         <span className="font-semibold text-white">{p}</span>
@@ -734,7 +731,7 @@ export default function TradePage() {
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 ${
                 c.symbol === base
                   ? "bg-[#f0b90b] text-black"
-                  : "bg-[#111827] text-gray-400 hover:text-white border border-[#2d3548]"
+                  : "bg-[#0d0d0d] text-gray-400 hover:text-white border border-[#1e1e1e]"
               }`}>
               {c.symbol}
             </Link>
@@ -746,8 +743,8 @@ export default function TradePage() {
       <div className="flex flex-col xl:grid xl:grid-cols-[220px_1fr_260px] xl:h-[calc(100vh-130px)] xl:overflow-hidden">
 
         {/* Left col: order book / trades */}
-        <div className="border-r border-[#2d3548] flex-col hidden xl:flex xl:overflow-hidden">
-          <div className="flex border-b border-[#2d3548]">
+        <div className="border-r border-[#1e1e1e] flex-col hidden xl:flex xl:overflow-hidden" style={{ background: "#080808" }}>
+          <div className="flex border-b border-[#1e1e1e]">
             {(["book","trades"] as const).map(t => (
               <button key={t} onClick={() => setLeftTab(t)}
                 className={`flex-1 py-2 text-xs font-semibold transition-colors ${
@@ -765,13 +762,13 @@ export default function TradePage() {
         </div>
 
         {/* Center col: chart */}
-        <div className="h-[320px] sm:h-[420px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#2d3548]">
+        <div className="h-[320px] sm:h-[420px] xl:h-full border-b xl:border-b-0 xl:border-r border-[#1e1e1e]">
           <KlineWidget base={base} />
         </div>
 
         {/* Right col: order form */}
-        <div className="flex flex-col xl:overflow-hidden border-t xl:border-t-0 border-[#2d3548]">
-          <div className="p-3 border-b border-[#2d3548]">
+        <div className="flex flex-col xl:overflow-hidden border-t xl:border-t-0 border-[#1e1e1e]" style={{ background: "#080808" }}>
+          <div className="p-3 border-b border-[#1e1e1e]">
             <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
               <span>Avbl Balance</span>
               <Link href="/wallet" className="text-[#f0b90b] hover:underline">Deposit</Link>
@@ -793,10 +790,10 @@ export default function TradePage() {
       {/* Mobile: order book below chart */}
       <div className="xl:hidden px-4 pb-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#111827] border border-[#2d3548] rounded-2xl p-3">
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-3">
             <OrderBookPanel price={coin.price} base={base} quote={quote} />
           </div>
-          <div className="bg-[#111827] border border-[#2d3548] rounded-2xl p-3">
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-3">
             <RecentTradesPanel price={coin.price} base={base} quote={quote} />
           </div>
         </div>

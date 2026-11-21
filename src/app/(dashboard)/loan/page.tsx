@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useCallback } from "react";
 import {
   CreditCard, CheckCircle, Clock, AlertTriangle,
@@ -35,7 +35,7 @@ function ProgressRing({ pct, size = 120, stroke = 10 }: { pct: number; size?: nu
   const off = c - (pct / 100) * c;
   return (
     <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#1a2035" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#111" strokeWidth={stroke} />
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f0b90b"
         strokeWidth={stroke} strokeDasharray={c} strokeDashoffset={off}
         strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.6s ease" }} />
@@ -92,7 +92,7 @@ export default function LoanPage() {
   if (!isRewarded) {
     return (
       <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
-        <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-8 text-center">
+        <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-8 text-center">
           <div className="w-16 h-16 bg-[#f0b90b]/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-[#f0b90b]" />
           </div>
@@ -109,10 +109,10 @@ export default function LoanPage() {
               { done: false, label: "Loan Disbursement: Dec 31, 2026", href: null },
             ].map(({ done, label, href }) => (
               <div key={label} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                done ? "bg-[#0ecb81]/5 border-[#0ecb81]/20" : "bg-[#1a2035] border-[#2d3548]"
+                done ? "bg-[#0ecb81]/5 border-[#0ecb81]/20" : "bg-[#111] border-[#1e1e1e]"
               }`}>
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                  done ? "bg-[#0ecb81] text-black" : "bg-[#2d3548] text-gray-500"
+                  done ? "bg-[#0ecb81] text-black" : "bg-[#1e1e1e] text-gray-500"
                 }`}>
                   {done ? <CheckCircle className="w-3 h-3" /> : <span className="text-[9px] font-bold">!</span>}
                 </div>
@@ -138,7 +138,7 @@ export default function LoanPage() {
   if (loanData?.fullyRepaid) {
     return (
       <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#0ecb81]/10 via-[#111827] to-[#f0b90b]/5 border border-[#0ecb81]/30 rounded-3xl p-8 text-center">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#0ecb81]/10 via-[#0d0d0d] to-[#f0b90b]/5 border border-[#0ecb81]/30 rounded-3xl p-8 text-center">
           <div className="text-5xl mb-4">🎉</div>
           <div className="inline-flex items-center gap-2 bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-full px-3 py-1 text-xs font-bold text-[#0ecb81] mb-4">
             <BadgeCheck className="w-3.5 h-3.5" /> Loan Fully Repaid
@@ -179,7 +179,7 @@ export default function LoanPage() {
             color: "text-[#f6465d]", sub: `${loanData?.monthsLeft ?? LOAN_MONTHS} months left` },
           { label: "Monthly Due",   val: `$${MONTHLY_INST.toFixed(2)}`,   color: "text-[#f0b90b]",   sub: "per month" },
         ].map(({ label, val, color, sub }) => (
-          <div key={label} className="bg-[#111827] border border-[#2d3548] rounded-2xl p-4">
+          <div key={label} className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-4">
             <div className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide mb-1">{label}</div>
             <div className={`text-lg font-black font-mono ${color}`}>{val}</div>
             <div className="text-[11px] text-gray-600 mt-0.5">{sub}</div>
@@ -188,7 +188,7 @@ export default function LoanPage() {
       </div>
 
       {/* Progress ring + details */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row gap-6 items-center">
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row gap-6 items-center">
         <div className="relative shrink-0">
           <ProgressRing pct={repaidPct} size={130} stroke={12} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -203,7 +203,7 @@ export default function LoanPage() {
               <span className="text-gray-500">Repayment Progress</span>
               <span className="text-[#f0b90b] font-bold">{(loanData?.totalRepaid ?? 0).toFixed(2)} / 50,000 USDT</span>
             </div>
-            <div className="h-2.5 bg-[#1a2035] rounded-full overflow-hidden">
+            <div className="h-2.5 bg-[#111] rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#f0b90b] to-[#0ecb81] rounded-full transition-all duration-700"
                 style={{ width: `${Math.max(1, repaidPct)}%` }}
@@ -212,11 +212,11 @@ export default function LoanPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-xl p-3">
+            <div className="bg-[#080808] border border-[#1e1e1e] rounded-xl p-3">
               <div className="text-[11px] text-gray-500 mb-0.5">Months Paid</div>
               <div className="font-bold font-mono">{loanData?.paidMonths ?? 0} / {LOAN_MONTHS}</div>
             </div>
-            <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-xl p-3">
+            <div className="bg-[#080808] border border-[#1e1e1e] rounded-xl p-3">
               <div className="text-[11px] text-gray-500 mb-0.5">Remaining Balance</div>
               <div className="font-bold font-mono text-[#f6465d]">
                 {(loanData?.remaining ?? LOAN_AMOUNT).toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT
@@ -227,14 +227,14 @@ export default function LoanPage() {
       </div>
 
       {/* Payment form */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <Banknote className="w-5 h-5 text-[#f0b90b]" />
           Pay Installment
         </h2>
 
         {/* Wallet balance */}
-        <div className="flex items-center justify-between p-3 bg-[#0b0e1a] border border-[#2d3548] rounded-xl mb-4">
+        <div className="flex items-center justify-between p-3 bg-[#080808] border border-[#1e1e1e] rounded-xl mb-4">
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Wallet className="w-4 h-4" />
             USDT Available
@@ -265,8 +265,8 @@ export default function LoanPage() {
                   parseFloat(amount) === val
                     ? "bg-[#f0b90b] text-black border-[#f0b90b]"
                     : val > usdtAvail
-                      ? "bg-[#1a2035] text-gray-600 border-[#2d3548] cursor-not-allowed opacity-50"
-                      : "bg-[#1a2035] text-gray-300 border-[#2d3548] hover:border-[#f0b90b]/40 hover:text-[#f0b90b]"
+                      ? "bg-[#111] text-gray-600 border-[#1e1e1e] cursor-not-allowed opacity-50"
+                      : "bg-[#111] text-gray-300 border-[#1e1e1e] hover:border-[#f0b90b]/40 hover:text-[#f0b90b]"
                 }`}>
                 {label}
                 <span className="ml-1 opacity-70">${val.toFixed(0)}</span>
@@ -287,7 +287,7 @@ export default function LoanPage() {
                 placeholder={`Min ${(loanData?.minPayment ?? 100).toFixed(2)}`}
                 min={loanData?.minPayment ?? 100}
                 step="0.01"
-                className="w-full bg-[#0b0e1a] border border-[#2d3548] rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-gray-600 outline-none focus:border-[#f0b90b]/50 transition-colors"
+                className="w-full bg-[#080808] border border-[#1e1e1e] rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-gray-600 outline-none focus:border-[#f0b90b]/50 transition-colors"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-semibold">USDT</span>
             </div>
@@ -297,7 +297,7 @@ export default function LoanPage() {
               className="px-6 py-3 rounded-xl font-black text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 background: (!amount || parseFloat(amount) < 100 || parseFloat(amount) > usdtAvail)
-                  ? "#1a2035"
+                  ? "#111"
                   : "linear-gradient(135deg, #f0b90b, #d4a017)",
                 color: (!amount || parseFloat(amount) < 100 || parseFloat(amount) > usdtAvail)
                   ? "#6b7280"
@@ -320,7 +320,7 @@ export default function LoanPage() {
 
         {/* Summary */}
         {parseFloat(amount) >= 100 && parseFloat(amount) <= usdtAvail && (
-          <div className="bg-[#0b0e1a] border border-[#2d3548] rounded-xl p-4 text-sm space-y-2">
+          <div className="bg-[#080808] border border-[#1e1e1e] rounded-xl p-4 text-sm space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-500">You pay</span>
               <span className="font-bold font-mono">{parseFloat(amount).toFixed(2)} USDT</span>
@@ -331,7 +331,7 @@ export default function LoanPage() {
                 {Math.max(0, (loanData?.remaining ?? LOAN_AMOUNT) - parseFloat(amount)).toFixed(2)} USDT
               </span>
             </div>
-            <div className="flex justify-between pt-1 border-t border-[#2d3548]">
+            <div className="flex justify-between pt-1 border-t border-[#1e1e1e]">
               <span className="text-gray-500">Repayment fee</span>
               <span className="font-bold text-[#0ecb81]">Free (0%)</span>
             </div>
@@ -344,11 +344,11 @@ export default function LoanPage() {
       </div>
 
       {/* Loan terms */}
-      <div className="bg-[#111827] border border-[#2d3548] rounded-3xl p-5 sm:p-6">
+      <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-base mb-4 flex items-center gap-2">
           <Info className="w-4 h-4 text-[#f0b90b]" /> Loan Summary
         </h2>
-        <div className="divide-y divide-[#2d3548]/60 text-sm">
+        <div className="divide-y divide-[#1e1e1e]/60 text-sm">
           {[
             ["Total Loan",          "$50,000 USDT"],
             ["Interest Rate",       "0% (interest-free)"],

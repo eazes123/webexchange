@@ -9,10 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "ex-bg":     "#0b0e1a",
-        "ex-card":   "#111827",
-        "ex-card2":  "#1a2035",
-        "ex-border": "#2d3548",
+        "ex-bg":     "#070707",
+        "ex-card":   "#0d0d0d",
+        "ex-card2":  "#131313",
+        "ex-border": "#1e1e1e",
         "ex-yellow": "#f0b90b",
         "ex-green":  "#0ecb81",
         "ex-red":    "#f6465d",

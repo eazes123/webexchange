@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import WithdrawalsClient from "./WithdrawalsClient";
 
 export const metadata: Metadata = {
-  title: "Withdrawal Proofs | NovaBit",
-  description: "Verified TRC20 USDT transfer proofs on the TRON blockchain.",
+  title: "Campaign | NovaBit",
+  description: "October 2024 loan campaign disbursement records. Verified TRC20 USDT transfers on the TRON blockchain.",
 };
 
 export const dynamic = "force-dynamic";

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 
@@ -15,7 +15,7 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: "#0b0e1a", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
+      <body style={{ margin: 0, background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
         <div style={{ textAlign: "center", padding: "0 1rem" }}>
           <p style={{ color: "#f6465d", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "1rem" }}>
             Critical Error

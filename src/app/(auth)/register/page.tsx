@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw, CheckCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 
-const COUNTRIES = ["Pakistan","United States","United Kingdom","Canada","Germany","Australia","UAE","India","Singapore","Turkey","France","Netherlands","Saudi Arabia","Malaysia","Bangladesh"];
+const COUNTRIES = ["United States","United Kingdom","Canada","Germany","Australia","UAE","India","Singapore","Turkey","France","Netherlands","Saudi Arabia","Malaysia","Bangladesh","Pakistan"];
 import { toast } from "sonner";
 
 const STEPS = ["Account Details", "Verify Email"] as const;
@@ -31,7 +31,7 @@ export default function RegisterPage() {
     fullName:        "",
     email:           "",
     phone:           "",
-    country:         "Pakistan",
+    country:         "United States",
     password:        "",
     confirmPassword: "",
     referral:        "",
@@ -141,7 +141,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">Phone *</label>
-                <input className="ex-input" type="tel" required placeholder="+92 300 1234567"
+                <input className="ex-input" type="tel" required placeholder="+1 (555) 000-0000"
                   value={form.phone} onChange={field("phone")} />
               </div>
               <div>

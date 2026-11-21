@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown } from "lucide-react";
@@ -97,11 +97,11 @@ export default function ChatWidget() {
     <>
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-[350px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-[#2d3548] bg-[#111827]"
+        <div className="fixed bottom-20 right-4 z-50 w-[350px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-[#1e1e1e] bg-[#0d0d0d]"
           style={{ height: "480px" }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-[#0b0e1a] border-b border-[#2d3548]">
+          <div className="flex items-center justify-between px-4 py-3 bg-[#080808] border-b border-[#1e1e1e]">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-[#f0b90b]/10 border border-[#f0b90b]/30 flex items-center justify-center">
                 <Bot className="w-4 h-4 text-[#f0b90b]" />
@@ -128,7 +128,7 @@ export default function ChatWidget() {
                 <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
                   msg.role === "user"
                     ? "bg-[#f0b90b]/20 border border-[#f0b90b]/30"
-                    : "bg-[#1a2035] border border-[#2d3548]"
+                    : "bg-[#111] border border-[#1e1e1e]"
                 }`}>
                   {msg.role === "user"
                     ? <User className="w-3 h-3 text-[#f0b90b]" />
@@ -137,7 +137,7 @@ export default function ChatWidget() {
                 <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-[#f0b90b] text-black font-medium rounded-tr-sm"
-                    : "bg-[#1a2035] text-gray-200 rounded-tl-sm"
+                    : "bg-[#111] text-gray-200 rounded-tl-sm"
                 }`}>
                   {msg.text}
                   {msg.agentRequested && (
@@ -152,10 +152,10 @@ export default function ChatWidget() {
 
             {loading && (
               <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#1a2035] border border-[#2d3548] flex items-center justify-center mt-0.5 flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-[#111] border border-[#1e1e1e] flex items-center justify-center mt-0.5 flex-shrink-0">
                   <Bot className="w-3 h-3 text-gray-400" />
                 </div>
-                <div className="bg-[#1a2035] rounded-2xl rounded-tl-sm px-3 py-2.5">
+                <div className="bg-[#111] rounded-2xl rounded-tl-sm px-3 py-2.5">
                   <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                 </div>
               </div>
@@ -168,7 +168,7 @@ export default function ChatWidget() {
             <div className="px-3 pb-2 flex flex-wrap gap-1.5">
               {QUICK_QUESTIONS.map((q) => (
                 <button key={q} onClick={() => send(q)}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#1a2035] border border-[#2d3548] text-gray-300 hover:border-[#f0b90b]/40 hover:text-[#f0b90b] transition-colors">
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#111] border border-[#1e1e1e] text-gray-300 hover:border-[#f0b90b]/40 hover:text-[#f0b90b] transition-colors">
                   {q}
                 </button>
               ))}
@@ -176,8 +176,8 @@ export default function ChatWidget() {
           )}
 
           {/* Input */}
-          <div className="px-3 pb-3 pt-1 border-t border-[#2d3548]">
-            <div className="flex gap-2 items-center bg-[#0b0e1a] rounded-xl border border-[#2d3548] px-3 py-2 focus-within:border-[#f0b90b]/40 transition-colors">
+          <div className="px-3 pb-3 pt-1 border-t border-[#1e1e1e]">
+            <div className="flex gap-2 items-center bg-[#080808] rounded-xl border border-[#1e1e1e] px-3 py-2 focus-within:border-[#f0b90b]/40 transition-colors">
               <input
                 ref={inputRef}
                 type="text"
@@ -206,7 +206,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((p) => !p)}
         className="fixed bottom-4 right-4 z-50 w-13 h-13 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
-        style={{ width: 52, height: 52, background: open ? "#1a2035" : "#f0b90b", border: "2px solid", borderColor: open ? "#2d3548" : "transparent" }}
+        style={{ width: 52, height: 52, background: open ? "#111" : "#f0b90b", border: "2px solid", borderColor: open ? "#1e1e1e" : "transparent" }}
         aria-label="Chat with Nova"
       >
         {open

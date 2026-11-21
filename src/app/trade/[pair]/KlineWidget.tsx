@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // Loaded only via next/dynamic ssr:false — top-level klinecharts import is safe.
 import { useState, useEffect, useRef } from "react";
 import { init, dispose } from "klinecharts";
@@ -38,7 +38,7 @@ const INDS_SUB  = ["VOL", "MACD", "RSI", "KDJ"] as const;
 
 const KSTYLES = {
   grid: {
-    horizontal: { color: "#1a2035", style: "dashed" as const, dashedValue: [2, 2] },
+    horizontal: { color: "#111", style: "dashed" as const, dashedValue: [2, 2] },
     vertical:   { show: false },
   },
   candle: {
@@ -77,14 +77,14 @@ const KSTYLES = {
   crosshair: {
     horizontal: {
       line: { color: "#555e72", style: "dashed" as const, dashedValue: [4, 4] },
-      text: { color: "#d1d4dc", backgroundColor: "#1a2035", borderColor: "#555e72" },
+      text: { color: "#d1d4dc", backgroundColor: "#111", borderColor: "#555e72" },
     },
     vertical: {
       line: { color: "#555e72", style: "dashed" as const, dashedValue: [4, 4] },
-      text: { color: "#d1d4dc", backgroundColor: "#1a2035", borderColor: "#555e72" },
+      text: { color: "#d1d4dc", backgroundColor: "#111", borderColor: "#555e72" },
     },
   },
-  separator: { color: "#2d3548" },
+  separator: { color: "#1e1e1e" },
 };
 
 export default function KlineWidget({ base }: { base: string }) {
@@ -197,8 +197,8 @@ export default function KlineWidget({ base }: { base: string }) {
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "#0b0e1a" }}>
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#2d3548] flex-shrink-0 overflow-x-auto">
+    <div className="flex flex-col h-full" style={{ background: "#080808" }}>
+      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#1e1e1e] flex-shrink-0 overflow-x-auto">
         {IVS.map(i => (
           <button key={i} onClick={() => setIv(i)}
             className={`px-2 py-1 text-xs rounded font-semibold transition-colors flex-shrink-0 ${
@@ -206,22 +206,22 @@ export default function KlineWidget({ base }: { base: string }) {
             }`}>{i}</button>
         ))}
 
-        <div className="w-px h-4 bg-[#2d3548] mx-1 flex-shrink-0" />
+        <div className="w-px h-4 bg-[#1e1e1e] mx-1 flex-shrink-0" />
 
         {DRAWS.map(t => (
           <button key={t.id}
             onClick={() => { try { chartRef.current?.createOverlay(t.id); } catch {} }}
-            className="px-2 py-1 text-[11px] rounded text-gray-500 hover:text-gray-200 hover:bg-[#1a2035] transition-colors flex-shrink-0">
+            className="px-2 py-1 text-[11px] rounded text-gray-500 hover:text-gray-200 hover:bg-[#111] transition-colors flex-shrink-0">
             {t.label}
           </button>
         ))}
         <button onClick={() => { try { chartRef.current?.removeOverlay(); } catch {} }}
           title="Clear drawings"
-          className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-[#1a2035] transition-colors flex-shrink-0">
+          className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-[#111] transition-colors flex-shrink-0">
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        <div className="w-px h-4 bg-[#2d3548] mx-1 flex-shrink-0" />
+        <div className="w-px h-4 bg-[#1e1e1e] mx-1 flex-shrink-0" />
 
         {[...INDS_MAIN, ...INDS_SUB].map(ind => (
           <button key={ind} onClick={() => toggleInd(ind)}

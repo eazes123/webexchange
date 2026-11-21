@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-[#0b0e1a] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
         <p className="text-[#f6465d] text-sm font-semibold tracking-widest uppercase mb-4">Error 500</p>
         <h1 className="text-7xl font-black text-white mb-4">500</h1>
@@ -32,7 +32,7 @@ export default function Error({
           </button>
           <Link
             href="/"
-            className="px-5 py-2.5 bg-[#111827] border border-[#2d3548] text-white text-sm font-semibold rounded-lg hover:border-[#f0b90b]/40 transition-colors"
+            className="px-5 py-2.5 bg-[#0d0d0d] border border-[#1e1e1e] text-white text-sm font-semibold rounded-lg hover:border-[#f0b90b]/40 transition-colors"
           >
             Go Home
           </Link>
