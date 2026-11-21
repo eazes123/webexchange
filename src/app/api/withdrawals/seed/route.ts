@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { fetchDailyProofs } from "@/lib/tron-proofs";
-import { requireAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 min — seeding 30 days is slow
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdminSession(request);
-  if (auth instanceof NextResponse) return auth;
+  const authHeader = request.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { days = 30 } = await request.json().catch(() => ({}));
 

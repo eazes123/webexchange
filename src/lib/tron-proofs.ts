@@ -1,12 +1,10 @@
 // TRONSCAN API utility — server-side only
-const USDT_CONTRACT  = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const TRONSCAN_BASE  = "https://apilist.tronscanapi.com";
-const USDT_DECIMALS  = 6;
+const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const TRONSCAN_BASE = "https://apilist.tronscanapi.com";
+const USDT_DECIMALS = 6;
 
-// 40,000–60,000 USDT in raw units (6 decimals)
-const AMOUNT_MIN = 40_000 * 10 ** USDT_DECIMALS;   // 40,000,000,000
-const AMOUNT_MAX = 60_000 * 10 ** USDT_DECIMALS;   // 60,000,000,000
-const TARGET     = 50_000 * 10 ** USDT_DECIMALS;   // 50,000,000,000
+// Exact 50,000 USDT in raw units
+const EXACT_AMOUNT = 50_000 * 10 ** USDT_DECIMALS; // 50,000,000,000
 
 export interface TronProof {
   txHash:         string;
@@ -21,13 +19,12 @@ function apiKey(): string {
   return process.env.TRONSCAN_API_KEY ?? "";
 }
 
-/** Fetch one page of TRC-20 USDT transfers in a time window. */
 async function fetchPage(
   startMs: number,
   endMs: number,
   offset: number,
   limit = 200
-): Promise<TronProof[]> {
+): Promise<{ txns: TronProof[]; total: number }> {
   const url = new URL(`${TRONSCAN_BASE}/api/token_trc20/transfers`);
   url.searchParams.set("contract_address", USDT_CONTRACT);
   url.searchParams.set("limit", String(limit));
@@ -42,10 +39,10 @@ async function fetchPage(
       headers: { "TRON-PRO-API-KEY": apiKey() },
       cache: "no-store",
     });
-    if (!res.ok) return [];
+    if (!res.ok) return { txns: [], total: 0 };
     const data = await res.json();
 
-    return (data.token_transfers ?? []).map((t: any) => ({
+    const txns = (data.token_transfers ?? []).map((t: any) => ({
       txHash:         t.transaction_id ?? "",
       fromAddress:    t.from_address   ?? "",
       toAddress:      t.to_address     ?? "",
@@ -53,14 +50,16 @@ async function fetchPage(
       blockTimestamp: Number(t.block_ts ?? 0),
       blockNumber:    Number(t.block   ?? 0),
     }));
+
+    return { txns, total: Number(data.total ?? 0) };
   } catch {
-    return [];
+    return { txns: [], total: 0 };
   }
 }
 
 /**
- * Fetch 5–7 TRC-20 USDT transfers close to 50,000 USDT for a given day.
- * Fetches up to 2 pages (400 txns) and picks those nearest to TARGET.
+ * Fetch exactly 5–7 TRC-20 USDT transfers of EXACTLY 50,000 USDT for a given day.
+ * Pages through results (200 per page) until enough are found or all pages exhausted.
  */
 export async function fetchDailyProofs(
   dateMs: number,
@@ -72,22 +71,30 @@ export async function fetchDailyProofs(
   d.setUTCHours(23, 59, 59, 999);
   const endMs = d.getTime();
 
-  const [page1, page2] = await Promise.all([
-    fetchPage(startMs, endMs, 0, 200),
-    fetchPage(startMs, endMs, 200, 200),
-  ]);
+  const results: TronProof[] = [];
+  let offset = 0;
+  const PAGE_SIZE = 200;
+  const MAX_PAGES = 20; // up to 4,000 txns scanned per day
 
-  const all = [...page1, ...page2];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const { txns, total } = await fetchPage(startMs, endMs, offset, PAGE_SIZE);
 
-  // Filter to 40k–60k USDT range
-  const filtered = all.filter(
-    (t) => t.amountRaw >= AMOUNT_MIN && t.amountRaw <= AMOUNT_MAX
-  );
+    for (const t of txns) {
+      if (t.amountRaw === EXACT_AMOUNT) {
+        results.push(t);
+        if (results.length >= perDay) return results;
+      }
+    }
 
-  // Sort by closeness to 50,000 USDT
-  filtered.sort((a, b) => Math.abs(a.amountRaw - TARGET) - Math.abs(b.amountRaw - TARGET));
+    offset += PAGE_SIZE;
+    // Stop if we've fetched everything
+    if (offset >= total || txns.length < PAGE_SIZE) break;
 
-  return filtered.slice(0, perDay);
+    // Small delay to respect rate limits
+    await new Promise((r) => setTimeout(r, 150));
+  }
+
+  return results;
 }
 
 export function formatUsdt(raw: number): string {
