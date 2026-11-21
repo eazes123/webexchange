@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("withdrawal_proof_txns")
-    .select("*")
+    .select("tx_hash, from_address, to_address, amount_raw, block_timestamp, block_number")
     .order("block_timestamp", { ascending: false })
     .limit(500);
 

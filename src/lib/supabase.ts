@@ -7,5 +7,10 @@ const secretKey = process.env.SUPABASE_SECRET_KEY!;
 // Browser client (publishable key — safe to expose)
 export const supabase = createClient(url, publishableKey);
 
-// Server-only admin client (secret key — API routes only)
-export const supabaseAdmin = createClient(url, secretKey);
+// Server-only admin client (secret key — API routes only, bypasses RLS)
+export const supabaseAdmin = createClient(url, secretKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
