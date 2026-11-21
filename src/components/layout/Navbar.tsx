@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: "/markets", label: "Markets" },
   { href: "/trade/BTC-USDT", label: "Trade" },
   { href: "/campaign", label: "Campaign", highlight: true },
+  { href: "/withdrawals", label: "Withdrawals" },
   { href: "/#how-it-works", label: "How It Works" },
 ];
 

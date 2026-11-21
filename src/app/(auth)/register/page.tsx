@@ -23,10 +23,7 @@ export default function RegisterPage() {
   useEffect(() => {
     fetch("/api/stats")
       .then(r => r.json())
-      .then(d => {
-        const displayMax = d.displayMaxSpots ?? 1200;
-        setSpotsLeft(Math.max(10, displayMax - (d.stakedCount ?? 0) - 15));
-      })
+      .then(d => setSpotsLeft(Math.max(10, 1000 - (d.stakedCount ?? 0) - 15)))
       .catch(() => {});
   }, []);
 
