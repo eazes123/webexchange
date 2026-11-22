@@ -222,14 +222,16 @@ export default function DashboardPage() {
 
         {/* Action card — changes per step */}
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
-          {kycNone && (
+          {(kycNone || kycRejected) && (
             <>
               <div className="flex items-center gap-2 mb-3">
-                <Shield className="w-5 h-5 text-ex-yellow" />
-                <h2 className="font-bold">Step 2: Verify Your Identity</h2>
+                <Shield className={`w-5 h-5 ${kycRejected ? "text-red-400" : "text-ex-yellow"}`} />
+                <h2 className="font-bold">{kycRejected ? "Resubmit KYC Verification" : "Step 2: Verify Your Identity"}</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                KYC is required to participate in the campaign. It takes about 5 minutes.
+                {kycRejected
+                  ? "Your previous submission was rejected. Please resubmit with clear documents."
+                  : "KYC is required to participate in the campaign. It takes about 5 minutes."}
               </p>
               <div className="space-y-2 mb-4">
                 {["Government-issued photo ID", "Selfie / liveness check", "Proof of address"].map(r => (
@@ -238,8 +240,8 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/kyc" className="btn-primary w-full py-3 text-center block">
-                Start KYC Verification →
+              <Link href="/kyc" className={`w-full py-3 text-center block rounded-xl font-bold text-sm transition-colors ${kycRejected ? "bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400" : "btn-primary"}`}>
+                {kycRejected ? "Resubmit KYC →" : "Start KYC Verification →"}
               </Link>
             </>
           )}
