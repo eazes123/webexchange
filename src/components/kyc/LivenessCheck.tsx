@@ -221,18 +221,19 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
       let condMet = false;
 
       switch (ch) {
-        case "LOOK_LEFT":  condMet = yaw   < -0.19; break;
-        case "LOOK_RIGHT": condMet = yaw   >  0.19; break;
-        case "LOOK_UP":    condMet = pitch <  0.37; break;
+        // yaw is in raw (unmirrored) video coords — user's left = positive yaw
+        case "LOOK_LEFT":  condMet = yaw   >  0.19; break;
+        case "LOOK_RIGHT": condMet = yaw   < -0.19; break;
+        case "LOOK_UP":    condMet = pitch <  0.28; break;
         case "LOOK_DOWN":  condMet = pitch >  0.60; break;
         case "BLINK":
-          if (avgEAR < 0.22 && blinkStateRef.current === "open") blinkStateRef.current = "closed";
-          else if (avgEAR > 0.28 && blinkStateRef.current === "closed") {
+          if (avgEAR < 0.25 && blinkStateRef.current === "open") blinkStateRef.current = "closed";
+          else if (avgEAR > 0.27 && blinkStateRef.current === "closed") {
             blinkStateRef.current = "open";
             blinkCountRef.current++;
             setBlinkCount(blinkCountRef.current);
           }
-          condMet = blinkCountRef.current >= 2;
+          condMet = blinkCountRef.current >= 1;
           break;
       }
 

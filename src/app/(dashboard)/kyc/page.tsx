@@ -478,27 +478,6 @@ export default function KycPage() {
                     </p>
                   </button>
 
-                  {livenessMode === "idle" && (
-                    <>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-px bg-[#1e1e1e]" />
-                        <span className="text-xs text-gray-700 font-semibold">or upload manually</span>
-                        <div className="flex-1 h-px bg-[#1e1e1e]" />
-                      </div>
-                      <UploadZone
-                        id="selfie" label="Upload Photo" required={false} accepted=".jpg,.jpeg,.png"
-                        value={formData.selfie}
-                        onChange={f => {
-                          setFormData(d => ({ ...d, selfie: f }));
-                          if (f) {
-                            const url = URL.createObjectURL(f);
-                            setSelfiePreview(url);
-                          }
-                        }}
-                        hint="JPG, PNG up to 5MB · Manual uploads are verified by our team"
-                      />
-                    </>
-                  )}
                 </div>
 
                 <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
