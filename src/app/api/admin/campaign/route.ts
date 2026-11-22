@@ -15,6 +15,7 @@ const DEFAULTS = {
   campaign_max_stake:      "50000",
   campaign_enabled:        "true",
   campaign_display_filled: "0",
+  chat_model:              "gemini-3.5-flash-lite",
 };
 
 export async function GET(request: NextRequest) {
@@ -30,9 +31,10 @@ export async function GET(request: NextRequest) {
     getSetting("campaign_max_stake"),
     getSetting("campaign_enabled"),
     getSetting("campaign_display_filled"),
+    getSetting("chat_model"),
   ]);
 
-  const [deadline, maxSpots, loanAmount, minStake, maxStake, enabled, displayFilledRaw] = settingValues;
+  const [deadline, maxSpots, loanAmount, minStake, maxStake, enabled, displayFilledRaw, chatModel] = settingValues;
 
   const participants = users
     .filter(u => u.stakeStatus === "active" || u.stakeStatus === "rewarded")
@@ -58,6 +60,7 @@ export async function GET(request: NextRequest) {
       maxStake:      Number(maxStake   ?? DEFAULTS.campaign_max_stake),
       enabled:       (enabled ?? DEFAULTS.campaign_enabled) !== "false",
       displayFilled: Number(displayFilledRaw ?? DEFAULTS.campaign_display_filled),
+      chatModel:     chatModel ?? DEFAULTS.chat_model,
     },
     participants,
     stats: {
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
   const { action } = body;
 
   if (action === "update_settings") {
-    const { deadline, maxSpots, loanAmount, minStake, maxStake, enabled, displayFilled } = body;
+    const { deadline, maxSpots, loanAmount, minStake, maxStake, enabled, displayFilled, chatModel } = body;
     await Promise.all([
       deadline      !== undefined && setSetting("campaign_deadline",        deadline),
       maxSpots      !== undefined && setSetting("campaign_max_spots",       String(maxSpots)),
@@ -86,6 +89,7 @@ export async function POST(request: NextRequest) {
       maxStake      !== undefined && setSetting("campaign_max_stake",       String(maxStake)),
       enabled       !== undefined && setSetting("campaign_enabled",         enabled ? "true" : "false"),
       displayFilled !== undefined && setSetting("campaign_display_filled",  String(displayFilled)),
+      chatModel     !== undefined && setSetting("chat_model",               chatModel),
     ].filter(Boolean));
     return NextResponse.json({ success: true, message: "Campaign settings updated" });
   }

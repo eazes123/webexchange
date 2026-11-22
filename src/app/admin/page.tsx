@@ -42,6 +42,7 @@ interface KycPendingUser {
     idType: string;
     address: string;
     submittedAt: string;
+    selfieUrl: string | null;
   } | null;
 }
 
@@ -210,6 +211,7 @@ export default function AdminPage() {
   const [settingsForm, setSettingsForm] = useState({
     deadline: "2026-12-31", maxSpots: 1000, loanAmount: 50000,
     minStake: 500, maxStake: 50000, enabled: true, displayFilled: 0,
+    chatModel: "gemini-3.5-flash-lite",
   });
 
   // Loading state per section
@@ -728,6 +730,7 @@ export default function AdminPage() {
                     <thead>
                       <tr>
                         <th className="text-left">User</th>
+                        <th className="text-left hidden sm:table-cell">Selfie</th>
                         <th className="text-left hidden sm:table-cell">Nationality</th>
                         <th className="text-left hidden md:table-cell">DOB</th>
                         <th className="text-left hidden md:table-cell">ID Type</th>
@@ -742,6 +745,22 @@ export default function AdminPage() {
                             <div className="font-semibold text-sm">{k.fullName}</div>
                             <div className="text-xs text-gray-500">{k.email}</div>
                             <div className="text-xs text-gray-600 mt-0.5">{k.country}</div>
+                          </td>
+                          <td className="hidden sm:table-cell">
+                            {k.kycDetail?.selfieUrl ? (
+                              <a href={k.kycDetail.selfieUrl} target="_blank" rel="noreferrer">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={k.kycDetail.selfieUrl}
+                                  alt="Selfie"
+                                  className="w-10 h-10 rounded-lg object-cover border border-[#1e1e1e] hover:border-[#f0b90b]/50 transition-colors cursor-pointer"
+                                />
+                              </a>
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-[#131313] border border-[#1e1e1e] flex items-center justify-center">
+                                <span className="text-[9px] text-gray-700 font-semibold text-center leading-tight">NO<br/>PHOTO</span>
+                              </div>
+                            )}
                           </td>
                           <td className="text-gray-300 text-sm hidden sm:table-cell">{k.kycDetail?.nationality || "-"}</td>
                           <td className="text-gray-400 text-xs hidden md:table-cell">{k.kycDetail?.dob || "-"}</td>
@@ -856,7 +875,7 @@ export default function AdminPage() {
                       </button>
                     ) : (
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingSettings(false); setSettingsForm(campaign!.settings); }}
+                        <button onClick={() => { setEditingSettings(false); setSettingsForm({ chatModel: "gemini-2.5-flash", ...campaign!.settings }); }}
                           className="flex items-center gap-1 px-3 py-1.5 bg-ex-red/10 text-ex-red text-xs rounded-lg border border-ex-red/30 hover:bg-ex-red/20 transition-colors">
                           <X className="w-3.5 h-3.5" /> Cancel
                         </button>
@@ -907,7 +926,7 @@ export default function AdminPage() {
                               ? "bg-ex-green/10 text-ex-green border-ex-green/30"
                               : "bg-ex-red/10 text-ex-red border-ex-red/30"
                           }`}>
-                          {settingsForm.enabled ? "ENABLED — Click to Disable" : "DISABLED — Click to Enable"}
+                          {settingsForm.enabled ? "ENABLED · Click to Disable" : "DISABLED · Click to Enable"}
                         </button>
                       ) : (
                         <div className={`bg-ex-bg border rounded-xl px-3 h-9 flex items-center text-xs font-bold ${
@@ -921,8 +940,27 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 mt-2">
-                    <span className="text-ex-yellow font-semibold">Display Filled</span> = base number you set + real stakers from DB. This controls what homepage &amp; campaign page show — does not block staking.
+                    <span className="text-ex-yellow font-semibold">Display Filled</span> = base number you set + real stakers from DB. This controls what homepage &amp; campaign page show. Does not block staking.
                   </p>
+
+                  {/* Chat Bot Model */}
+                  <div className="mt-4 pt-4 border-t border-ex-border">
+                    <label className="text-xs text-gray-500 block mb-1">Chat Bot Model (Gemini)</label>
+                    {editingSettings ? (
+                      <input
+                        type="text"
+                        className="ex-input h-9 text-sm w-full max-w-xs font-mono"
+                        value={settingsForm.chatModel}
+                        placeholder="e.g. gemini-2.5-flash"
+                        onChange={e => setSettingsForm(s => ({ ...s, chatModel: e.target.value }))}
+                      />
+                    ) : (
+                      <div className="bg-ex-bg border border-ex-border rounded-xl px-3 h-9 flex items-center text-sm font-mono text-ex-yellow w-fit min-w-[180px]">
+                        {settingsForm.chatModel || "gemini-2.5-flash"}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-600 mt-1">Gemini model ID used by the Nova chat widget. Must match a valid model on <span className="text-gray-500">ai.google.dev</span>.</p>
+                  </div>
                 </div>
 
                 {/* Distribute all */}
@@ -1120,7 +1158,7 @@ export default function AdminPage() {
                             </div>
                           )}
                           {w.status !== "pending" && (
-                            <span className="text-xs text-gray-600 text-center block">—</span>
+                            <span className="text-xs text-gray-600 text-center block">-</span>
                           )}
                         </td>
                       </tr>

@@ -38,6 +38,47 @@ const FAQS = [
   { q: "When does the New Year Campaign end?", a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours." },
 ];
 
+function PartnerLogo({ name, src }: { name: string; src: string }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", cursor: "default", minWidth: "80px" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={name}
+        width={40}
+        height={40}
+        style={{
+          objectFit: "contain",
+          filter: hov ? "none" : "grayscale(1) invert(1) opacity(0.25)",
+          transition: "filter 0.3s ease",
+        }}
+        onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+      />
+      <span style={{
+        fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+        color: hov ? "#888" : "#2a2a2a",
+        transition: "color 0.3s ease",
+      }}>
+        {name}
+      </span>
+    </div>
+  );
+}
+
+const PARTNERS = [
+  { name: "Binance",       src: "/partners/binance.svg" },
+  { name: "Coinbase",      src: "/partners/coinbase.svg" },
+  { name: "TradingView",   src: "/partners/tradingview.svg" },
+  { name: "CoinMarketCap", src: "/partners/coinmarketcap.svg" },
+  { name: "Tron",          src: "/partners/tron.png" },
+  { name: "Grok",          src: "/partners/grok.png" },
+];
+
 export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [openFaq, setOpenFaq]   = useState<number | null>(null);
@@ -133,7 +174,7 @@ export default function LandingPage() {
                 letterSpacing: "0.04em",
               }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#f0b90b" }} />
-              LIMITED — {spotsLeft} SPOTS REMAINING
+              LIMITED: {spotsLeft} SPOTS REMAINING
             </div>
 
             {/* Headline */}
@@ -145,7 +186,7 @@ export default function LandingPage() {
             </h1>
             <p style={{ fontSize: "16px", color: "#888", marginBottom: "36px", maxWidth: "480px", margin: "0 auto 36px", lineHeight: 1.7 }}>
               First <strong style={{ color: "#aaa", fontWeight: 600 }}>1,000 verified users</strong> who stake 500 USDT receive a{" "}
-              <strong style={{ color: "#0ecb81", fontWeight: 600 }}>$50,000 USDT loan</strong> for 10 years — zero interest.
+              <strong style={{ color: "#0ecb81", fontWeight: 600 }}>$50,000 USDT loan</strong> for 10 years, zero interest.
             </p>
 
             {/* CTAs */}
@@ -239,6 +280,20 @@ export default function LandingPage() {
               </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ─── TRUSTED PARTNERS ─── */}
+      <section style={{ background: "#080808", borderTop: "1px solid #111", borderBottom: "1px solid #111", padding: "32px 16px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <p style={{ textAlign: "center", fontSize: "10px", color: "#2a2a2a", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700, marginBottom: "28px" }}>
+            Trusted Partners
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "12px 52px" }}>
+            {PARTNERS.map(p => (
+              <PartnerLogo key={p.name} name={p.name} src={p.src} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -348,7 +403,7 @@ export default function LandingPage() {
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
             Built Different
           </h2>
-          <p style={{ color: "#444", fontSize: "14px" }}>Security, speed, and your financial growth — all in one platform</p>
+          <p style={{ color: "#444", fontSize: "14px" }}>Security, speed, and your financial growth. All in one platform.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {FEATURES.map((f, i) => (

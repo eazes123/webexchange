@@ -131,7 +131,7 @@ export default function WithdrawalsClient() {
               </div>
               <div>
                 <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 600, color: "#e5c76b", letterSpacing: "-0.01em" }}>
-                  October 2026 Loan Campaign — Disbursement Records
+                  October 2026 Loan Campaign: Disbursement Records
                 </p>
                 <p style={{ margin: 0, fontSize: "12px", color: "#555", lineHeight: 1.6 }}>
                   The October 2026 staking campaign concluded successfully. The disbursements listed below represent the $50,000 USDT loan payouts made to all verified participants. Each transaction was processed on-chain via the TRON network and can be independently verified on TRONSCAN.
@@ -313,7 +313,7 @@ export default function WithdrawalsClient() {
                   {/* Block */}
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <span style={{ fontSize: "11px", color: "#333", fontFamily: "monospace" }}>
-                      #{tx.block?.toLocaleString() ?? "—"}
+                      #{tx.block?.toLocaleString() ?? "-"}
                     </span>
                   </div>
 

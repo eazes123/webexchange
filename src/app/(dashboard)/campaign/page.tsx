@@ -224,7 +224,7 @@ export default function CampaignPage() {
               </h1>
               <p className="text-gray-400 text-sm max-w-sm">
                 Stake just 500 USDT, complete KYC, and receive a $50,000 USDT loan on December 31, 2026.
-                Trade freely or withdraw — zero interest.
+                Trade freely or withdraw. Zero interest.
               </p>
             </div>
 
@@ -392,7 +392,7 @@ export default function CampaignPage() {
                 {
                   done: kycApproved,
                   label: "KYC Verification",
-                  sub: kycApproved ? "Identity verified — full access unlocked" : "Complete identity verification",
+                  sub: kycApproved ? "Identity verified, full access unlocked" : "Complete identity verification",
                   link: !kycApproved ? "/kyc" : undefined,
                   linkLabel: "Verify Now",
                 },
@@ -448,7 +448,7 @@ export default function CampaignPage() {
               )}
               <Lock className="w-5 h-5 relative z-10" />
               <span className="relative z-10">
-                {loading ? "Staking..." : "Stake 500 USDT — Claim $50,000 Loan"}
+                {loading ? "Staking..." : "Stake 500 USDT & Claim $50,000 Loan"}
               </span>
             </button>
             <p className="text-[11px] text-gray-500 text-center">
@@ -510,7 +510,7 @@ export default function CampaignPage() {
           {
             icon: Wallet,
             title: "Withdraw Anytime",
-            desc: "After disbursement on Dec 31, withdraw the loan to any TRON wallet — no lock-up.",
+            desc: "After disbursement on Dec 31, withdraw the loan to any TRON wallet. No lock-up.",
             color: "#0ecb81",
             bg: "bg-[#0ecb81]/5 border-[#0ecb81]/15",
           },
@@ -543,12 +543,12 @@ export default function CampaignPage() {
             ["Minimum Stake",        "500 USDT"],
             ["Maximum Stake",        "50,000 USDT"],
             ["Loan Amount",          "$50,000 USDT (fixed for all users)"],
-            ["Interest Rate",        "0% — no interest, no hidden fees"],
+            ["Interest Rate",        "0%, no interest, no hidden fees"],
             ["Loan Term",            "10 Years from disbursement"],
             ["Disbursement Date",    "December 31, 2026 at 23:59 UTC"],
             ["Network",              "USDT TRC20 (TRON only)"],
-            ["KYC Required",         "Yes — approved before Dec 31"],
-            ["Early Exit Allowed",   "Yes — but forfeits loan permanently"],
+            ["KYC Required",         "Yes, approved before Dec 31"],
+            ["Early Exit Allowed",   "Yes, but forfeits loan permanently"],
             ["Campaign Spots",       "1,000 total (first come, first served)"],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between items-center py-3 gap-4">
@@ -572,7 +572,7 @@ export default function CampaignPage() {
             },
             {
               q: "Can I withdraw my staked 500 USDT before Dec 31?",
-              a: "Yes, you can exit the campaign at any time. Your 500 USDT is immediately returned to your wallet. However, unstaking permanently forfeits your $50,000 loan eligibility — you will not receive the loan.",
+              a: "Yes, you can exit the campaign at any time. Your 500 USDT is immediately returned to your wallet. However, unstaking permanently forfeits your $50,000 loan eligibility. You will not receive the loan.",
             },
             {
               q: "Can I stake more than 500 USDT?",
@@ -588,7 +588,7 @@ export default function CampaignPage() {
             },
             {
               q: "What is USDT TRC20? Can I send ERC20?",
-              a: "USDT TRC20 is Tether on the TRON blockchain. You MUST use TRC20 — sending ERC20 or BEP20 will result in permanent loss of funds. Always double-check the network before sending.",
+              a: "USDT TRC20 is Tether on the TRON blockchain. You MUST use TRC20. Sending ERC20 or BEP20 will result in permanent loss of funds. Always double-check the network before sending.",
             },
           ].map(({ q, a }) => (
             <FaqItem key={q} q={q} a={a} />

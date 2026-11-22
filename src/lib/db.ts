@@ -54,6 +54,7 @@ export interface DbKyc {
   idType: string;
   idNumber: string;
   nationality: string;
+  selfieUrl?: string | null;
   status: "under_review" | "approved" | "rejected";
   submittedAt: string;
 }
@@ -115,8 +116,8 @@ function rowToKyc(r: any): DbKyc {
   return {
     userId: r.user_id, step: r.step, fullName: r.full_name ?? "", dob: r.dob ?? "",
     address: r.address ?? "", idType: r.id_type ?? "", idNumber: r.id_number ?? "",
-    nationality: r.nationality ?? "", status: r.status,
-    submittedAt: r.submitted_at,
+    nationality: r.nationality ?? "", selfieUrl: r.selfie_url ?? null,
+    status: r.status, submittedAt: r.submitted_at,
   };
 }
 
@@ -283,12 +284,23 @@ export async function getKyc(userId: string): Promise<DbKyc | null> {
 }
 
 export async function upsertKyc(kyc: Omit<DbKyc, "submittedAt">): Promise<void> {
-  await supabaseAdmin.from("kyc_submissions").upsert({
+  const payload: Record<string, unknown> = {
     user_id: kyc.userId, status: kyc.status, full_name: kyc.fullName,
     dob: kyc.dob, address: kyc.address, id_type: kyc.idType,
     id_number: kyc.idNumber, nationality: kyc.nationality,
     step: kyc.step, submitted_at: new Date().toISOString(),
-  }, { onConflict: "user_id" });
+  };
+  if (kyc.selfieUrl !== undefined) payload.selfie_url = kyc.selfieUrl;
+
+  const { error } = await supabaseAdmin
+    .from("kyc_submissions")
+    .upsert(payload, { onConflict: "user_id" });
+
+  // If selfie_url column missing, retry without it
+  if (error && kyc.selfieUrl) {
+    delete payload.selfie_url;
+    await supabaseAdmin.from("kyc_submissions").upsert(payload, { onConflict: "user_id" });
+  }
 }
 
 export async function updateKycStatus(userId: string, status: string): Promise<void> {

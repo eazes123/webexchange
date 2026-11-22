@@ -525,7 +525,7 @@ export default function WalletPage() {
             {selectedAsset === "USDT" ? (
               <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-xs text-[#f6465d] mb-4 flex items-start gap-2">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>Double-check your withdrawal address. On-chain transfers are <strong>irreversible</strong> — funds sent to a wrong address cannot be recovered.</span>
+                <span>Double-check your withdrawal address. On-chain transfers are <strong>irreversible</strong>. Funds sent to a wrong address cannot be recovered.</span>
               </div>
             ) : (
               <div className="bg-ex-blue/10 border border-ex-blue/30 rounded-xl p-3 text-xs text-ex-blue mb-4">

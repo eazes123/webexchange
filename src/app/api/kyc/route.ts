@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     idType: body.idType ?? "",
     idNumber: body.idNumber ?? "",
     nationality: body.nationality ?? user.country,
+    selfieUrl: body.selfieUrl ?? null,
     status: "under_review",
   });
 

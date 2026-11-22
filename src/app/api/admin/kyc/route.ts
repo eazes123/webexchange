@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (pendingIds.length > 0) {
     const { data: details } = await supabaseAdmin
       .from("kyc_submissions")
-      .select("user_id, full_name, dob, address, id_type, nationality, submitted_at")
+      .select("user_id, full_name, dob, address, id_type, nationality, submitted_at, selfie_url")
       .in("user_id", pendingIds);
     (details ?? []).forEach((k: any) => { kycDetailsMap[k.user_id] = k; });
   }
@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
       idType:      kycDetailsMap[u.id].id_type ?? "",
       address:     kycDetailsMap[u.id].address ?? "",
       submittedAt: kycDetailsMap[u.id].submitted_at ?? "",
+      selfieUrl:   kycDetailsMap[u.id].selfie_url ?? null,
     } : null,
   }));
 

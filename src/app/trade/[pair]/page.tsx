@@ -135,7 +135,7 @@ function OrderBookPanel({ price, base, quote }: { price: number; base: string; q
         </span>
         <span className="text-[10px] text-gray-500">Spread</span>
         <span className="text-[10px] text-gray-400 font-mono">
-          {book ? ((book.asks[book.asks.length - 1]?.price ?? price) - (book.bids[0]?.price ?? price)).toFixed(2) : "—"}
+          {book ? ((book.asks[book.asks.length - 1]?.price ?? price) - (book.bids[0]?.price ?? price)).toFixed(2) : "-"}
         </span>
       </div>
 
@@ -350,11 +350,11 @@ function SpotOrderForm({ base, quote, price }: { base: string; quote: string; pr
       <div className="bg-[#080808] rounded-lg p-2.5 space-y-1 text-xs">
         <div className="flex justify-between text-gray-500">
           <span>Total ({quote})</span>
-          <span className="font-mono text-white">{total > 0 ? total.toFixed(2) : "—"}</span>
+          <span className="font-mono text-white">{total > 0 ? total.toFixed(2) : "-"}</span>
         </div>
         <div className="flex justify-between text-gray-500">
           <span>Fee (0.10%)</span>
-          <span className="font-mono text-gray-400">{fee > 0 ? fee.toFixed(4) : "—"}</span>
+          <span className="font-mono text-gray-400">{fee > 0 ? fee.toFixed(4) : "-"}</span>
         </div>
       </div>
 

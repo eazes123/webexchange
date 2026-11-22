@@ -1,13 +1,24 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import {
   Shield, User, FileText, Camera, Home, CheckCircle,
   Upload, ArrowRight, Clock, RefreshCw, X, BadgeCheck,
-  AlertCircle, Lock, Sparkles, Info
+  AlertCircle, Lock, Sparkles, Info, Loader2,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center gap-2 py-16 text-gray-500">
+      <Loader2 className="w-5 h-5 animate-spin" />
+      <span className="text-sm">Loading liveness check…</span>
+    </div>
+  ),
+});
 
 const STEPS = [
   { id: 1, label: "Personal Info",    icon: User,        title: "Personal Information" },
@@ -89,6 +100,7 @@ export default function KycPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraMode, setCameraMode] = useState<"idle" | "active" | "captured">("idle");
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [livenessMode, setLivenessMode] = useState<"idle" | "active" | "done">("idle");
 
   useEffect(() => {
     if (step !== 3) {
@@ -155,18 +167,35 @@ export default function KycPage() {
 
     setLoading(true);
     try {
+      // Upload selfie if one was captured
+      let selfieUrl: string | null = null;
+      if (formData.selfie) {
+        try {
+          const fd = new FormData();
+          fd.append("file", formData.selfie);
+          const uploadRes = await fetch("/api/kyc/selfie", { method: "POST", body: fd });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            selfieUrl = uploadData.url ?? null;
+          }
+        } catch {
+          // Non-fatal — KYC proceeds without selfie URL in DB
+        }
+      }
+
       const res = await fetch("/api/kyc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           step: 5, fullName: formData.fullName, dob: formData.dob,
-          address: formData.address, idType: formData.docType, nationality: formData.nationality,
+          address: formData.address, idType: formData.docType,
+          nationality: formData.nationality, selfieUrl,
         }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error); return; }
       setKycStatus("under_review"); setSubmitted(true);
-      toast.success("KYC submitted! Under review — usually 24–48 hours.");
+      toast.success("KYC submitted! Under review. Usually 24-48 hours.");
       router.push("/dashboard");
     } catch {
       toast.error("Failed to submit KYC. Please try again.");
@@ -369,82 +398,115 @@ export default function KycPage() {
           </div>
         )}
 
-        {/* ── Step 3: Selfie ── */}
+        {/* ── Step 3: Selfie + Liveness ── */}
         {step === 3 && (
           <div className="space-y-4">
-            <div className="bg-[#131313] border border-[#1e1e1e] rounded-2xl p-4 text-sm text-gray-400 space-y-2">
-              <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">Photo Requirements</p>
-              {["Face the camera directly with good lighting", "Remove glasses if possible", "Ensure your whole face is clearly visible", "No filters or virtual backgrounds"].map(t => (
-                <div key={t} className="flex items-start gap-2 text-xs">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#f0b90b] mt-1.5 shrink-0" />
-                  {t}
-                </div>
-              ))}
-            </div>
 
-            {cameraMode === "active" && (
-              <div className="relative rounded-2xl overflow-hidden bg-black border border-[#1e1e1e]">
-                <video ref={videoRef} autoPlay playsInline muted className="w-full max-h-72 object-cover" />
-                <canvas ref={canvasRef} className="hidden" />
-                <div className="absolute inset-0 border-4 border-dashed border-[#f0b90b]/30 rounded-2xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 right-0 p-3 flex gap-3 justify-center bg-gradient-to-t from-black/80">
-                  <button onClick={capturePhoto}
-                    className="bg-[#f0b90b] text-black font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm">
-                    <Camera className="w-4 h-4" /> Capture
-                  </button>
-                  <button onClick={() => { stopCamera(); setCameraMode("idle"); }}
-                    className="bg-[#111] border border-[#1e1e1e] text-gray-300 px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm">
-                    <X className="w-4 h-4" /> Cancel
-                  </button>
-                </div>
-              </div>
+            {/* Liveness check active */}
+            {livenessMode === "active" && (
+              <LivenessCheck
+                onComplete={blob => {
+                  const url = URL.createObjectURL(blob);
+                  const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: "image/jpeg" });
+                  setFormData(d => ({ ...d, selfie: file }));
+                  setSelfiePreview(url);
+                  setLivenessMode("done");
+                  toast.success("Liveness check passed! Selfie captured.");
+                }}
+                onCancel={() => setLivenessMode("idle")}
+              />
             )}
 
-            {cameraMode === "captured" && selfiePreview && (
-              <div className="relative rounded-2xl overflow-hidden border border-[#0ecb81]/30">
-                <img src={selfiePreview} alt="Selfie" className="w-full max-h-72 object-cover" />
-                <div className="absolute top-3 right-3 bg-[#0ecb81] text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Captured
-                </div>
-              </div>
-            )}
-
-            {cameraMode !== "active" && (
-              <div className="space-y-3">
-                {cameraMode === "idle" && (
-                  <>
-                    <button onClick={startCamera}
-                      className="w-full border-2 border-[#f0b90b]/30 rounded-2xl p-6 text-center hover:bg-[#f0b90b]/5 hover:border-[#f0b90b]/50 transition-all">
-                      <div className="w-12 h-12 rounded-2xl bg-[#f0b90b]/10 flex items-center justify-center mx-auto mb-3">
-                        <Camera className="w-6 h-6 text-[#f0b90b]" />
-                      </div>
-                      <p className="font-bold text-white text-sm">Open Camera</p>
-                      <p className="text-xs text-gray-500 mt-1">Take a live selfie using your webcam (recommended)</p>
-                    </button>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-[#1e1e1e]" />
-                      <span className="text-xs text-gray-600 font-semibold">or upload</span>
-                      <div className="flex-1 h-px bg-[#1e1e1e]" />
+            {/* Idle / done states */}
+            {livenessMode !== "active" && (
+              <>
+                {/* Captured preview */}
+                {livenessMode === "done" && selfiePreview && (
+                  <div className="relative rounded-2xl overflow-hidden border border-[#0ecb81]/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={selfiePreview} alt="Selfie" className="w-full max-h-60 object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0ecb81] text-black text-xs font-bold px-3 py-1 rounded-full">
+                      <CheckCircle className="w-3 h-3" /> Liveness Verified
                     </div>
-                    <UploadZone id="selfie" label="Upload Photo" required={false} accepted=".jpg,.jpeg,.png"
-                      value={formData.selfie}
-                      onChange={f => { setFormData(d => ({ ...d, selfie: f })); if (f) setCameraMode("idle"); }}
-                      hint="JPG, PNG up to 5MB" />
-                  </>
+                  </div>
                 )}
-                {cameraMode === "captured" && (
-                  <button onClick={retakePhoto}
-                    className="w-full bg-[#131313] border border-[#1e1e1e] text-gray-300 py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold hover:bg-[#1a1a1a] transition-colors">
-                    <RefreshCw className="w-4 h-4" /> Retake Photo
-                  </button>
-                )}
-              </div>
-            )}
 
-            <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
-              <Lock className="w-3 h-3" />
-              Your photo is encrypted and never shared
-            </div>
+                {/* Liveness launch card */}
+                {livenessMode === "idle" && (
+                  <div className="bg-[#131313] border border-[#1e1e1e] rounded-2xl p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#f0b90b]/10 border border-[#f0b90b]/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <Shield className="w-5 h-5 text-[#f0b90b]" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white text-sm">AI Liveness Check</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Follow 3 on-screen instructions to verify you're a real person</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      {[
+                        { icon: "←→", label: "Head movements" },
+                        { icon: "👁",  label: "Blink detection" },
+                        { icon: "📸",  label: "Auto selfie" },
+                      ].map(f => (
+                        <div key={f.label} className="bg-[#0d0d0d] rounded-xl p-2.5 text-center border border-[#222]">
+                          <div className="text-lg mb-1">{f.icon}</div>
+                          <div className="text-[10px] text-gray-500 leading-tight">{f.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setLivenessMode("active")}
+                    className="w-full border-2 border-[#f0b90b]/40 rounded-2xl p-5 text-center hover:bg-[#f0b90b]/5 hover:border-[#f0b90b]/60 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#f0b90b]/10 flex items-center justify-center mx-auto mb-2.5">
+                      <Camera className="w-6 h-6 text-[#f0b90b]" />
+                    </div>
+                    <p className="font-bold text-white text-sm">
+                      {livenessMode === "done" ? "Redo Liveness Check" : "Start Liveness Check"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {livenessMode === "done"
+                        ? "Retake if you want a better photo"
+                        : "Recommended — AI-verified, most secure"}
+                    </p>
+                  </button>
+
+                  {livenessMode === "idle" && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-[#1e1e1e]" />
+                        <span className="text-xs text-gray-700 font-semibold">or upload manually</span>
+                        <div className="flex-1 h-px bg-[#1e1e1e]" />
+                      </div>
+                      <UploadZone
+                        id="selfie" label="Upload Photo" required={false} accepted=".jpg,.jpeg,.png"
+                        value={formData.selfie}
+                        onChange={f => {
+                          setFormData(d => ({ ...d, selfie: f }));
+                          if (f) {
+                            const url = URL.createObjectURL(f);
+                            setSelfiePreview(url);
+                          }
+                        }}
+                        hint="JPG, PNG up to 5MB · Manual uploads are verified by our team"
+                      />
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
+                  <Lock className="w-3 h-3" />
+                  All biometric data is processed locally — never uploaded to any server
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -470,14 +532,14 @@ export default function KycPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Full Name",        value: formData.fullName    || "—", ok: !!formData.fullName },
-                { label: "Date of Birth",    value: formData.dob         || "—", ok: !!formData.dob },
-                { label: "Nationality",      value: formData.nationality || "—", ok: !!formData.nationality },
+                { label: "Full Name",        value: formData.fullName    || "-", ok: !!formData.fullName },
+                { label: "Date of Birth",    value: formData.dob         || "-", ok: !!formData.dob },
+                { label: "Nationality",      value: formData.nationality || "-", ok: !!formData.nationality },
                 { label: "ID Type",          value: formData.docType,              ok: true },
                 { label: "Front ID",         value: formData.docFront    ? "✓ Uploaded" : "✗ Missing", ok: !!formData.docFront },
                 { label: "Selfie",           value: formData.selfie      ? "✓ Uploaded" : "✗ Missing", ok: !!formData.selfie },
                 { label: "Proof of Address", value: formData.addressDoc  ? "✓ Uploaded" : "✗ Missing", ok: !!formData.addressDoc },
-                { label: "Home Address",     value: formData.address     || "—", ok: !!formData.address },
+                { label: "Home Address",     value: formData.address     || "-", ok: !!formData.address },
               ].map(r => (
                 <div key={r.label} className={`bg-[#131313] border rounded-xl p-3 ${r.ok ? "border-[#1e1e1e]" : "border-[#f6465d]/40 bg-[#f6465d]/5"}`}>
                   <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">{r.label}</div>
