@@ -169,7 +169,7 @@ export default function DashboardPage() {
         <div className="flex items-start gap-0">
           <Step n={1} label="Register"     sub="Account created"           status={stepStatus(1)} />
           <StepConnector done={currentStep > 1} />
-          <Step n={2} label="KYC"          sub="Identity verified"         status={stepStatus(2)} />
+          <Step n={2} label="KYC"          sub={kycDone ? "Identity verified" : kycRejected ? "Rejected" : kycPend ? "Under review" : "Verify identity"} status={kycRejected ? "active" : stepStatus(2)} />
           <StepConnector done={currentStep > 2} />
           <Step n={3} label="Stake 500 USDT" sub="New Year Campaign"       status={stepStatus(3)} />
           <StepConnector done={isRewarded} />
