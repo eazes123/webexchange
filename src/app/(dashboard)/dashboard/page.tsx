@@ -58,7 +58,8 @@ export default function DashboardPage() {
 
   const kycDone     = demoUser.kycStatus === "approved";
   const kycPend     = demoUser.kycStatus === "under_review" || demoUser.kycStatus === "pending";
-  const kycNone     = !kycDone && !kycPend;
+  const kycRejected = demoUser.kycStatus === "rejected";
+  const kycNone     = !kycDone && !kycPend && !kycRejected;
   const usdtAvail   = walletBalances.USDT?.available ?? 0;
   const usdtLocked  = walletBalances.USDT?.locked    ?? 0;
   const hasDeposit  = usdtAvail + usdtLocked >= 500;
@@ -103,6 +104,22 @@ export default function DashboardPage() {
                 Your 500 USDT is staked. Keep it staked until <strong className="text-white">December 31, 2026</strong> to
                 receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
               </p>
+            </div>
+          </div>
+        </div>
+      ) : kycRejected ? (
+        <div className="bg-ex-card2 border border-red-500/30 rounded-2xl p-6 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-7 h-7 text-red-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h1 className="text-xl font-black text-red-400">KYC Rejected</h1>
+              <p className="text-gray-400 mt-1">
+                Your KYC submission was not approved. Please review your documents and resubmit.
+              </p>
+              <Link href="/kyc"
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-semibold rounded-xl transition-colors">
+                Resubmit KYC <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </div>
@@ -166,9 +183,9 @@ export default function DashboardPage() {
           {
             icon: Shield,
             label: "KYC Status",
-            value: kycDone ? "Verified" : kycPend ? "In Review" : "Pending",
-            sub:   kycDone ? "✓ Identity confirmed" : kycPend ? "24–48h remaining" : "Action required",
-            color: kycDone ? "text-ex-green" : kycPend ? "text-ex-yellow" : "text-gray-400",
+            value: kycDone ? "Verified" : kycPend ? "In Review" : kycRejected ? "Rejected" : "Pending",
+            sub:   kycDone ? "✓ Identity confirmed" : kycPend ? "24–48h remaining" : kycRejected ? "Resubmit required" : "Action required",
+            color: kycDone ? "text-ex-green" : kycPend ? "text-ex-yellow" : kycRejected ? "text-red-400" : "text-gray-400",
           },
           {
             icon: Wallet,

@@ -86,7 +86,10 @@ export default function KycPage() {
   const { demoUser, setKycStatus } = useStore();
   const [step, setStep] = useState(demoUser.kycStatus === "approved" ? 5 : 1);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(demoUser.kycStatus !== "none");
+  // rejected users start fresh — don't treat as submitted
+  const [submitted, setSubmitted] = useState(
+    demoUser.kycStatus !== "none" && demoUser.kycStatus !== "rejected"
+  );
 
   const [formData, setFormData] = useState({
     fullName: demoUser.name || "", dob: "", nationality: "",
@@ -264,6 +267,42 @@ export default function KycPage() {
           <div className="text-xs text-gray-400 mt-0.5">New Year 2026 · $50,000 USDT Interest-Free Loan</div>
         </div>
       </div>
+    </div>
+  );
+
+  // ── Rejected state ──────────────────────────────────────────────────────────
+  if (demoUser.kycStatus === "rejected" && !submitted) return (
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full space-y-4">
+      <div className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-[#080808] via-[#0d0d0d] to-[#080808]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#ef444415_0%,_transparent_60%)] pointer-events-none" />
+        <div className="relative p-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-full px-4 py-1.5 text-xs font-bold text-red-400 mb-5">
+            <AlertCircle className="w-3 h-3" /> KYC Rejected
+          </div>
+          <div className="w-20 h-20 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-10 h-10 text-red-400" />
+          </div>
+          <h1 className="text-3xl font-black text-white mb-2">Verification Failed</h1>
+          <p className="text-gray-400 text-sm max-w-sm mx-auto">Your KYC submission was not approved. Please ensure your documents are clear and accurate, then resubmit.</p>
+        </div>
+      </div>
+      <div className="bg-[#0d0d0d] border border-red-500/20 rounded-2xl p-4 flex items-start gap-3">
+        <Info className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm text-gray-300 font-semibold">Common reasons for rejection</p>
+          <ul className="text-xs text-gray-500 mt-1 space-y-0.5 list-disc list-inside">
+            <li>Document image was blurry or cut off</li>
+            <li>Name or date of birth did not match ID</li>
+            <li>Selfie did not clearly show your face</li>
+            <li>Proof of address was older than 3 months</li>
+          </ul>
+        </div>
+      </div>
+      <button
+        onClick={() => setSubmitted(false)}
+        className="w-full py-3.5 rounded-2xl bg-[#f0b90b] hover:bg-[#d4a30a] text-black font-bold text-sm transition-colors">
+        Resubmit KYC Application
+      </button>
     </div>
   );
 
