@@ -167,21 +167,35 @@ export default function KycPage() {
 
     setLoading(true);
     try {
-      // Upload selfie if one was captured
+      // Helper to upload a file to /api/kyc/upload
+      const uploadDoc = async (file: File, type: string): Promise<string | null> => {
+        try {
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("type", type);
+          const r = await fetch("/api/kyc/upload", { method: "POST", body: fd });
+          if (r.ok) { const d = await r.json(); return d.url ?? null; }
+        } catch {}
+        return null;
+      };
+
+      // Upload selfie
       let selfieUrl: string | null = null;
       if (formData.selfie) {
         try {
           const fd = new FormData();
           fd.append("file", formData.selfie);
-          const uploadRes = await fetch("/api/kyc/selfie", { method: "POST", body: fd });
-          if (uploadRes.ok) {
-            const uploadData = await uploadRes.json();
-            selfieUrl = uploadData.url ?? null;
-          }
-        } catch {
-          // Non-fatal — KYC proceeds without selfie URL in DB
-        }
+          const r = await fetch("/api/kyc/selfie", { method: "POST", body: fd });
+          if (r.ok) { const d = await r.json(); selfieUrl = d.url ?? null; }
+        } catch {}
       }
+
+      // Upload ID docs and address proof in parallel
+      const [docFrontUrl, docBackUrl, addressDocUrl] = await Promise.all([
+        formData.docFront   ? uploadDoc(formData.docFront,   "front")   : Promise.resolve(null),
+        formData.docBack    ? uploadDoc(formData.docBack,    "back")    : Promise.resolve(null),
+        formData.addressDoc ? uploadDoc(formData.addressDoc, "address") : Promise.resolve(null),
+      ]);
 
       const res = await fetch("/api/kyc", {
         method: "POST",
@@ -189,7 +203,8 @@ export default function KycPage() {
         body: JSON.stringify({
           step: 5, fullName: formData.fullName, dob: formData.dob,
           address: formData.address, idType: formData.docType,
-          nationality: formData.nationality, selfieUrl,
+          nationality: formData.nationality,
+          selfieUrl, docFrontUrl, docBackUrl, addressDocUrl,
         }),
       });
       const data = await res.json();

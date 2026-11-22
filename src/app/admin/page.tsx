@@ -43,6 +43,9 @@ interface KycPendingUser {
     address: string;
     submittedAt: string;
     selfieUrl: string | null;
+    docFrontUrl: string | null;
+    docBackUrl: string | null;
+    addressDocUrl: string | null;
   } | null;
 }
 
@@ -193,6 +196,7 @@ export default function AdminPage() {
   const [userStakeFilter, setUserStakeFilter] = useState("all");
   const [wdStatusFilter, setWdStatusFilter] = useState("all");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [expandedKyc, setExpandedKyc]   = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Data state
@@ -725,75 +729,113 @@ export default function AdminPage() {
                   No pending KYC submissions
                 </div>
               ) : (
-                <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
-                  <table className="w-full exchange-table">
-                    <thead>
-                      <tr>
-                        <th className="text-left">User</th>
-                        <th className="text-left hidden sm:table-cell">Selfie</th>
-                        <th className="text-left hidden sm:table-cell">Nationality</th>
-                        <th className="text-left hidden md:table-cell">DOB</th>
-                        <th className="text-left hidden md:table-cell">ID Type</th>
-                        <th className="text-left hidden lg:table-cell">Submitted</th>
-                        <th className="text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredKyc.map(k => (
-                        <tr key={k.userId}>
-                          <td>
-                            <div className="font-semibold text-sm">{k.fullName}</div>
-                            <div className="text-xs text-gray-500">{k.email}</div>
-                            <div className="text-xs text-gray-600 mt-0.5">{k.country}</div>
-                          </td>
-                          <td className="hidden sm:table-cell">
-                            {k.kycDetail?.selfieUrl ? (
-                              <a href={k.kycDetail.selfieUrl} target="_blank" rel="noreferrer">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={k.kycDetail.selfieUrl}
-                                  alt="Selfie"
-                                  className="w-10 h-10 rounded-lg object-cover border border-[#1e1e1e] hover:border-[#f0b90b]/50 transition-colors cursor-pointer"
-                                />
-                              </a>
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-[#131313] border border-[#1e1e1e] flex items-center justify-center">
-                                <span className="text-[9px] text-gray-700 font-semibold text-center leading-tight">NO<br/>PHOTO</span>
-                              </div>
+                <div className="space-y-3">
+                  {filteredKyc.map(k => (
+                    <div key={k.userId} className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
+                      {/* Summary row */}
+                      <div className="flex items-center gap-3 p-4">
+                        {/* Selfie thumbnail */}
+                        {k.kycDetail?.selfieUrl ? (
+                          <a href={k.kycDetail.selfieUrl} target="_blank" rel="noreferrer" className="shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={k.kycDetail.selfieUrl} alt="Selfie"
+                              className="w-12 h-12 rounded-xl object-cover border border-[#1e1e1e] hover:border-[#f0b90b]/50 transition-colors" />
+                          </a>
+                        ) : (
+                          <div className="w-12 h-12 shrink-0 rounded-xl bg-[#131313] border border-[#1e1e1e] flex items-center justify-center">
+                            <span className="text-[9px] text-gray-700 font-semibold text-center leading-tight">NO<br/>PHOTO</span>
+                          </div>
+                        )}
+                        {/* User info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-white">{k.fullName}</div>
+                          <div className="text-xs text-gray-500">{k.email}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-gray-600">{k.kycDetail?.nationality || k.country}</span>
+                            {k.kycDetail?.idType && <span className="text-xs text-gray-700">· {k.kycDetail.idType}</span>}
+                            {k.kycDetail?.submittedAt && (
+                              <span className="text-xs text-gray-700">· {new Date(k.kycDetail.submittedAt).toLocaleDateString()}</span>
                             )}
-                          </td>
-                          <td className="text-gray-300 text-sm hidden sm:table-cell">{k.kycDetail?.nationality || "-"}</td>
-                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.kycDetail?.dob || "-"}</td>
-                          <td className="text-gray-400 text-xs hidden md:table-cell">{k.kycDetail?.idType || "-"}</td>
-                          <td className="text-gray-400 text-xs hidden lg:table-cell">
-                            {k.kycDetail?.submittedAt ? new Date(k.kycDetail.submittedAt).toLocaleDateString() : "-"}
-                          </td>
-                          <td>
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => kycAction(k.userId, "approve")}
-                                disabled={!!actionLoading}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-ex-green/10 text-ex-green text-xs rounded-lg hover:bg-ex-green/20 border border-ex-green/30 transition-colors disabled:opacity-50">
-                                {actionLoading === k.userId + "approve"
-                                  ? <RefreshCw className="w-3 h-3 animate-spin" />
-                                  : <Check className="w-3 h-3" />}
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => kycAction(k.userId, "reject")}
-                                disabled={!!actionLoading}
-                                className="flex items-center gap-1 px-2 py-1.5 bg-ex-red/10 text-ex-red text-xs rounded-lg hover:bg-ex-red/20 border border-ex-red/30 transition-colors disabled:opacity-50">
-                                {actionLoading === k.userId + "reject"
-                                  ? <RefreshCw className="w-3 h-3 animate-spin" />
-                                  : <X className="w-3 h-3" />}
-                                Reject
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                        </div>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => setExpandedKyc(expandedKyc === k.userId ? null : k.userId)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-[#1e1e1e] text-gray-300 text-xs rounded-lg hover:bg-[#2a2a2a] border border-[#2a2a2a] transition-colors">
+                            {expandedKyc === k.userId ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            Details
+                          </button>
+                          <button
+                            onClick={() => kycAction(k.userId, "approve")}
+                            disabled={!!actionLoading}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-ex-green/10 text-ex-green text-xs rounded-lg hover:bg-ex-green/20 border border-ex-green/30 transition-colors disabled:opacity-50">
+                            {actionLoading === k.userId + "approve" ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => kycAction(k.userId, "reject")}
+                            disabled={!!actionLoading}
+                            className="flex items-center gap-1 px-2 py-1.5 bg-ex-red/10 text-ex-red text-xs rounded-lg hover:bg-ex-red/20 border border-ex-red/30 transition-colors disabled:opacity-50">
+                            {actionLoading === k.userId + "reject" ? <RefreshCw className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded detail panel */}
+                      {expandedKyc === k.userId && k.kycDetail && (
+                        <div className="border-t border-[#1e1e1e] p-4 bg-[#0d0d0d]">
+                          {/* Documents row */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                            {[
+                              { label: "Selfie",          url: k.kycDetail.selfieUrl },
+                              { label: "ID Front",        url: k.kycDetail.docFrontUrl },
+                              { label: "ID Back",         url: k.kycDetail.docBackUrl },
+                              { label: "Address Proof",   url: k.kycDetail.addressDocUrl },
+                            ].map(({ label, url }) => (
+                              <div key={label}>
+                                <p className="text-[10px] text-gray-600 mb-1 font-semibold uppercase tracking-wide">{label}</p>
+                                {url ? (
+                                  <a href={url} target="_blank" rel="noreferrer"
+                                    className="block relative rounded-lg overflow-hidden border border-[#2a2a2a] hover:border-[#f0b90b]/40 transition-colors group">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt={label}
+                                      className="w-full h-24 object-cover"
+                                      onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                      <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity font-semibold">View</span>
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <div className="h-24 rounded-lg bg-[#131313] border border-[#1e1e1e] flex items-center justify-center">
+                                    <span className="text-[10px] text-gray-700 font-semibold">Not uploaded</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Text details */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+                            {[
+                              { label: "Full Name",    value: k.kycDetail.fullName },
+                              { label: "Date of Birth", value: k.kycDetail.dob },
+                              { label: "Nationality",  value: k.kycDetail.nationality },
+                              { label: "ID Type",      value: k.kycDetail.idType },
+                              { label: "Address",      value: k.kycDetail.address },
+                              { label: "Submitted",    value: k.kycDetail.submittedAt ? new Date(k.kycDetail.submittedAt).toLocaleString() : "-" },
+                            ].map(({ label, value }) => (
+                              <div key={label}>
+                                <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-wide">{label}</p>
+                                <p className="text-xs text-gray-300 mt-0.5">{value || "-"}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

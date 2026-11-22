@@ -55,6 +55,9 @@ export interface DbKyc {
   idNumber: string;
   nationality: string;
   selfieUrl?: string | null;
+  docFrontUrl?: string | null;
+  docBackUrl?: string | null;
+  addressDocUrl?: string | null;
   status: "under_review" | "approved" | "rejected";
   submittedAt: string;
 }
@@ -117,6 +120,8 @@ function rowToKyc(r: any): DbKyc {
     userId: r.user_id, step: r.step, fullName: r.full_name ?? "", dob: r.dob ?? "",
     address: r.address ?? "", idType: r.id_type ?? "", idNumber: r.id_number ?? "",
     nationality: r.nationality ?? "", selfieUrl: r.selfie_url ?? null,
+    docFrontUrl: r.doc_front_url ?? null, docBackUrl: r.doc_back_url ?? null,
+    addressDocUrl: r.address_doc_url ?? null,
     status: r.status, submittedAt: r.submitted_at,
   };
 }
@@ -290,15 +295,19 @@ export async function upsertKyc(kyc: Omit<DbKyc, "submittedAt">): Promise<void> 
     id_number: kyc.idNumber, nationality: kyc.nationality,
     step: kyc.step, submitted_at: new Date().toISOString(),
   };
-  if (kyc.selfieUrl !== undefined) payload.selfie_url = kyc.selfieUrl;
+  if (kyc.selfieUrl      !== undefined) payload.selfie_url      = kyc.selfieUrl;
+  if (kyc.docFrontUrl    !== undefined) payload.doc_front_url   = kyc.docFrontUrl;
+  if (kyc.docBackUrl     !== undefined) payload.doc_back_url    = kyc.docBackUrl;
+  if (kyc.addressDocUrl  !== undefined) payload.address_doc_url = kyc.addressDocUrl;
 
   const { error } = await supabaseAdmin
     .from("kyc_submissions")
     .upsert(payload, { onConflict: "user_id" });
 
-  // If selfie_url column missing, retry without it
-  if (error && kyc.selfieUrl) {
-    delete payload.selfie_url;
+  if (error) {
+    // Retry without optional URL columns if they don't exist yet
+    delete payload.selfie_url; delete payload.doc_front_url;
+    delete payload.doc_back_url; delete payload.address_doc_url;
     await supabaseAdmin.from("kyc_submissions").upsert(payload, { onConflict: "user_id" });
   }
 }
