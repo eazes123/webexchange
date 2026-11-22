@@ -225,7 +225,7 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
         case "LOOK_LEFT":  condMet = yaw   >  0.19; break;
         case "LOOK_RIGHT": condMet = yaw   < -0.19; break;
         case "LOOK_UP":    condMet = pitch <  0.28; break;
-        case "LOOK_DOWN":  condMet = pitch >  0.60; break;
+        case "LOOK_DOWN":  condMet = pitch >  0.52; break;
         case "BLINK":
           if (avgEAR < 0.25 && blinkStateRef.current === "open") blinkStateRef.current = "closed";
           else if (avgEAR > 0.27 && blinkStateRef.current === "closed") {
@@ -237,7 +237,7 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
           break;
       }
 
-      const holdNeeded = ch === "BLINK" ? 1 : 500;
+      const holdNeeded = ch === "BLINK" ? 1 : 350;
 
       if (condMet) holdMsRef.current = Math.min(holdMsRef.current + 80, holdNeeded);
       else if (ch !== "BLINK") holdMsRef.current = Math.max(0, holdMsRef.current - 25);
