@@ -130,12 +130,17 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
         setPhase("error");
       }
     })();
+    // Only mark alive=false on cleanup — stream stays open until captureSelfie or unmount
+    return () => { alive = false; };
+  }, [phase]);
+
+  // Stop camera on unmount
+  useEffect(() => {
     return () => {
-      alive = false;
       streamRef.current?.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     };
-  }, [phase]);
+  }, []);
 
   // ── Capture selfie ────────────────────────────────────────────────────────────
   const captureSelfie = useCallback(() => {
