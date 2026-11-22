@@ -86,10 +86,10 @@ export default function KycPage() {
   const { demoUser, setKycStatus } = useStore();
   const [step, setStep] = useState(demoUser.kycStatus === "approved" ? 5 : 1);
   const [loading, setLoading] = useState(false);
-  // rejected users start fresh — don't treat as submitted
   const [submitted, setSubmitted] = useState(
     demoUser.kycStatus !== "none" && demoUser.kycStatus !== "rejected"
   );
+  const [resubmitting, setResubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: demoUser.name || "", dob: "", nationality: "",
@@ -271,7 +271,7 @@ export default function KycPage() {
   );
 
   // ── Rejected state ──────────────────────────────────────────────────────────
-  if (demoUser.kycStatus === "rejected" && !submitted) return (
+  if (demoUser.kycStatus === "rejected" && !resubmitting) return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full space-y-4">
       <div className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-[#080808] via-[#0d0d0d] to-[#080808]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#ef444415_0%,_transparent_60%)] pointer-events-none" />
@@ -299,7 +299,7 @@ export default function KycPage() {
         </div>
       </div>
       <button
-        onClick={() => setSubmitted(false)}
+        onClick={() => setResubmitting(true)}
         className="w-full py-3.5 rounded-2xl bg-[#f0b90b] hover:bg-[#d4a30a] text-black font-bold text-sm transition-colors">
         Resubmit KYC Application
       </button>
