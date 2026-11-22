@@ -18,7 +18,7 @@ const CHALLENGE_INFO: Record<Challenge, { label: string; instruction: string }> 
 };
 
 function pickChallenges(): Challenge[] {
-  const pool: Challenge[] = ["LOOK_LEFT", "LOOK_RIGHT", "LOOK_UP", "LOOK_DOWN"];
+  const pool: Challenge[] = ["LOOK_LEFT", "LOOK_RIGHT", "LOOK_UP"];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -227,8 +227,8 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
         case "LOOK_UP":    condMet = pitch <  0.28; break;
         case "LOOK_DOWN":  condMet = pitch >  0.52; break;
         case "BLINK":
-          if (avgEAR < 0.25 && blinkStateRef.current === "open") blinkStateRef.current = "closed";
-          else if (avgEAR > 0.27 && blinkStateRef.current === "closed") {
+          if (avgEAR < 0.32 && blinkStateRef.current === "open") blinkStateRef.current = "closed";
+          else if (avgEAR > 0.34 && blinkStateRef.current === "closed") {
             blinkStateRef.current = "open";
             blinkCountRef.current++;
             setBlinkCount(blinkCountRef.current);
