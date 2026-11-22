@@ -23,7 +23,7 @@ const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
 const STEPS = [
   { id: 1, label: "Personal Info",    icon: User,        title: "Personal Information" },
   { id: 2, label: "ID Document",      icon: FileText,    title: "Upload ID Document" },
-  { id: 3, label: "Selfie",           icon: Camera,      title: "Selfie Verification" },
+  { id: 3, label: "Liveness Check",   icon: Camera,      title: "Liveness Check" },
   { id: 4, label: "Proof of Address", icon: Home,        title: "Proof of Address" },
   { id: 5, label: "Review",           icon: CheckCircle, title: "Review & Submit" },
 ];

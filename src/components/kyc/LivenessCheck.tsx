@@ -23,8 +23,7 @@ function pickChallenges(): Challenge[] {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  // 2 random movement + BLINK (anti-spoof)
-  return [...pool.slice(0, 2), "BLINK"];
+  return pool.slice(0, 2);
 }
 
 function dist2D(a: { x: number; y: number }, b: { x: number; y: number }) {
@@ -261,7 +260,8 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
           cancelAnimationFrame(rafRef.current);
           phaseRef.current = "capturing";
           setPhase("capturing");
-          setTimeout(() => captureSelfie(), 450);
+          // Give user 1.5s to look straight before capturing
+          setTimeout(() => captureSelfie(), 1500);
         } else {
           challengeIdxRef.current = nextIdx;
           setChallengeIdx(nextIdx);
@@ -507,7 +507,8 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
                 <Camera className="w-7 h-7 text-[#0ecb81]" />
               </div>
               <p className="text-white font-bold text-sm">All Challenges Passed!</p>
-              <p className="text-xs text-gray-400 mt-1">Capturing your photo…</p>
+              <p className="text-[#f0b90b] font-semibold text-sm mt-1">Look straight at the camera</p>
+              <p className="text-xs text-gray-400 mt-1">Capturing in a moment…</p>
             </div>
           </div>
         )}
