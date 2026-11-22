@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Shield, User, FileText, Camera, Home, CheckCircle,
@@ -441,7 +441,7 @@ export default function KycPage() {
                       </div>
                       <div>
                         <p className="font-bold text-white text-sm">AI Liveness Check</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Follow 3 on-screen instructions to verify you're a real person</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Follow 3 on-screen instructions to verify you&apos;re a real person</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-1">

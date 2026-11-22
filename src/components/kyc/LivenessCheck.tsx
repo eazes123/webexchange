@@ -137,6 +137,28 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
     };
   }, [phase]);
 
+  // ── Capture selfie ────────────────────────────────────────────────────────────
+  const captureSelfie = useCallback(() => {
+    const video  = videoRef.current;
+    const canvas = captureRef.current;
+    if (!video || !canvas) return;
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    // Mirror to match what user sees (video is CSS-flipped)
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      phaseRef.current = "done";
+      setPhase("done");
+      onComplete(blob);
+    }, "image/jpeg", 0.92);
+  }, [onComplete]);
+
   // ── Detection loop ────────────────────────────────────────────────────────────
   const loop = useCallback(async (now: number) => {
     const p = phaseRef.current;
@@ -240,7 +262,7 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
         }
       }
     }
-  }, [challenges]); // challenges is static
+  }, [challenges, captureSelfie]);
 
   useEffect(() => {
     if (phase === "positioning" || phase === "challenge") {
@@ -270,28 +292,6 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
     }, 1000);
     return () => { if (countdownTimer.current) clearInterval(countdownTimer.current); };
   }, [phase, faceIn]);
-
-  // ── Capture selfie ────────────────────────────────────────────────────────────
-  const captureSelfie = useCallback(() => {
-    const video  = videoRef.current;
-    const canvas = captureRef.current;
-    if (!video || !canvas) return;
-    canvas.width  = video.videoWidth  || 640;
-    canvas.height = video.videoHeight || 480;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    // Mirror to match what user sees (video is CSS-flipped)
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0);
-    canvas.toBlob(blob => {
-      if (!blob) return;
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      phaseRef.current = "done";
-      setPhase("done");
-      onComplete(blob);
-    }, "image/jpeg", 0.92);
-  }, [onComplete]);
 
   // ── Canvas draw helpers ───────────────────────────────────────────────────────
   function drawGuide(ctx: CanvasRenderingContext2D, w: number, h: number, detected: boolean, holdMs: number) {
