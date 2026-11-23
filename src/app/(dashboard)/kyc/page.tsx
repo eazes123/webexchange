@@ -5,7 +5,9 @@ import {
   Shield, User, FileText, Camera, Home, CheckCircle,
   Upload, ArrowRight, Clock, RefreshCw, X, BadgeCheck,
   AlertCircle, Lock, Sparkles, Info, Loader2,
+  Smartphone, Copy, Check,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -104,6 +106,11 @@ export default function KycPage() {
   const [cameraMode, setCameraMode] = useState<"idle" | "active" | "captured">("idle");
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [livenessMode, setLivenessMode] = useState<"idle" | "active" | "done">("idle");
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrDismissed, setQrDismissed] = useState(false);
+  const [qrCopied, setQrCopied] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (step !== 3) {
@@ -112,6 +119,39 @@ export default function KycPage() {
       if (cameraMode === "active") setCameraMode("idle");
     }
   }, [step]);
+
+  // Desktop QR handoff + status polling
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < 768) return;
+    setIsDesktop(true);
+    if (demoUser.kycStatus !== "none" && demoUser.kycStatus !== "rejected") return;
+
+    fetch("/api/kyc/mobile-link", { method: "POST" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.token) setQrUrl(`${window.location.origin}/api/kyc/mobile-link?token=${d.token}`);
+      })
+      .catch(() => {});
+
+    pollingRef.current = setInterval(() => {
+      fetch("/api/kyc")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (!d) return;
+          if (d.kycStatus === "under_review" || d.kycStatus === "approved") {
+            clearInterval(pollingRef.current!);
+            setKycStatus(d.kycStatus);
+            toast.success("KYC submitted from your phone!");
+            setTimeout(() => router.push("/dashboard"), 1500);
+          }
+        })
+        .catch(() => {});
+    }, 5000);
+
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  }, []);
 
   const startCamera = async () => {
     try {
@@ -396,6 +436,66 @@ export default function KycPage() {
         <Lock className="w-3.5 h-3.5 text-[#0ecb81] shrink-0" />
         Documents are end-to-end encrypted. We never share your personal data with third parties.
       </div>
+
+      {/* Desktop QR handoff */}
+      {isDesktop && !qrDismissed && demoUser.kycStatus === "none" && !submitted && qrUrl && (
+        <div className="relative bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setQrDismissed(true)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#222] flex items-center justify-center text-gray-500 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+          <div className="flex items-start gap-5">
+            {/* QR code */}
+            <div className="shrink-0 p-2.5 bg-white rounded-2xl">
+              <QRCodeSVG value={qrUrl} size={112} bgColor="#ffffff" fgColor="#0d0d0d" level="M" />
+            </div>
+            {/* Text */}
+            <div className="flex-1 min-w-0 pr-6">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Smartphone className="w-4 h-4 text-[#f0b90b] shrink-0" />
+                <span className="text-sm font-black text-white">Continue on your phone</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed mb-3">
+                Scan to open this KYC on your phone. The selfie &amp; liveness step is much easier with a phone camera.
+              </p>
+              <div className="space-y-1 mb-3">
+                {[
+                  "Selfie & liveness check work better on mobile",
+                  "Progress syncs automatically to this screen",
+                ].map(t => (
+                  <div key={t} className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="w-1 h-1 rounded-full bg-[#0ecb81] shrink-0" />
+                    {t}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(qrUrl).then(() => {
+                    setQrCopied(true);
+                    setTimeout(() => setQrCopied(false), 2000);
+                  }).catch(() => {});
+                }}
+                className="flex items-center gap-1.5 text-xs font-semibold transition-colors"
+                style={{ color: qrCopied ? "#0ecb81" : "#58a6ff" }}
+              >
+                {qrCopied
+                  ? <><Check className="w-3.5 h-3.5" /><span>Copied!</span></>
+                  : <><Copy className="w-3.5 h-3.5" /><span>Copy link</span></>
+                }
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#1a1a1a] flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#0ecb81] animate-pulse" />
+            <span className="text-xs text-gray-600">Watching for submission from mobile…</span>
+          </div>
+        </div>
+      )}
 
       {/* Step content card */}
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
