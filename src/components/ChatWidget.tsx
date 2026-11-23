@@ -73,6 +73,8 @@ export default function ChatWidget() {
   const lastAdminMsgCountRef                  = useRef(0);
   const pollingRef                            = useRef<ReturnType<typeof setInterval> | null>(null);
   const doPollRef                             = useRef<(() => Promise<void>) | null>(null);
+  const openRef                               = useRef(open);
+  openRef.current = open;
 
   // On mount: restore from localStorage, or fall back to server lookup; also fetch global support status
   useEffect(() => {
@@ -146,7 +148,7 @@ export default function ChatWidget() {
         saveToLS(supportChatId, newStatus, newAgent);
 
         // Unread badge when widget is closed
-        if (!open) {
+        if (!openRef.current) {
           const adminMsgs = newMsgs.filter(m => m.sender === "admin").length;
           const diff = adminMsgs - lastAdminMsgCountRef.current;
           if (diff > 0) setUnreadCount(prev => prev + diff);

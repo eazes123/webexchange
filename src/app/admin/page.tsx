@@ -106,6 +106,7 @@ interface SupportChatItem {
   userEmail: string;
   status: "pending" | "active" | "closed";
   lastMessage: string | null;
+  agentName: string | null;
   createdAt: string;
   updatedAt: string;
 }
