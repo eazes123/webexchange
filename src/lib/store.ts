@@ -31,6 +31,7 @@ interface DemoUser {
   activationFeeRefundRequested: boolean;
   loanWithdrawnToExternal: boolean;
   depositAddress: string | null;
+  bscDepositAddress: string | null;
   stakeAmount: number;
   stakeStatus: "none" | "active" | "unstaked" | "rewarded";
   stakedAt: string | null;
@@ -48,6 +49,7 @@ const DEFAULT_USER: DemoUser = {
   activationFeeRefundRequested: false,
   loanWithdrawnToExternal: false,
   depositAddress: null,
+  bscDepositAddress: null,
   stakeAmount: 0,
   stakeStatus: "none",
   stakedAt: null,
@@ -118,6 +120,7 @@ export const useStore = create<AppStore>((set, get) => ({
           activationFeeRefundRequested: user.activationFeeRefundRequested ?? false,
           loanWithdrawnToExternal: user.loanWithdrawnToExternal ?? false,
           depositAddress: user.depositAddress ?? null,
+          bscDepositAddress: user.bscDepositAddress ?? null,
           stakeAmount: user.stakeAmount ?? 0,
           stakeStatus: user.stakeStatus ?? "none",
           stakedAt: user.stakedAt ?? null,

@@ -140,6 +140,58 @@ export async function fetchPendingUsdtDeposits(address: string): Promise<TronDep
   }
 }
 
+export async function fetchTrxBalance(address: string): Promise<number> {
+  try {
+    const url = `${TRONGRID}/v1/accounts/${address}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+    if (!res.ok) return 0;
+    const { data = [] } = (await res.json()) as { data?: any[] };
+    return ((data[0]?.balance ?? 0) as number) / 1_000_000; // sun → TRX
+  } catch {
+    return 0;
+  }
+}
+
+// Send native TRX from one address to another
+export async function sendTrx(
+  fromPrivateKey: Uint8Array,
+  fromAddress: string,
+  toAddress: string,
+  amountTrx: number,
+): Promise<string> {
+  const fromHex = tronAddrToHex21(fromAddress);
+  const toHex   = tronAddrToHex21(toAddress);
+  const amountSun = Math.round(amountTrx * 1_000_000);
+
+  const buildRes = await fetch(`${TRONGRID}/wallet/createtransaction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owner_address: fromHex, to_address: toHex, amount: amountSun, visible: false }),
+  });
+  if (!buildRes.ok) throw new Error(`TronGrid createtransaction HTTP ${buildRes.status}`);
+  const rawTx = await buildRes.json();
+  if (!rawTx.txID) throw new Error(`TRX tx build failed: ${JSON.stringify(rawTx)}`);
+
+  const hash   = Buffer.from(rawTx.txID, "hex");
+  const sig    = secp256k1.sign(hash, fromPrivateKey, { lowS: true }) as unknown as {
+    toCompactRawBytes(): Uint8Array; recovery: number;
+  };
+  const sigHex = Buffer.concat([
+    Buffer.from(sig.toCompactRawBytes()),
+    Buffer.from([sig.recovery ?? 0]),
+  ]).toString("hex");
+
+  const broadcastRes = await fetch(`${TRONGRID}/wallet/broadcasttransaction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...rawTx, signature: [sigHex] }),
+  });
+  if (!broadcastRes.ok) throw new Error(`TronGrid broadcast HTTP ${broadcastRes.status}`);
+  const broadcastData = await broadcastRes.json();
+  if (!broadcastData.result) throw new Error(`TRX broadcast rejected: ${JSON.stringify(broadcastData)}`);
+  return rawTx.txID as string;
+}
+
 // Send USDT TRC20 from fromAddress to toAddress
 // Returns the on-chain txHash on success
 export async function sendUsdt(

@@ -10,11 +10,13 @@ import { useStore, type Transaction } from "@/lib/store";
 import { COINS, WITHDRAWAL_FEES } from "@/lib/mock-data";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 
 type ModalType = "deposit" | "withdraw" | null;
 
 const ASSETS = ["USDT", "BTC", "ETH", "BNB", "SOL", "XRP"];
 const TRON_SCAN = "https://tronscan.org/#/transaction";
+const BSC_SCAN  = "https://bscscan.com/tx";
 const POLL_INTERVAL_MS = 30_000; // auto-check every 30 seconds
 
 const COIN_PRICES: Record<string, number> = Object.fromEntries(
@@ -83,8 +85,11 @@ export default function WalletPage() {
   const [checkingDeposit, setCheckingDeposit] = useState(false);
   const [lastChecked, setLastChecked]   = useState<number | null>(null);
   const [incoming, setIncoming]         = useState<IncomingDeposit[]>([]);
+  const [incomingBsc, setIncomingBsc]   = useState<IncomingDeposit[]>([]);
+  const [network, setNetwork]           = useState<"TRC20" | "BEP20">("TRC20");
   const [, setTick]                     = useState(0); // force re-render for timeAgo
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRefBsc = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const livePrices: Record<string, number> = { USDT: 1, USDC: 1 };
   coins.forEach(c => { livePrices[c.symbol] = c.price; });
@@ -95,7 +100,9 @@ export default function WalletPage() {
     return acc + (bal + locked) * (livePrices[sym] ?? COIN_PRICES[sym] ?? 0);
   }, 0);
 
-  const depositAddress = demoUser.depositAddress;
+  const depositAddress    = demoUser.depositAddress;
+  const bscDepositAddress = demoUser.bscDepositAddress;
+  const activeAddress     = network === "TRC20" ? depositAddress : bscDepositAddress;
 
   // Auto-refresh "X seconds ago" every 10s
   useEffect(() => {
@@ -137,26 +144,60 @@ export default function WalletPage() {
     }
   }, [depositAddress, hydrate, fetchIncoming]);
 
-  // Start auto-polling when page loads
+  // TRC20 auto-polling
   useEffect(() => {
     if (!depositAddress) return;
-    // Initial check on mount
     runDepositCheck(true);
-    // Poll every 30s
     intervalRef.current = setInterval(() => runDepositCheck(true), POLL_INTERVAL_MS);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [depositAddress, runDepositCheck]);
 
+  // BSC incoming deposits fetch
+  const fetchIncomingBsc = useCallback(async () => {
+    try {
+      const res = await fetch("/api/wallet/incoming-bsc");
+      if (!res.ok) return;
+      const { unprocessed = [] } = await res.json();
+      setIncomingBsc(unprocessed.map((t: any) => ({ ...t, confirmed: true })));
+    } catch {}
+  }, []);
+
+  // BSC deposit check
+  const runDepositCheckBsc = useCallback(async (silent = true) => {
+    if (!bscDepositAddress) return;
+    if (!silent) setCheckingDeposit(true);
+    try {
+      const res  = await fetch("/api/wallet/check-deposit-bsc", { method: "POST" });
+      const data = await res.json();
+      setLastChecked(Date.now());
+      if (data.credited > 0) {
+        toast.success(`${data.credited} USDT (BEP20) deposited to your wallet!`);
+        await hydrate();
+      }
+      await fetchIncomingBsc();
+    } catch {
+      if (!silent) toast.error("Failed to check BSC deposits");
+    } finally {
+      if (!silent) setCheckingDeposit(false);
+    }
+  }, [bscDepositAddress, hydrate, fetchIncomingBsc]);
+
+  // BSC auto-polling
+  useEffect(() => {
+    if (!bscDepositAddress) return;
+    runDepositCheckBsc(true);
+    intervalRefBsc.current = setInterval(() => runDepositCheckBsc(true), POLL_INTERVAL_MS);
+    return () => { if (intervalRefBsc.current) clearInterval(intervalRefBsc.current); };
+  }, [bscDepositAddress, runDepositCheckBsc]);
+
   const handleCopyAddress = () => {
-    if (!depositAddress) return;
-    navigator.clipboard.writeText(depositAddress);
+    if (!activeAddress) return;
+    navigator.clipboard.writeText(activeAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleManualCheck = () => runDepositCheck(false);
+  const handleManualCheck = () => network === "TRC20" ? runDepositCheck(false) : runDepositCheckBsc(false);
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,9 +266,7 @@ export default function WalletPage() {
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-ex-blue" />
             <h2 className="font-bold">Your USDT Deposit Address</h2>
-            <span className="text-xs bg-ex-blue/10 text-ex-blue border border-ex-blue/30 px-2 py-0.5 rounded-full font-semibold">TRC20</span>
           </div>
-          {/* Live polling indicator */}
           <div className="flex items-center gap-1.5 text-xs text-ex-green">
             <span className="w-2 h-2 rounded-full bg-ex-green animate-pulse" />
             <span className="hidden sm:inline">
@@ -236,16 +275,40 @@ export default function WalletPage() {
           </div>
         </div>
 
-        {depositAddress ? (
+        {/* Network selector */}
+        <div className="flex gap-2 mb-4">
+          {(["TRC20", "BEP20"] as const).map((n) => (
+            <button key={n} onClick={() => setNetwork(n)}
+              className={`px-4 py-1.5 rounded-xl text-sm font-bold border transition-colors ${
+                network === n
+                  ? n === "TRC20"
+                    ? "bg-red-500/20 text-red-400 border-red-500/40"
+                    : "bg-yellow-500/20 text-yellow-400 border-yellow-500/40"
+                  : "bg-ex-card2 text-gray-400 border-ex-border hover:text-white"
+              }`}>
+              {n === "TRC20" ? "🔴 TRC20 (TRON)" : "🟡 BEP20 (BSC)"}
+            </button>
+          ))}
+        </div>
+
+        {activeAddress ? (
           <>
-            <div className="font-mono text-sm text-gray-200 break-all bg-ex-bg rounded-xl p-4 mb-3 select-all border border-ex-border">
-              {depositAddress}
+            <div className="flex flex-col sm:flex-row gap-4 mb-3">
+              <div className="flex flex-col items-center gap-1.5 shrink-0">
+                <div className="p-3 bg-white rounded-2xl">
+                  <QRCodeSVG value={activeAddress} size={120} bgColor="#ffffff" fgColor="#000000" level="M" />
+                </div>
+                <span className="text-[10px] text-gray-600 font-semibold">Scan to get address</span>
+              </div>
+              <div className="flex-1 font-mono text-sm text-gray-200 break-all bg-ex-bg rounded-xl p-4 select-all border border-ex-border flex items-center">
+                {activeAddress}
+              </div>
             </div>
 
             {/* Incoming deposits section */}
-            {incoming.length > 0 && (
+            {(network === "TRC20" ? incoming : incomingBsc).length > 0 && (
               <div className="mb-3 space-y-2">
-                {incoming.map((tx) => (
+                {(network === "TRC20" ? incoming : incomingBsc).map((tx) => (
                   <div key={tx.txHash}
                     className={`flex items-center justify-between p-3 rounded-xl border text-xs ${
                       tx.confirmed
@@ -287,14 +350,21 @@ export default function WalletPage() {
               </button>
             </div>
             <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-              {[
+              {(network === "TRC20" ? [
                 { label: "Network", value: "TRON (TRC20)" },
                 { label: "Asset", value: "USDT (TRC20)" },
                 { label: "Min Deposit", value: "1 USDT" },
                 { label: "Confirmations", value: "20 blocks" },
                 { label: "Credit Time", value: "~1-5 min" },
                 { label: "Auto-detect", value: "Every 30s" },
-              ].map(r => (
+              ] : [
+                { label: "Network", value: "BSC (BEP20)" },
+                { label: "Asset", value: "USDT (BEP20)" },
+                { label: "Min Deposit", value: "1 USDT" },
+                { label: "Confirmations", value: "15 blocks" },
+                { label: "Credit Time", value: "~1-3 min" },
+                { label: "Auto-detect", value: "Every 30s" },
+              ]).map(r => (
                 <div key={r.label} className="bg-ex-card2 border border-ex-border rounded-xl p-2.5">
                   <div className="text-gray-500">{r.label}</div>
                   <div className="font-semibold mt-0.5">{r.value}</div>
@@ -302,7 +372,9 @@ export default function WalletPage() {
               ))}
             </div>
             <div className="mt-3 bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow">
-              Only send USDT (TRC20) to this address. Sending other assets or networks may result in permanent loss.
+              {network === "TRC20"
+                ? "Only send USDT (TRC20) to this address. Sending other assets or networks may result in permanent loss."
+                : "Only send USDT (BEP20) to this address on the BSC network. Sending other assets or networks may result in permanent loss."}
             </div>
           </>
         ) : (
@@ -395,7 +467,9 @@ export default function WalletPage() {
                     <span>{tx.date}</span>
                     {tx.txHash && (
                       <a
-                        href={`${TRON_SCAN}/${tx.txHash}`}
+                        href={tx.desc?.includes("BEP20")
+                          ? `${BSC_SCAN}/${tx.txHash}`
+                          : `${TRON_SCAN}/${tx.txHash}`}
                         target="_blank" rel="noopener noreferrer"
                         className="font-mono text-ex-blue hover:underline flex items-center gap-0.5 truncate max-w-[140px]"
                         onClick={e => e.stopPropagation()}>
@@ -437,11 +511,28 @@ export default function WalletPage() {
 
             {selectedAsset === "USDT" ? (
               <>
+                {/* Network tabs in modal */}
+                <div className="flex gap-2 mb-4">
+                  {(["TRC20", "BEP20"] as const).map((n) => (
+                    <button key={n} onClick={() => setNetwork(n)}
+                      className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                        network === n
+                          ? n === "TRC20"
+                            ? "bg-red-500/20 text-red-400 border-red-500/40"
+                            : "bg-yellow-500/20 text-yellow-400 border-yellow-500/40"
+                          : "bg-ex-card2 text-gray-400 border-ex-border hover:text-white"
+                      }`}>
+                      {n === "TRC20" ? "🔴 TRC20" : "🟡 BEP20"}
+                    </button>
+                  ))}
+                </div>
                 <div className="bg-ex-card2 border border-ex-border rounded-xl p-4 mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Shield className="w-4 h-4 text-ex-blue" />
-                      <span className="text-sm font-semibold">Network: TRON (TRC20)</span>
+                      <span className="text-sm font-semibold">
+                        {network === "TRC20" ? "Network: TRON (TRC20)" : "Network: BSC (BEP20)"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-ex-green">
                       <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />
@@ -450,18 +541,18 @@ export default function WalletPage() {
                   </div>
                   <div className="text-xs text-gray-500 mb-2">Your Unique Deposit Address</div>
                   <div className="font-mono text-sm text-gray-200 break-all mb-3 bg-ex-bg rounded-lg p-3 select-all">
-                    {depositAddress ?? "Not assigned"}
+                    {activeAddress ?? "Not assigned"}
                   </div>
-                  {depositAddress && (
+                  {activeAddress && (
                     <button onClick={handleCopyAddress}
                       className="flex items-center gap-2 text-sm text-ex-yellow hover:text-yellow-400 transition-colors">
                       {copied ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Address</>}
                     </button>
                   )}
                 </div>
-                {incoming.length > 0 && (
+                {(network === "TRC20" ? incoming : incomingBsc).length > 0 && (
                   <div className="mb-4 space-y-2">
-                    {incoming.map(tx => (
+                    {(network === "TRC20" ? incoming : incomingBsc).map(tx => (
                       <div key={tx.txHash}
                         className={`flex items-center justify-between p-3 rounded-xl border text-xs ${
                           tx.confirmed ? "bg-ex-yellow/10 border-ex-yellow/30" : "bg-ex-blue/10 border-ex-blue/30"
@@ -480,7 +571,9 @@ export default function WalletPage() {
                   </div>
                 )}
                 <div className="bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow mb-4">
-                  Only send USDT (TRC20) to this address. Other assets will be lost permanently.
+                  {network === "TRC20"
+                    ? "Only send USDT (TRC20) to this address. Other assets will be lost permanently."
+                    : "Only send USDT (BEP20) to this BSC address. Other assets will be lost permanently."}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />

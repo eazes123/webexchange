@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     queuePosition: u.queuePosition,
     kycStatus: u.kycStatus,
     depositAddress: u.depositAddress,
+    bscDepositAddress: u.bscDepositAddress,
+    bscWalletIndex: u.bscWalletIndex,
     stakeStatus: u.stakeStatus,
     stakeAmount: u.stakeAmount,
     rewardDistributed: u.rewardDistributed,

@@ -5,6 +5,7 @@ import {
 } from "@/lib/db";
 import { hashPassword, generateToken, SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
 import { deriveAddress } from "@/lib/tron";
+import { deriveEvmAddress } from "@/lib/bsc";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -23,12 +24,19 @@ export async function POST(request: NextRequest) {
   const queuePosition  = count + 1;
   const addressIndex   = count; // 0-based HD derivation index
 
-  const mnemonic = process.env.TRON_MASTER_MNEMONIC!;
+  const tronMnemonic = process.env.TRON_MASTER_MNEMONIC!;
+  const bscMnemonic  = process.env.BSC_MASTER_MNEMONIC ?? tronMnemonic; // fallback to same mnemonic
   let depositAddress: string | null = null;
+  let bscDepositAddress: string | null = null;
   try {
-    depositAddress = deriveAddress(mnemonic, addressIndex);
+    depositAddress = deriveAddress(tronMnemonic, addressIndex);
   } catch {
     // Non-fatal: address can be assigned later
+  }
+  try {
+    bscDepositAddress = deriveEvmAddress(bscMnemonic, addressIndex);
+  } catch {
+    // Non-fatal
   }
 
   const user = await createUser({
@@ -46,6 +54,8 @@ export async function POST(request: NextRequest) {
     loanWithdrawnToExternal: false,
     depositAddress,
     addressIndex,
+    bscDepositAddress,
+    bscWalletIndex: addressIndex,
     stakeAmount: 0,
     stakeStatus: "none",
     stakedAt: null,

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals" | "transactions";
+type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals" | "transactions" | "deposits";
 
 interface AdminUser {
   id: string;
@@ -22,10 +22,49 @@ interface AdminUser {
   queuePosition: number;
   kycStatus: string;
   depositAddress: string | null;
+  bscDepositAddress: string | null;
+  bscWalletIndex: number | null;
   stakeStatus: string;
   stakeAmount: number;
   rewardDistributed: boolean;
   createdAt: string;
+}
+
+interface DepositTx {
+  id: string;
+  userId: string;
+  userFullName: string;
+  userEmail: string;
+  asset: string;
+  amount: number;
+  status: string;
+  date: string;
+  desc?: string;
+  txHash?: string;
+  createdAt: string;
+  chain: "TRC20" | "BSC" | "unknown";
+}
+
+interface DepositUser {
+  id: string;
+  fullName: string;
+  email: string;
+  addressIndex: number | null;
+  trc20Address: string | null;
+  bscAddress: string | null;
+  kycStatus: string;
+  createdAt: string;
+}
+
+interface DepositStats {
+  totalDeposits: number;
+  trc20Total: number;
+  bscTotal: number;
+  totalVolume: number;
+  usersWithTrc: number;
+  usersWithBsc: number;
+  trc20Count: number;
+  bscCount: number;
 }
 
 interface KycPendingUser {
@@ -218,6 +257,14 @@ export default function AdminPage() {
     chatModel: "gemini-3.5-flash-lite",
   });
 
+  // Deposits state
+  const [depositStats, setDepositStats]     = useState<DepositStats | null>(null);
+  const [depositTxns, setDepositTxns]       = useState<DepositTx[]>([]);
+  const [depositUsers, setDepositUsers]     = useState<DepositUser[]>([]);
+  const [depositChainFilter, setDepositChainFilter] = useState<"all" | "TRC20" | "BSC">("all");
+  const [depositSearch, setDepositSearch]   = useState("");
+  const [depositView, setDepositView]       = useState<"addresses" | "transactions">("addresses");
+
   // Loading state per section
   const [loadingStats, setLoadingStats]     = useState(false);
   const [loadingUsers, setLoadingUsers]     = useState(false);
@@ -225,6 +272,31 @@ export default function AdminPage() {
   const [loadingWd, setLoadingWd]           = useState(false);
   const [loadingTx, setLoadingTx]           = useState(false);
   const [loadingCampaign, setLoadingCampaign] = useState(false);
+  const [loadingDeposits, setLoadingDeposits] = useState(false);
+
+  // Sweep state: key = `${userId}-${chain}`
+  const [sweepStatus, setSweepStatus] = useState<Record<string, {
+    loading: boolean;
+    txHash?: string;
+    amount?: number;
+    error?: string;
+  }>>({});
+
+  // Balances: userId → { trc20, bsc }
+  const [addressBalances, setAddressBalances] = useState<Record<string, { trc20: number; bsc: number }>>({});
+  const [loadingBalances, setLoadingBalances] = useState(false);
+
+  // PIN modal
+  const [pinModal, setPinModal] = useState<{
+    show: boolean;
+    mode: "single" | "bulk";
+    userId?: string;
+    userName?: string;
+    chain: "TRC20" | "BSC" | "all";
+    pin: string;
+    loading: boolean;
+    error?: string;
+  }>({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false });
 
   // ── Fetchers ───────────────────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
@@ -275,6 +347,55 @@ export default function AdminPage() {
     } finally { setLoadingTx(false); }
   }, []);
 
+  const fetchDeposits = useCallback(async () => {
+    setLoadingDeposits(true);
+    try {
+      const r = await fetch("/api/admin/deposits");
+      if (r.ok) {
+        const d = await r.json();
+        setDepositStats(d.stats ?? null);
+        setDepositTxns(d.deposits ?? []);
+        setDepositUsers(d.addressList ?? []);
+      }
+    } finally { setLoadingDeposits(false); }
+  }, []);
+
+  const fetchBalances = useCallback(async () => {
+    setLoadingBalances(true);
+    try {
+      const r = await fetch("/api/admin/balances");
+      if (r.ok) {
+        const { balances } = await r.json() as { balances: { userId: string; trc20: number; bsc: number }[] };
+        const map: Record<string, { trc20: number; bsc: number }> = {};
+        for (const b of balances) map[b.userId] = { trc20: b.trc20, bsc: b.bsc };
+        setAddressBalances(map);
+      }
+    } finally { setLoadingBalances(false); }
+  }, []);
+
+  const handleSweep = useCallback(async (userId: string, chain: "TRC20" | "BSC", pin: string) => {
+    const key = `${userId}-${chain}`;
+    setSweepStatus(prev => ({ ...prev, [key]: { loading: true } }));
+    try {
+      const r = await fetch("/api/admin/sweep", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, chain, pin }),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) {
+        setSweepStatus(prev => ({ ...prev, [key]: { loading: false, txHash: d.txHash, amount: d.amount } }));
+        // Refresh balances after successful sweep
+        fetchBalances();
+      } else {
+        setSweepStatus(prev => ({ ...prev, [key]: { loading: false, error: d.error ?? "Sweep failed" } }));
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Network error";
+      setSweepStatus(prev => ({ ...prev, [key]: { loading: false, error: msg } }));
+    }
+  }, [fetchBalances]);
+
   const fetchCampaign = useCallback(async () => {
     setLoadingCampaign(true);
     try {
@@ -304,6 +425,7 @@ export default function AdminPage() {
     if (tab === "kyc" && kycPendingList.length === 0 && kycCompletedList.length === 0) fetchKyc();
     if (tab === "campaign" && !campaign)             fetchCampaign();
     if (tab === "transactions" && transactions.length === 0) fetchTransactions();
+    if (tab === "deposits" && !depositStats) { fetchDeposits(); fetchBalances(); }
   }, [tab]);
 
   const refreshAll = () => {
@@ -311,6 +433,7 @@ export default function AdminPage() {
     if (tab === "kyc")          fetchKyc();
     if (tab === "campaign")     fetchCampaign();
     if (tab === "transactions") fetchTransactions();
+    if (tab === "deposits")     fetchDeposits();
   };
 
   // ── Actions ────────────────────────────────────────────────────────────────
@@ -428,11 +551,13 @@ export default function AdminPage() {
     { id: "users",        label: "Users",        icon: Users,         badge: users.length },
     { id: "kyc",          label: "KYC Review",   icon: Shield,        badge: kycPendingList.length },
     { id: "campaign",     label: "Campaign",     icon: Trophy,        badge: campaign?.stats.activeStakers },
+    { id: "deposits",     label: "Deposits",     icon: CreditCard,    badge: depositStats?.totalDeposits },
     { id: "withdrawals",  label: "Withdrawals",  icon: ArrowUpRight,  badge: pendingWdCount },
     { id: "transactions", label: "Transactions", icon: Activity },
   ];
 
   return (
+    <>
     <div className="min-h-screen bg-ex-bg">
       {/* Header */}
       <div className="bg-ex-card border-b border-ex-border px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
@@ -672,12 +797,13 @@ export default function AdminPage() {
                         {expandedUser === u.id && (
                           <tr key={u.id + "_expanded"}>
                             <td colSpan={8} className="bg-ex-bg/50 px-4 py-4 border-t border-ex-border">
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
                                 {[
                                   { label: "Full ID",          value: u.id },
                                   { label: "Phone",            value: u.phone || "-" },
                                   { label: "Queue Position",   value: `#${u.queuePosition}` },
-                                  { label: "Deposit Address",  value: u.depositAddress ?? "Not assigned" },
+                                  { label: "TRC20 Address",    value: u.depositAddress ?? "Not assigned" },
+                                  { label: "BSC Address",      value: u.bscDepositAddress ?? "Not assigned" },
                                   { label: "KYC Status",       value: u.kycStatus || "none" },
                                   { label: "Stake Status",     value: u.stakeStatus || "none" },
                                   { label: "Stake Amount",     value: u.stakeAmount > 0 ? `$${u.stakeAmount}` : "-" },
@@ -1090,6 +1216,403 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* ── DEPOSITS ─────────────────────────────────────────────────────── */}
+        {tab === "deposits" && (
+          <div className="space-y-5">
+            {loadingDeposits ? (
+              <div className="text-center py-16 text-gray-400">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" /> Loading deposit data...
+              </div>
+            ) : (
+              <>
+                {/* Stats row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-ex-green/10 flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 text-ex-green" />
+                      </div>
+                      <span className="text-xs text-gray-500">Total Volume</span>
+                    </div>
+                    <div className="text-2xl font-black text-ex-green font-num">
+                      ${(depositStats?.totalVolume ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">USDT all chains</div>
+                  </div>
+                  <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
+                        <span className="text-[10px] font-black text-red-400">TRX</span>
+                      </div>
+                      <span className="text-xs text-gray-500">TRC20 Total</span>
+                    </div>
+                    <div className="text-2xl font-black text-white font-num">
+                      ${(depositStats?.trc20Total ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">{depositStats?.trc20Count ?? 0} deposits</div>
+                  </div>
+                  <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-ex-yellow/10 flex items-center justify-center">
+                        <span className="text-[10px] font-black text-ex-yellow">BSC</span>
+                      </div>
+                      <span className="text-xs text-gray-500">BEP20 Total</span>
+                    </div>
+                    <div className="text-2xl font-black text-ex-yellow font-num">
+                      ${(depositStats?.bscTotal ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">{depositStats?.bscCount ?? 0} deposits</div>
+                  </div>
+                  <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-400/10 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <span className="text-xs text-gray-500">Addresses Assigned</span>
+                    </div>
+                    <div className="flex gap-3">
+                      <div>
+                        <div className="text-xl font-black text-red-400 font-num">{depositStats?.usersWithTrc ?? 0}</div>
+                        <div className="text-[10px] text-gray-600">TRC20</div>
+                      </div>
+                      <div className="w-px bg-ex-border" />
+                      <div>
+                        <div className="text-xl font-black text-ex-yellow font-num">{depositStats?.usersWithBsc ?? 0}</div>
+                        <div className="text-[10px] text-gray-600">BSC</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exchange wallets info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {exchangeWallet && (
+                    <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-lg bg-red-500/10 flex items-center justify-center">
+                          <span className="text-[9px] font-black text-red-400">TRX</span>
+                        </div>
+                        <span className="text-sm font-bold">TRC20 Exchange Wallet</span>
+                        <span className="text-xs text-gray-500 ml-auto">Fund with USDT + TRX</span>
+                      </div>
+                      <div className="font-mono text-xs text-gray-200 break-all bg-ex-bg rounded-lg p-2.5 select-all border border-ex-border">
+                        {exchangeWallet}
+                      </div>
+                    </div>
+                  )}
+                  <div className="bg-ex-card border border-ex-border rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-lg bg-ex-yellow/10 flex items-center justify-center">
+                        <span className="text-[9px] font-black text-ex-yellow">BSC</span>
+                      </div>
+                      <span className="text-sm font-bold">BSC Exchange Wallet</span>
+                      <span className="text-xs text-gray-500 ml-auto">Fund with USDT + BNB</span>
+                    </div>
+                    <div className="font-mono text-xs text-gray-200 break-all bg-ex-bg rounded-lg p-2.5 select-all border border-ex-border">
+                      0xDD1480D39466c4457693fE3408A052bbfAA68C18
+                    </div>
+                  </div>
+                </div>
+
+                {/* View toggle + search + chain filter */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex bg-ex-card border border-ex-border rounded-xl overflow-hidden">
+                    {(["addresses", "transactions"] as const).map(v => (
+                      <button key={v} onClick={() => setDepositView(v)}
+                        className={`px-4 py-2 text-xs font-semibold transition-colors capitalize ${
+                          depositView === v
+                            ? "bg-ex-yellow text-black"
+                            : "text-gray-400 hover:text-white"
+                        }`}>
+                        {v === "addresses" ? `User Addresses (${depositUsers.length})` : `Deposit History (${depositTxns.length})`}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    {(["all", "TRC20", "BSC"] as const).map(c => (
+                      <button key={c} onClick={() => setDepositChainFilter(c)}
+                        className={`px-3 py-1.5 text-xs rounded-lg border font-semibold transition-colors ${
+                          depositChainFilter === c
+                            ? c === "TRC20" ? "bg-red-500/20 text-red-400 border-red-500/30"
+                            : c === "BSC"   ? "bg-ex-yellow/20 text-ex-yellow border-ex-yellow/30"
+                            :                 "bg-white/10 text-white border-white/20"
+                            : "text-gray-500 border-ex-border hover:text-gray-300"
+                        }`}>
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="relative flex-1 min-w-[180px] max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                    <input className="ex-input pl-8 h-8 text-xs w-full"
+                      placeholder={depositView === "addresses" ? "Search user..." : "Search user or hash..."}
+                      value={depositSearch} onChange={e => setDepositSearch(e.target.value)} />
+                  </div>
+                  <button onClick={() => { fetchDeposits(); fetchBalances(); }} disabled={loadingDeposits}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white border border-ex-border rounded-lg transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingDeposits ? "animate-spin" : ""}`} />
+                    Refresh
+                  </button>
+                  {depositView === "addresses" && (
+                    <button
+                      onClick={() => setPinModal({ show: true, mode: "bulk", chain: depositChainFilter === "all" ? "all" : depositChainFilter, pin: "", loading: false })}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-black bg-ex-yellow hover:bg-ex-yellow/80 rounded-lg transition-colors">
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      Sweep All
+                    </button>
+                  )}
+                </div>
+
+                {/* USER ADDRESSES TABLE */}
+                {depositView === "addresses" && (() => {
+                  const filtered = depositUsers
+                    .filter(u => {
+                      const matchSearch = !depositSearch ||
+                        u.fullName.toLowerCase().includes(depositSearch.toLowerCase()) ||
+                        u.email.toLowerCase().includes(depositSearch.toLowerCase());
+                      const matchChain = depositChainFilter === "all"
+                        || (depositChainFilter === "TRC20" && !!u.trc20Address)
+                        || (depositChainFilter === "BSC"   && !!u.bscAddress);
+                      return matchSearch && matchChain;
+                    })
+                    // Sort: addresses with balance first
+                    .sort((a, b) => {
+                      const balA = (addressBalances[a.id]?.trc20 ?? 0) + (addressBalances[a.id]?.bsc ?? 0);
+                      const balB = (addressBalances[b.id]?.trc20 ?? 0) + (addressBalances[b.id]?.bsc ?? 0);
+                      return balB - balA;
+                    });
+                  return filtered.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500 bg-ex-card border border-ex-border rounded-2xl">
+                      <Wallet className="w-10 h-10 mx-auto mb-2 text-gray-700" />
+                      No users match filters
+                    </div>
+                  ) : (
+                    <div className="bg-ex-card border border-ex-border rounded-2xl overflow-x-auto">
+                      <table className="w-full exchange-table">
+                        <thead>
+                          <tr>
+                            <th className="text-left text-xs">#</th>
+                            <th className="text-left">User</th>
+                            <th className="text-left">KYC</th>
+                            <th className="text-left">
+                              <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+                                TRC20 Address (TRON)
+                              </span>
+                            </th>
+                            <th className="text-left">
+                              <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-ex-yellow inline-block" />
+                                BSC Address (BEP20)
+                              </span>
+                            </th>
+                            <th className="text-left text-xs">Sweep to Hot Wallet</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map(u => {
+                            const trcKey  = `${u.id}-TRC20`;
+                            const bscKey  = `${u.id}-BSC`;
+                            const trcSt   = sweepStatus[trcKey];
+                            const bscSt   = sweepStatus[bscKey];
+                            const bal     = addressBalances[u.id];
+                            const trcBal  = bal?.trc20 ?? null;
+                            const bscBal  = bal?.bsc  ?? null;
+                            return (
+                            <tr key={u.id}>
+                              <td className="text-gray-500 text-xs font-mono">{u.addressIndex ?? "-"}</td>
+                              <td>
+                                <div className="font-semibold text-sm">{u.fullName}</div>
+                                <div className="text-xs text-gray-500">{u.email}</div>
+                              </td>
+                              <td><Badge status={u.kycStatus || "none"} /></td>
+                              <td>
+                                {u.trc20Address ? (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-xs text-red-300 bg-red-500/5 border border-red-500/20 rounded-lg px-2 py-1 select-all">
+                                      {u.trc20Address}
+                                    </span>
+                                    {trcBal !== null && (
+                                      <span className={`text-[11px] font-semibold px-1 ${trcBal > 0 ? "text-green-400" : "text-gray-600"}`}>
+                                        {loadingBalances ? "…" : `${trcBal.toFixed(2)} USDT`}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-700">—</span>
+                                )}
+                              </td>
+                              <td>
+                                {u.bscAddress ? (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-mono text-xs text-ex-yellow bg-ex-yellow/5 border border-ex-yellow/20 rounded-lg px-2 py-1 select-all">
+                                      {u.bscAddress}
+                                    </span>
+                                    {bscBal !== null && (
+                                      <span className={`text-[11px] font-semibold px-1 ${bscBal > 0 ? "text-green-400" : "text-gray-600"}`}>
+                                        {loadingBalances ? "…" : `${bscBal.toFixed(2)} USDT`}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-700">—</span>
+                                )}
+                              </td>
+                              <td>
+                                <div className="flex flex-col gap-1.5 min-w-[160px]">
+                                  {/* TRC20 sweep */}
+                                  {u.trc20Address && (
+                                    <div className="flex flex-col gap-0.5">
+                                      <button
+                                        disabled={trcSt?.loading}
+                                        onClick={() => setPinModal({ show: true, mode: "single", userId: u.id, userName: u.fullName, chain: "TRC20", pin: "", loading: false })}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        {trcSt?.loading ? (
+                                          <span className="w-3 h-3 border border-red-400 border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                          <ArrowUpRight className="w-3 h-3" />
+                                        )}
+                                        Sweep TRC20
+                                      </button>
+                                      {trcSt?.txHash && (
+                                        <a href={`https://tronscan.org/#/transaction/${trcSt.txHash}`} target="_blank" rel="noreferrer"
+                                          className="text-[10px] text-green-400 hover:underline truncate max-w-[160px]">
+                                          ✓ {trcSt.amount?.toFixed(2)} USDT swept
+                                        </a>
+                                      )}
+                                      {trcSt?.error && (
+                                        <span className="text-[10px] text-red-400 leading-tight">{trcSt.error}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {/* BSC sweep */}
+                                  {u.bscAddress && (
+                                    <div className="flex flex-col gap-0.5">
+                                      <button
+                                        disabled={bscSt?.loading}
+                                        onClick={() => setPinModal({ show: true, mode: "single", userId: u.id, userName: u.fullName, chain: "BSC", pin: "", loading: false })}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow hover:bg-ex-yellow/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        {bscSt?.loading ? (
+                                          <span className="w-3 h-3 border border-ex-yellow border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                          <ArrowUpRight className="w-3 h-3" />
+                                        )}
+                                        Sweep BSC
+                                      </button>
+                                      {bscSt?.txHash && (
+                                        <a href={`https://bscscan.com/tx/${bscSt.txHash}`} target="_blank" rel="noreferrer"
+                                          className="text-[10px] text-green-400 hover:underline truncate max-w-[160px]">
+                                          ✓ {bscSt.amount?.toFixed(2)} USDT swept
+                                        </a>
+                                      )}
+                                      {bscSt?.error && (
+                                        <span className="text-[10px] text-yellow-400 leading-tight">{bscSt.error}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {!u.trc20Address && !u.bscAddress && (
+                                    <span className="text-xs text-gray-700">—</span>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+
+                {/* DEPOSIT TRANSACTIONS TABLE */}
+                {depositView === "transactions" && (() => {
+                  const filtered = depositTxns.filter(tx => {
+                    const matchSearch = !depositSearch ||
+                      tx.userFullName.toLowerCase().includes(depositSearch.toLowerCase()) ||
+                      tx.userEmail.toLowerCase().includes(depositSearch.toLowerCase()) ||
+                      (tx.txHash ?? "").toLowerCase().includes(depositSearch.toLowerCase());
+                    const matchChain = depositChainFilter === "all" || tx.chain === depositChainFilter;
+                    return matchSearch && matchChain;
+                  });
+                  return filtered.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500 bg-ex-card border border-ex-border rounded-2xl">
+                      <Activity className="w-10 h-10 mx-auto mb-2 text-gray-700" />
+                      No deposits found
+                    </div>
+                  ) : (
+                    <div className="bg-ex-card border border-ex-border rounded-2xl overflow-x-auto">
+                      <table className="w-full exchange-table">
+                        <thead>
+                          <tr>
+                            <th className="text-left">User</th>
+                            <th className="text-left">Chain</th>
+                            <th className="text-left">Amount</th>
+                            <th className="text-left">Status</th>
+                            <th className="text-left hidden md:table-cell">Description</th>
+                            <th className="text-left hidden lg:table-cell">TX Hash</th>
+                            <th className="text-left hidden md:table-cell">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map(tx => (
+                            <tr key={tx.id}>
+                              <td>
+                                <div className="font-semibold text-sm">{tx.userFullName}</div>
+                                <div className="text-xs text-gray-500">{tx.userEmail}</div>
+                              </td>
+                              <td>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                                  tx.chain === "TRC20"
+                                    ? "text-red-400 bg-red-500/10 border-red-500/20"
+                                    : tx.chain === "BSC"
+                                    ? "text-ex-yellow bg-ex-yellow/10 border-ex-yellow/20"
+                                    : "text-gray-400 bg-gray-800 border-gray-700"
+                                }`}>
+                                  {tx.chain}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="font-semibold font-num text-ex-green text-sm">
+                                  +{tx.amount.toLocaleString()} {tx.asset}
+                                </div>
+                              </td>
+                              <td><Badge status={tx.status} /></td>
+                              <td className="text-gray-500 text-xs hidden md:table-cell max-w-[160px] truncate">
+                                {tx.desc ?? "-"}
+                              </td>
+                              <td className="hidden lg:table-cell">
+                                {tx.txHash ? (
+                                  <a
+                                    href={
+                                      tx.chain === "BSC"
+                                        ? `https://bscscan.com/tx/${tx.txHash}`
+                                        : `https://tronscan.org/#/transaction/${tx.txHash}`
+                                    }
+                                    target="_blank" rel="noreferrer"
+                                    className="font-mono text-xs text-blue-400 hover:text-blue-300 underline max-w-[120px] truncate block">
+                                    {tx.txHash.slice(0, 12)}…
+                                  </a>
+                                ) : (
+                                  <span className="text-xs text-gray-700">—</span>
+                                )}
+                              </td>
+                              <td className="text-gray-400 text-xs hidden md:table-cell">
+                                {tx.date || (tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : "-")}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+        )}
+
         {/* ── WITHDRAWALS ──────────────────────────────────────────────────── */}
         {tab === "withdrawals" && (
           <div>
@@ -1284,5 +1807,107 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+
+    {/* ── PIN Modal ──────────────────────────────────────────────────────────── */}
+    {pinModal.show && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]"
+        onClick={() => !pinModal.loading && setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false })}
+        onKeyDown={e => e.key === "Escape" && !pinModal.loading && setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false })}
+      >
+        <div className="bg-ex-card border border-ex-border rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-ex-yellow/10 border border-ex-yellow/30 flex items-center justify-center">
+              <ArrowUpRight className="w-5 h-5 text-ex-yellow" />
+            </div>
+            <div>
+              <div className="font-semibold text-sm text-white">
+                {pinModal.mode === "bulk"
+                  ? `Sweep All — ${pinModal.chain === "all" ? "TRC20 + BSC" : pinModal.chain}`
+                  : `Sweep ${pinModal.chain} — ${pinModal.userName ?? ""}`}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">Enter your sweep PIN to continue</div>
+            </div>
+          </div>
+
+          <input
+            type="password"
+            autoFocus
+            placeholder="PIN"
+            value={pinModal.pin}
+            onChange={e => setPinModal(prev => ({ ...prev, pin: e.target.value, error: undefined }))}
+            onKeyDown={async e => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (!pinModal.pin) return;
+                if (pinModal.mode === "single" && pinModal.userId) {
+                  setPinModal(prev => ({ ...prev, loading: true, error: undefined }));
+                  await handleSweep(pinModal.userId!, pinModal.chain as "TRC20" | "BSC", pinModal.pin);
+                  setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false });
+                } else if (pinModal.mode === "bulk") {
+                  setPinModal(prev => ({ ...prev, loading: true, error: undefined }));
+                  const pin = pinModal.pin;
+                  const chains: ("TRC20" | "BSC")[] = pinModal.chain === "all" ? ["TRC20", "BSC"] : [pinModal.chain as "TRC20" | "BSC"];
+                  const targets = depositUsers.filter(u =>
+                    (chains.includes("TRC20") && !!u.trc20Address) ||
+                    (chains.includes("BSC")   && !!u.bscAddress)
+                  );
+                  setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false });
+                  for (const u of targets) {
+                    for (const chain of chains) {
+                      if (chain === "TRC20" && !u.trc20Address) continue;
+                      if (chain === "BSC"   && !u.bscAddress)   continue;
+                      await handleSweep(u.id, chain, pin);
+                    }
+                  }
+                }
+              }
+            }}
+            className="ex-input w-full text-center tracking-widest text-lg mb-3"
+          />
+          {pinModal.error && (
+            <div className="text-xs text-red-400 mb-3 text-center">{pinModal.error}</div>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false })}
+              className="flex-1 px-4 py-2 text-xs text-gray-400 border border-ex-border rounded-lg hover:text-white transition-colors">
+              Cancel
+            </button>
+            <button
+              disabled={!pinModal.pin || pinModal.loading}
+              onClick={async () => {
+                if (!pinModal.pin) return;
+                if (pinModal.mode === "single" && pinModal.userId) {
+                  setPinModal(prev => ({ ...prev, loading: true, error: undefined }));
+                  await handleSweep(pinModal.userId!, pinModal.chain as "TRC20" | "BSC", pinModal.pin);
+                  setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false });
+                } else if (pinModal.mode === "bulk") {
+                  setPinModal(prev => ({ ...prev, loading: true, error: undefined }));
+                  const pin = pinModal.pin;
+                  const chains: ("TRC20" | "BSC")[] = pinModal.chain === "all" ? ["TRC20", "BSC"] : [pinModal.chain as "TRC20" | "BSC"];
+                  const targets = depositUsers.filter(u =>
+                    (chains.includes("TRC20") && !!u.trc20Address) ||
+                    (chains.includes("BSC")   && !!u.bscAddress)
+                  );
+                  setPinModal({ show: false, mode: "single", chain: "TRC20", pin: "", loading: false });
+                  for (const u of targets) {
+                    for (const chain of chains) {
+                      if (chain === "TRC20" && !u.trc20Address) continue;
+                      if (chain === "BSC"   && !u.bscAddress)   continue;
+                      await handleSweep(u.id, chain, pin);
+                    }
+                  }
+                }
+              }}
+              className="flex-1 px-4 py-2 text-xs font-semibold bg-ex-yellow text-black rounded-lg hover:bg-ex-yellow/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5">
+              {pinModal.loading ? <span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
+              {pinModal.mode === "bulk" ? "Sweep All" : "Confirm Sweep"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

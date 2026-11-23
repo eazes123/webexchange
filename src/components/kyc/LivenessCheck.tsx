@@ -315,7 +315,7 @@ export default function LivenessCheck({ onComplete, onCancel }: Props) {
     ctx.globalCompositeOperation = "source-over";
 
     // Oval border with color feedback
-    const prog = Math.min(1, holdMs / 500);
+    const prog = Math.min(1, holdMs / 350);
     const color = !detected ? "#555555" : prog > 0.6 ? "#0ecb81" : "#f0b90b";
     ctx.beginPath();
     ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);

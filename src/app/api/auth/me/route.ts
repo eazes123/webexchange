@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       activationFeeRefundRequested: user.activationFeeRefundRequested,
       loanWithdrawnToExternal: user.loanWithdrawnToExternal,
       depositAddress: user.depositAddress,
+      bscDepositAddress: user.bscDepositAddress,
       stakeAmount: user.stakeAmount,
       stakeStatus: user.stakeStatus,
       stakedAt: user.stakedAt,

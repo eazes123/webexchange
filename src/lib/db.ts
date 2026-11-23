@@ -17,6 +17,8 @@ export interface DbUser {
   loanWithdrawnToExternal: boolean;
   depositAddress: string | null;
   addressIndex: number | null;
+  bscDepositAddress: string | null;
+  bscWalletIndex: number | null;
   stakeAmount: number;
   stakeStatus: "none" | "active" | "unstaked" | "rewarded";
   stakedAt: string | null;
@@ -94,6 +96,8 @@ function rowToUser(r: any): DbUser {
     loanWithdrawnToExternal: r.loan_withdrawn_to_external ?? false,
     depositAddress: r.deposit_address ?? null,
     addressIndex: r.address_index ?? null,
+    bscDepositAddress: r.bsc_deposit_address ?? null,
+    bscWalletIndex: r.bsc_wallet_index ?? null,
     stakeAmount: Number(r.stake_amount ?? 0),
     stakeStatus: r.stake_status ?? "none",
     stakedAt: r.staked_at ?? null,
@@ -182,6 +186,8 @@ export async function createUser(user: Omit<DbUser, "id" | "createdAt">): Promis
       loan_withdrawn_to_external: user.loanWithdrawnToExternal,
       deposit_address: user.depositAddress,
       address_index: user.addressIndex,
+      bsc_deposit_address: user.bscDepositAddress,
+      bsc_wallet_index: user.bscWalletIndex,
       stake_amount: 0, stake_status: "none",
     })
     .select().single();
@@ -193,6 +199,7 @@ export async function updateUser(userId: string, fields: Partial<{
   kycStatus: string; loanStatus: string; activationFeePaid: boolean;
   activationFeeRefundRequested: boolean; loanWithdrawnToExternal: boolean;
   depositAddress: string; addressIndex: number;
+  bscDepositAddress: string; bscWalletIndex: number;
   stakeAmount: number; stakeStatus: string; stakedAt: string | null;
   rewardDistributed: boolean;
 }>): Promise<void> {
@@ -204,6 +211,8 @@ export async function updateUser(userId: string, fields: Partial<{
   if (fields.loanWithdrawnToExternal !== undefined)    row.loan_withdrawn_to_external = fields.loanWithdrawnToExternal;
   if (fields.depositAddress !== undefined)             row.deposit_address = fields.depositAddress;
   if (fields.addressIndex !== undefined)               row.address_index = fields.addressIndex;
+  if (fields.bscDepositAddress !== undefined)          row.bsc_deposit_address = fields.bscDepositAddress;
+  if (fields.bscWalletIndex !== undefined)             row.bsc_wallet_index = fields.bscWalletIndex;
   if (fields.stakeAmount !== undefined)                row.stake_amount = fields.stakeAmount;
   if (fields.stakeStatus !== undefined)                row.stake_status = fields.stakeStatus;
   if (Object.prototype.hasOwnProperty.call(fields, "stakedAt")) row.staked_at = fields.stakedAt;
