@@ -1,29 +1,42 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import {
   Shield, User, FileText, Camera, Home, CheckCircle,
-  Upload, ArrowRight, AlertCircle, Lock, Info, Loader2, X, Monitor,
+  Upload, ArrowRight, AlertCircle, Lock, Loader2, X, Monitor, Clock,
 } from "lucide-react";
 
+const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center gap-2 py-16 text-gray-500">
+      <Loader2 className="w-5 h-5 animate-spin" />
+      <span className="text-sm">Loading liveness check…</span>
+    </div>
+  ),
+});
+
 const STEPS = [
-  { id: 1, label: "Personal",   icon: User },
-  { id: 2, label: "ID Doc",     icon: FileText },
-  { id: 3, label: "Selfie",     icon: Camera },
-  { id: 4, label: "Address",    icon: Home },
-  { id: 5, label: "Review",     icon: CheckCircle },
+  { id: 1, label: "Personal",  icon: User },
+  { id: 2, label: "ID Doc",    icon: FileText },
+  { id: 3, label: "Selfie",    icon: Camera },
+  { id: 4, label: "Address",   icon: Home },
+  { id: 5, label: "Review",    icon: CheckCircle },
 ];
 
 const DOC_TYPES = ["Passport", "National ID Card", "Driver's License"];
 
 function UploadBtn({
-  id, label, value, onChange, capture,
+  id, label, value, onChange, capture, required = true,
 }: {
   id: string; label: string; value: File | null;
-  onChange: (f: File | null) => void; capture?: "user" | "environment";
+  onChange: (f: File | null) => void;
+  capture?: "user" | "environment";
+  required?: boolean;
 }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-300 mb-2">{label} *</p>
+      <p className="text-sm font-semibold text-gray-300 mb-2">{label}{required ? " *" : ""}</p>
       <div
         onClick={() => document.getElementById(id)?.click()}
         className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${
@@ -65,26 +78,27 @@ function UploadBtn({
 }
 
 export default function KycMobilePage() {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken]       = useState<string | null>(null);
   const [validating, setValidating] = useState(true);
-  const [expired, setExpired] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [err, setErr] = useState("");
+  const [expired, setExpired]   = useState(false);
+  const [step, setStep]         = useState(1);
+  const [loading, setLoading]   = useState(false);
+  const [done, setDone]         = useState(false);
+  const [err, setErr]           = useState("");
+  const [toast, setToastMsg]    = useState("");
+
+  const [livenessMode, setLivenessMode]   = useState<"idle" | "active" | "done">("idle");
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     fullName: "", dob: "", nationality: "", address: "",
     docType: "Passport",
-    docFront: null as File | null,
-    docBack:  null as File | null,
-    selfie:   null as File | null,
+    docFront:   null as File | null,
+    docBack:    null as File | null,
+    selfie:     null as File | null,
     addressDoc: null as File | null,
   });
 
-  const toastRef = useRef<string>("");
-  const [toast, setToastMsg] = useState("");
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(""), 3000);
@@ -96,13 +110,7 @@ export default function KycMobilePage() {
     setToken(t);
     fetch(`/api/kyc/mobile-link?token=${encodeURIComponent(t)}`)
       .then(r => r.json())
-      .then(d => {
-        if (d.valid) {
-          setUserName(d.userName ?? "");
-        } else {
-          setExpired(true);
-        }
-      })
+      .then(d => { if (!d.valid) setExpired(true); })
       .catch(() => setExpired(true))
       .finally(() => setValidating(false));
   }, []);
@@ -129,24 +137,26 @@ export default function KycMobilePage() {
       const age = (Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
       if (isNaN(dob.getTime()) || age < 18) { showToast("Must be at least 18 years old"); return; }
     }
-    if (step === 2 && !form.docFront)  { showToast("Please upload front of your ID"); return; }
-    if (step === 3 && !form.selfie)    { showToast("Please take a selfie"); return; }
-    if (step === 4 && !form.addressDoc){ showToast("Please upload proof of address"); return; }
+    if (step === 2 && !form.docFront)   { showToast("Please upload front of your ID"); return; }
+    if (step === 3 && !form.selfie)     { showToast("Please complete the liveness check"); return; }
+    if (step === 4 && !form.addressDoc) { showToast("Please upload proof of address"); return; }
 
     if (step < 5) { setStep(s => s + 1); return; }
 
-    if (!form.docFront || !form.selfie || !form.addressDoc) {
-      setErr("Some required items are missing. Go back and complete all steps.");
-      return;
+    if (!form.fullName.trim() || !form.dob || !form.nationality.trim() || !form.address.trim()) {
+      setErr("Personal information is incomplete. Go back to Step 1."); return;
     }
+    if (!form.docFront)   { setErr("ID document is missing. Go back to Step 2."); return; }
+    if (!form.selfie)     { setErr("Selfie is missing. Go back to Step 3."); return; }
+    if (!form.addressDoc) { setErr("Proof of address is missing. Go back to Step 4."); return; }
 
     setLoading(true);
     try {
       const [selfieUrl, docFrontUrl, docBackUrl, addressDocUrl] = await Promise.all([
-        form.selfie    ? uploadFile(form.selfie,    "selfie")  : Promise.resolve(null),
-        form.docFront  ? uploadFile(form.docFront,  "front")   : Promise.resolve(null),
-        form.docBack   ? uploadFile(form.docBack,   "back")    : Promise.resolve(null),
-        form.addressDoc? uploadFile(form.addressDoc,"address") : Promise.resolve(null),
+        form.selfie     ? uploadFile(form.selfie,     "selfie")  : Promise.resolve(null),
+        form.docFront   ? uploadFile(form.docFront,   "front")   : Promise.resolve(null),
+        form.docBack    ? uploadFile(form.docBack,    "back")    : Promise.resolve(null),
+        form.addressDoc ? uploadFile(form.addressDoc, "address") : Promise.resolve(null),
       ]);
 
       const res = await fetch("/api/kyc/mobile-submit", {
@@ -170,14 +180,14 @@ export default function KycMobilePage() {
     }
   };
 
-  // ── Validating ───────────────────────────────────────────────────────────────
+  // ── Validating ──────────────────────────────────────────────────────────────
   if (validating) return (
     <div className="min-h-screen bg-[#080808] flex items-center justify-center">
       <Loader2 className="w-8 h-8 text-[#f0b90b] animate-spin" />
     </div>
   );
 
-  // ── Expired / invalid ────────────────────────────────────────────────────────
+  // ── Expired / invalid ───────────────────────────────────────────────────────
   if (expired) return (
     <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center p-6 text-center">
       <div className="w-16 h-16 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center mb-4">
@@ -190,7 +200,7 @@ export default function KycMobilePage() {
     </div>
   );
 
-  // ── Done ─────────────────────────────────────────────────────────────────────
+  // ── Done ────────────────────────────────────────────────────────────────────
   if (done) return (
     <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center p-6 text-center space-y-5">
       <div className="w-20 h-20 rounded-full bg-[#0ecb81]/15 border-2 border-[#0ecb81]/30 flex items-center justify-center">
@@ -209,7 +219,7 @@ export default function KycMobilePage() {
     </div>
   );
 
-  // ── KYC Form ─────────────────────────────────────────────────────────────────
+  // ── KYC Form ────────────────────────────────────────────────────────────────
   const pct = Math.round(((step - 1) / STEPS.length) * 100);
 
   return (
@@ -221,17 +231,18 @@ export default function KycMobilePage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-[#080808]/95 backdrop-blur border-b border-[#1e1e1e] px-4 py-3">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg bg-[#f0b90b] flex items-center justify-center shrink-0">
-            <Shield className="w-3.5 h-3.5 text-black" />
-          </div>
-          <span className="text-sm font-black">KYC Verification</span>
-          {userName && <span className="ml-auto text-xs text-gray-500 truncate max-w-[120px]">{userName}</span>}
+      {/* Logo header — centered, no menu, no nav */}
+      <div className="flex flex-col items-center pt-10 pb-5 px-4">
+        <div className="w-12 h-12 rounded-2xl bg-[#f0b90b] flex items-center justify-center mb-3 shadow-lg shadow-[#f0b90b]/20">
+          <Shield className="w-6 h-6 text-black" />
         </div>
-        {/* Progress */}
-        <div className="flex items-center gap-2">
+        <span className="text-xl font-black text-white tracking-tight">NovaBit</span>
+        <span className="text-xs text-gray-500 mt-0.5">Identity Verification</span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="px-4 pb-2">
+        <div className="flex items-center gap-2 mb-2">
           <div className="flex-1 h-1.5 bg-[#1e1e1e] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#f0b90b] rounded-full transition-all duration-500"
@@ -240,20 +251,19 @@ export default function KycMobilePage() {
           </div>
           <span className="text-[10px] text-gray-500 shrink-0">Step {step}/{STEPS.length}</span>
         </div>
-      </div>
-
-      {/* Step indicators */}
-      <div className="flex px-4 pt-4 gap-1">
-        {STEPS.map(s => (
-          <div key={s.id} className={`flex-1 h-1 rounded-full transition-colors ${
-            step > s.id ? "bg-[#0ecb81]" : step === s.id ? "bg-[#f0b90b]" : "bg-[#1e1e1e]"
-          }`} />
-        ))}
+        {/* Step dots */}
+        <div className="flex gap-1">
+          {STEPS.map(s => (
+            <div key={s.id} className={`flex-1 h-1 rounded-full transition-colors ${
+              step > s.id ? "bg-[#0ecb81]" : step === s.id ? "bg-[#f0b90b]" : "bg-[#1e1e1e]"
+            }`} />
+          ))}
+        </div>
       </div>
 
       {/* Content */}
       <div className="px-4 pb-28 pt-4 space-y-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-1">
           {(() => { const Icon = STEPS[step - 1].icon; return <Icon className="w-5 h-5 text-[#f0b90b]" />; })()}
           <h2 className="text-lg font-black">{STEPS[step - 1].label}</h2>
         </div>
@@ -272,7 +282,7 @@ export default function KycMobilePage() {
                 <input
                   type={f.type}
                   placeholder={f.ph}
-                  value={(form as any)[f.key]}
+                  value={(form as unknown as Record<string, string>)[f.key]}
                   onChange={e => setForm(d => ({ ...d, [f.key]: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl bg-[#111] border border-[#1e1e1e] text-white placeholder-gray-600 text-sm outline-none focus:border-[#f0b90b]/50"
                 />
@@ -296,37 +306,94 @@ export default function KycMobilePage() {
             </div>
             <UploadBtn id="m-docFront" label="Front Side"
               value={form.docFront} onChange={f => setForm(d => ({ ...d, docFront: f }))} />
-            <UploadBtn id="m-docBack" label="Back Side (optional)"
+            <UploadBtn id="m-docBack" label="Back Side" required={false}
               value={form.docBack} onChange={f => setForm(d => ({ ...d, docBack: f }))} />
           </div>
         )}
 
-        {/* Step 3: Selfie */}
+        {/* Step 3: Selfie — AI Liveness Check */}
         {step === 3 && (
           <div className="space-y-4">
-            <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-4 space-y-2">
-              {[
-                "Look straight at the camera",
-                "Make sure your face is fully visible",
-                "Good lighting — avoid dark backgrounds",
-              ].map(t => (
-                <div key={t} className="flex items-start gap-2 text-xs text-gray-400">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#f0b90b] mt-1.5 shrink-0" />
-                  {t}
+            {livenessMode === "active" && (
+              <LivenessCheck
+                onComplete={blob => {
+                  const url = URL.createObjectURL(blob);
+                  const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: "image/jpeg" });
+                  setForm(d => ({ ...d, selfie: file }));
+                  setSelfiePreview(url);
+                  setLivenessMode("done");
+                  showToast("Liveness check passed!");
+                }}
+                onCancel={() => setLivenessMode("idle")}
+              />
+            )}
+
+            {livenessMode !== "active" && (
+              <>
+                {/* Selfie preview after liveness done */}
+                {livenessMode === "done" && selfiePreview && (
+                  <div className="relative rounded-2xl overflow-hidden border border-[#0ecb81]/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={selfiePreview} alt="Selfie" className="w-full max-h-60 object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0ecb81] text-black text-xs font-bold px-3 py-1 rounded-full">
+                      <CheckCircle className="w-3 h-3" /> Liveness Verified
+                    </div>
+                  </div>
+                )}
+
+                {/* Info card when idle */}
+                {livenessMode === "idle" && (
+                  <div className="bg-[#131313] border border-[#1e1e1e] rounded-2xl p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#f0b90b]/10 border border-[#f0b90b]/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <Shield className="w-5 h-5 text-[#f0b90b]" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white text-sm">AI Liveness Check</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Follow 3 on-screen instructions to verify you&apos;re a real person</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      {[
+                        { icon: "←→", label: "Head movements" },
+                        { icon: "👁",  label: "Blink detection" },
+                        { icon: "📸",  label: "Auto selfie" },
+                      ].map(f => (
+                        <div key={f.label} className="bg-[#0d0d0d] rounded-xl p-2.5 text-center border border-[#222]">
+                          <div className="text-lg mb-1">{f.icon}</div>
+                          <div className="text-[10px] text-gray-500 leading-tight">{f.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Launch / redo button */}
+                <button
+                  type="button"
+                  onClick={() => setLivenessMode("active")}
+                  className="w-full border-2 border-[#f0b90b]/40 rounded-2xl p-5 text-center hover:bg-[#f0b90b]/5 hover:border-[#f0b90b]/60 transition-all"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-[#f0b90b]/10 flex items-center justify-center mx-auto mb-2.5">
+                    <Camera className="w-6 h-6 text-[#f0b90b]" />
+                  </div>
+                  <p className="font-bold text-white text-sm">
+                    {livenessMode === "done" ? "Redo Liveness Check" : "Start Liveness Check"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {livenessMode === "done"
+                      ? "Retake if you want a better photo"
+                      : "AI-verified — most secure method"}
+                  </p>
+                </button>
+
+                <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
+                  <Lock className="w-3 h-3" />
+                  All biometric data is processed locally — never shared with third parties
                 </div>
-              ))}
-            </div>
-            <UploadBtn
-              id="m-selfie"
-              label="Selfie Photo"
-              value={form.selfie}
-              onChange={f => setForm(d => ({ ...d, selfie: f }))}
-              capture="user"
-            />
-            <div className="flex items-center gap-2 text-xs text-[#0ecb81]">
-              <Lock className="w-3 h-3" />
-              Processed securely — never shared with third parties
-            </div>
+              </>
+            )}
           </div>
         )}
 
@@ -335,7 +402,12 @@ export default function KycMobilePage() {
           <div className="space-y-4">
             <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-4 space-y-1.5">
               <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">Accepted documents</p>
-              {["Utility bill (electricity, water, gas)", "Bank statement", "Government letter", "Dated within last 3 months"].map(t => (
+              {[
+                "Utility bill (electricity, water, gas)",
+                "Bank statement",
+                "Government letter",
+                "Dated within last 3 months",
+              ].map(t => (
                 <div key={t} className="flex items-start gap-2 text-xs text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#f0b90b] mt-1.5 shrink-0" />
                   {t}
@@ -357,7 +429,7 @@ export default function KycMobilePage() {
                 { label: "Nationality",   value: form.nationality || "—", ok: !!form.nationality },
                 { label: "ID Type",       value: form.docType,              ok: true },
                 { label: "Front ID",      value: form.docFront  ? "✓ Ready" : "✗ Missing", ok: !!form.docFront },
-                { label: "Selfie",        value: form.selfie    ? "✓ Ready" : "✗ Missing", ok: !!form.selfie },
+                { label: "Selfie",        value: form.selfie    ? "✓ Verified" : "✗ Missing", ok: !!form.selfie },
                 { label: "Proof of Addr", value: form.addressDoc? "✓ Ready" : "✗ Missing", ok: !!form.addressDoc },
                 { label: "Home Address",  value: form.address   || "—", ok: !!form.address },
               ].map(r => (
@@ -373,6 +445,10 @@ export default function KycMobilePage() {
                 Some required items are missing. Go back and complete all steps.
               </div>
             )}
+            <div className="bg-[#f0b90b]/8 border border-[#f0b90b]/25 rounded-xl p-3 text-xs text-[#f0b90b] flex items-center gap-2">
+              <Clock className="w-4 h-4 shrink-0" />
+              KYC review takes 24–48 hours. You'll be notified once complete.
+            </div>
             {err && (
               <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-sm text-[#f6465d]">{err}</div>
             )}
@@ -380,12 +456,12 @@ export default function KycMobilePage() {
         )}
       </div>
 
-      {/* Fixed bottom nav */}
+      {/* Fixed bottom nav — no footer, just nav buttons */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#080808]/95 backdrop-blur border-t border-[#1e1e1e] p-4 flex gap-3">
         {step > 1 && (
           <button
             type="button"
-            onClick={() => setStep(s => s - 1)}
+            onClick={() => { setErr(""); setStep(s => s - 1); }}
             className="flex-1 py-3.5 rounded-2xl bg-[#111] border border-[#1e1e1e] text-sm font-semibold text-gray-300"
           >
             ← Back
