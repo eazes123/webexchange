@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/db";
 import { SESSION_COOKIE, generateToken } from "@/lib/auth-utils";
+import { mobileTokenMap, pruneExpiredTokens } from "@/lib/kyc-mobile-tokens";
 
 export const dynamic = "force-dynamic";
 
-// token → { sessionToken, expiresAt }
-const mobileTokenMap = new Map<string, { sessionToken: string; expiresAt: number }>();
-
-function pruneExpired() {
-  const now = Date.now();
-  for (const [k, v] of mobileTokenMap) {
-    if (now > v.expiresAt) mobileTokenMap.delete(k);
-  }
-}
-
-// Desktop: authenticated user generates a handoff token
+// Desktop: creates a multi-use 15-min handoff token
 export async function POST(request: NextRequest) {
   const sessionToken = request.cookies.get(SESSION_COOKIE)?.value;
   if (!sessionToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const user = await getSessionUser(sessionToken);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  pruneExpired();
+  pruneExpiredTokens();
 
   const token = generateToken().slice(0, 32);
   mobileTokenMap.set(token, {
@@ -32,28 +23,18 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ token });
 }
 
-// Mobile: exchange token for session cookie, redirect to KYC
+// Mobile page validation — returns JSON, no redirect, no cookie, token stays alive
 export async function GET(request: NextRequest) {
   const token = new URL(request.url).searchParams.get("token");
-
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  if (!token) return NextResponse.json({ valid: false, error: "Missing token" }, { status: 400 });
 
   const entry = mobileTokenMap.get(token);
   if (!entry || Date.now() > entry.expiresAt) {
-    return NextResponse.redirect(new URL("/login?error=link-expired", request.url));
+    return NextResponse.json({ valid: false, error: "Link expired" }, { status: 410 });
   }
 
-  mobileTokenMap.delete(token);
+  const user = await getSessionUser(entry.sessionToken);
+  if (!user) return NextResponse.json({ valid: false, error: "Session invalid" }, { status: 401 });
 
-  const res = NextResponse.redirect(new URL("/kyc", request.url));
-  res.cookies.set(SESSION_COOKIE, entry.sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60,
-    path: "/",
-  });
-  return res;
+  return NextResponse.json({ valid: true, userName: user.fullName });
 }

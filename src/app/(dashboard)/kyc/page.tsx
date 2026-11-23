@@ -5,7 +5,7 @@ import {
   Shield, User, FileText, Camera, Home, CheckCircle,
   Upload, ArrowRight, Clock, RefreshCw, X, BadgeCheck,
   AlertCircle, Lock, Sparkles, Info, Loader2,
-  Smartphone, Copy, Check,
+  Smartphone, Copy, Check, Monitor,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/lib/store";
@@ -110,6 +110,7 @@ export default function KycPage() {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [qrDismissed, setQrDismissed] = useState(false);
   const [qrCopied, setQrCopied] = useState(false);
+  const [mobileDone, setMobileDone] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -131,7 +132,7 @@ export default function KycPage() {
     fetch("/api/kyc/mobile-link", { method: "POST" })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.token) setQrUrl(`${window.location.origin}/api/kyc/mobile-link?token=${d.token}`);
+        if (d?.token) setQrUrl(`${window.location.origin}/kyc-mobile?t=${d.token}`);
       })
       .catch(() => {});
 
@@ -254,6 +255,7 @@ export default function KycPage() {
       if (!res.ok) { toast.error(data.error); return; }
       setKycStatus("under_review"); setSubmitted(true);
       toast.success("KYC submitted! Under review. Usually 24-48 hours.");
+      if (!isDesktop) { setMobileDone(true); return; }
       router.push("/dashboard");
     } catch {
       toast.error("Failed to submit KYC. Please try again.");
@@ -261,6 +263,25 @@ export default function KycPage() {
       setLoading(false);
     }
   };
+
+  // ── Mobile done state (submitted via phone) ─────────────────────────────────
+  if (mobileDone) return (
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full flex flex-col items-center justify-center min-h-[70vh] text-center space-y-4">
+      <div className="w-20 h-20 rounded-full bg-[#0ecb81]/15 border-2 border-[#0ecb81]/30 flex items-center justify-center">
+        <CheckCircle className="w-10 h-10 text-[#0ecb81]" />
+      </div>
+      <div>
+        <h1 className="text-2xl font-black text-white mb-2">KYC Submitted!</h1>
+        <p className="text-gray-400 text-sm max-w-xs mx-auto leading-relaxed">
+          Your documents are under review. Go back to your computer — the page will update automatically.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl px-4 py-2.5 text-xs text-gray-500">
+        <Monitor className="w-4 h-4 text-[#58a6ff] shrink-0" />
+        Continue on your PC or laptop
+      </div>
+    </div>
+  );
 
   // ── Approved state ──────────────────────────────────────────────────────────
   if (demoUser.kycStatus === "approved") return (
