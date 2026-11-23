@@ -447,7 +447,7 @@ export default function KycMobilePage() {
             )}
             <div className="bg-[#f0b90b]/8 border border-[#f0b90b]/25 rounded-xl p-3 text-xs text-[#f0b90b] flex items-center gap-2">
               <Clock className="w-4 h-4 shrink-0" />
-              KYC review takes 24–48 hours. You'll be notified once complete.
+              KYC review takes 24–48 hours. You&apos;ll be notified once complete.
             </div>
             {err && (
               <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-sm text-[#f6465d]">{err}</div>
