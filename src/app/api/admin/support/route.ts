@@ -5,6 +5,14 @@ import {
 } from "@/lib/db";
 import { requireAdminSession } from "@/lib/admin-auth";
 
+const AGENT_NAMES = [
+  "Alex", "Sarah", "Michael", "Emma", "James", "Olivia",
+  "Daniel", "Sophia", "Ryan", "Charlotte", "Noah", "Amelia",
+  "Liam", "Isabella", "Ethan", "Mia", "Logan", "Harper",
+  "William", "Luna", "Benjamin", "Aria", "Mason", "Grace",
+  "Lucas", "Chloe", "Henry", "Zoe", "Jackson", "Natalie",
+];
+
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
@@ -48,8 +56,9 @@ export async function POST(request: NextRequest) {
     if (chat.status !== "pending") {
       return NextResponse.json({ error: "Chat is not pending" }, { status: 400 });
     }
-    await updateSupportChatStatus(chatId, "active");
-    return NextResponse.json({ success: true });
+    const agentName = AGENT_NAMES[Math.floor(Math.random() * AGENT_NAMES.length)];
+    await updateSupportChatStatus(chatId, "active", agentName);
+    return NextResponse.json({ success: true, agentName });
   }
 
   if (action === "message") {

@@ -575,6 +575,7 @@ export interface DbSupportChat {
   userEmail: string;
   status: "pending" | "active" | "closed";
   lastMessage: string | null;
+  agentName: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -591,6 +592,7 @@ function rowToSupportChat(r: any): DbSupportChat {
   return {
     id: r.id, userId: r.user_id, userName: r.user_name, userEmail: r.user_email,
     status: r.status, lastMessage: r.last_message ?? null,
+    agentName: r.agent_name ?? null,
     createdAt: r.created_at, updatedAt: r.updated_at,
   };
 }
@@ -625,10 +627,10 @@ export async function getSupportChatById(chatId: string): Promise<DbSupportChat 
   return data ? rowToSupportChat(data) : null;
 }
 
-export async function updateSupportChatStatus(chatId: string, status: "pending" | "active" | "closed"): Promise<void> {
-  await supabaseAdmin.from("support_chats")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", chatId);
+export async function updateSupportChatStatus(chatId: string, status: "pending" | "active" | "closed", agentName?: string): Promise<void> {
+  const update: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+  if (agentName) update.agent_name = agentName;
+  await supabaseAdmin.from("support_chats").update(update).eq("id", chatId);
 }
 
 export async function addSupportMessage(chatId: string, sender: "user" | "admin", content: string): Promise<DbSupportMessage> {

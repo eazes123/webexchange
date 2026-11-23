@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, Headset } from "lucide-react";
 
 interface AiMessage {
@@ -30,6 +30,28 @@ function uid() {
   return Math.random().toString(36).slice(2);
 }
 
+const LS_KEY = "nb_support_v1";
+
+function saveToLS(chatId: string | null, status: SupportStatus, agentName: string | null) {
+  try {
+    if (chatId && status !== "closed") {
+      localStorage.setItem(LS_KEY, JSON.stringify({ chatId, status, agentName }));
+    } else {
+      localStorage.removeItem(LS_KEY);
+    }
+  } catch {}
+}
+
+function loadFromLS(): { chatId: string; status: SupportStatus; agentName: string | null } | null {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.chatId && parsed.status && parsed.status !== "closed") return parsed;
+    return null;
+  } catch { return null; }
+}
+
 export default function ChatWidget() {
   const [mounted, setMounted]   = useState(false);
   const [open, setOpen]         = useState(false);
@@ -40,15 +62,25 @@ export default function ChatWidget() {
   ]);
 
   // Support chat
-  const [supportChatId, setSupportChatId]   = useState<string | null>(null);
-  const [supportStatus, setSupportStatus]   = useState<SupportStatus>("none");
-  const [supportMsgs, setSupportMsgs]       = useState<SupportMsg[]>([]);
-  const [supportSending, setSupportSending] = useState(false);
-  const [unreadCount, setUnreadCount]       = useState(0);
-  const lastAdminMsgCountRef                = useRef(0);
-  const pollingRef                          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [supportChatId, setSupportChatId]     = useState<string | null>(null);
+  const [supportStatus, setSupportStatus]     = useState<SupportStatus>("none");
+  const [supportMsgs, setSupportMsgs]         = useState<SupportMsg[]>([]);
+  const [supportAgentName, setSupportAgentName] = useState<string | null>(null);
+  const [supportSending, setSupportSending]   = useState(false);
+  const [unreadCount, setUnreadCount]         = useState(0);
+  const lastAdminMsgCountRef                  = useRef(0);
+  const pollingRef                            = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  // On mount: restore from localStorage
+  useEffect(() => {
+    setMounted(true);
+    const saved = loadFromLS();
+    if (saved) {
+      setSupportChatId(saved.chatId);
+      setSupportStatus(saved.status);
+      if (saved.agentName) setSupportAgentName(saved.agentName);
+    }
+  }, []);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
@@ -62,45 +94,53 @@ export default function ChatWidget() {
     }
   }, [open, messages, supportMsgs]);
 
-  const pollSupport = useCallback(async (chatId: string) => {
-    try {
-      const r = await fetch(`/api/support/chat?chatId=${chatId}`);
-      if (!r.ok) return;
-      const data = await r.json();
-      const newStatus = data.status as SupportStatus;
-      const newMsgs: SupportMsg[] = data.messages ?? [];
-
-      setSupportStatus(newStatus);
-      setSupportMsgs(newMsgs);
-
-      // Count unread admin messages when chat is closed
-      if (!open) {
-        const adminMsgCount = newMsgs.filter(m => m.sender === "admin").length;
-        const newUnread = adminMsgCount - lastAdminMsgCountRef.current;
-        if (newUnread > 0) setUnreadCount(prev => prev + newUnread);
-        lastAdminMsgCountRef.current = adminMsgCount;
-      }
-
-      if (newStatus === "closed") {
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
-        }
-      }
-    } catch {}
-  }, [open]);
-
+  // ── Polling — only restarts when chatId changes, NOT on every status update ──
   useEffect(() => {
-    if (supportChatId && (supportStatus === "pending" || supportStatus === "active")) {
-      pollingRef.current = setInterval(() => pollSupport(supportChatId), 3000);
-      return () => {
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
+    if (!supportChatId) return;
+
+    let active = true;
+
+    const doPoll = async () => {
+      if (!active) return;
+      try {
+        const r = await fetch(`/api/support/chat?chatId=${supportChatId}`);
+        if (!r.ok) return;
+        const data = await r.json();
+        if (!active) return;
+
+        const newStatus = data.status as SupportStatus;
+        const newMsgs: SupportMsg[] = data.messages ?? [];
+        const newAgent: string | null = data.agentName ?? null;
+
+        setSupportStatus(newStatus);
+        setSupportMsgs(newMsgs);
+        if (newAgent) setSupportAgentName(newAgent);
+        saveToLS(supportChatId, newStatus, newAgent);
+
+        // Unread badge when widget is closed
+        if (!open) {
+          const adminMsgs = newMsgs.filter(m => m.sender === "admin").length;
+          const diff = adminMsgs - lastAdminMsgCountRef.current;
+          if (diff > 0) setUnreadCount(prev => prev + diff);
+          lastAdminMsgCountRef.current = adminMsgs;
         }
-      };
-    }
-  }, [supportChatId, supportStatus, pollSupport]);
+
+        if (newStatus === "closed") {
+          active = false;
+          if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+        }
+      } catch {}
+    };
+
+    // Poll immediately on mount/chatId change, then every 2.5 seconds
+    doPoll();
+    pollingRef.current = setInterval(doPoll, 2500);
+
+    return () => {
+      active = false;
+      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+    };
+  }, [supportChatId]); // ← ONLY depends on chatId, not status
 
   const historyForApi = messages
     .filter(m => m.id !== "init")
@@ -116,12 +156,17 @@ export default function ChatWidget() {
       setSupportSending(true);
       setInput("");
       try {
-        await fetch("/api/support/message", {
+        const r = await fetch("/api/support/message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chatId: supportChatId, content: trimmed }),
         });
-        await pollSupport(supportChatId);
+        if (r.ok) {
+          const data = await r.json();
+          // Optimistically add the user message immediately
+          const newMsg: SupportMsg = { id: uid(), sender: "user", content: trimmed, createdAt: new Date().toISOString() };
+          setSupportMsgs(prev => [...prev, newMsg]);
+        }
       } catch {}
       setSupportSending(false);
       return;
@@ -158,10 +203,13 @@ export default function ChatWidget() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ lastMessage: trimmed }),
           });
-          const d2 = await r2.json();
-          if (d2.chatId) {
-            setSupportChatId(d2.chatId);
-            setSupportStatus(d2.status ?? "pending");
+          if (r2.ok) {
+            const d2 = await r2.json();
+            if (d2.chatId) {
+              setSupportChatId(d2.chatId);
+              setSupportStatus(d2.status ?? "pending");
+              saveToLS(d2.chatId, d2.status ?? "pending", null);
+            }
           }
         } catch {}
       }
@@ -182,8 +230,10 @@ export default function ChatWidget() {
   const inputPlaceholder =
     supportStatus === "pending" ? "Waiting for agent..." :
     supportStatus === "closed"  ? "Chat has ended" :
-    supportStatus === "active"  ? "Reply to agent..." :
+    supportStatus === "active"  ? `Reply to ${supportAgentName ?? "agent"}...` :
     "Ask anything...";
+
+  const agentDisplay = supportAgentName ?? "Support";
 
   return (
     <>
@@ -206,7 +256,7 @@ export default function ChatWidget() {
               </div>
               <div>
                 <p className="text-sm font-bold text-white">
-                  {supportStatus === "active" ? "Live Support" : "Nova"}
+                  {supportStatus === "active" ? agentDisplay : "Nova"}
                 </p>
                 <p className={`text-[11px] flex items-center gap-1 ${
                   supportStatus === "pending" ? "text-[#f0b90b]" :
@@ -221,7 +271,7 @@ export default function ChatWidget() {
                     "bg-[#22c55e]"
                   }`} />
                   {supportStatus === "pending" ? "Connecting..." :
-                   supportStatus === "active"  ? "Agent connected" :
+                   supportStatus === "active"  ? "NovaBit Support" :
                    supportStatus === "closed"  ? "Chat ended" :
                    "Online"}
                 </p>
@@ -284,7 +334,7 @@ export default function ChatWidget() {
                   <span className="text-[10px] text-gray-500 flex items-center gap-1 px-1">
                     <Headset className="w-3 h-3" />
                     {supportStatus === "pending" ? "Connecting to live support" :
-                     supportStatus === "active"  ? "Live support session" :
+                     supportStatus === "active"  ? `Live — ${agentDisplay}` :
                      "Support session ended"}
                   </span>
                   <div className="flex-1 h-px bg-[#1e1e1e]" />
@@ -305,7 +355,7 @@ export default function ChatWidget() {
                       <Headset className="w-3 h-3 text-blue-400" />
                     </div>
                     <div className="bg-[#0d1b2e] border border-blue-500/10 rounded-2xl rounded-tl-sm px-3 py-2 text-sm text-blue-100">
-                      Support agent connected! How can I help you?
+                      Hi! I&apos;m {agentDisplay} from NovaBit Support. How can I help you today?
                     </div>
                   </div>
                 )}
@@ -326,6 +376,9 @@ export default function ChatWidget() {
                         ? "bg-[#f0b90b] text-black font-medium rounded-tr-sm"
                         : "bg-[#0d1b2e] border border-blue-500/10 text-blue-100 rounded-tl-sm"
                     }`}>
+                      {msg.sender === "admin" && (
+                        <div className="text-[10px] text-blue-400/70 mb-0.5 font-semibold">{agentDisplay}</div>
+                      )}
                       {msg.content}
                     </div>
                   </div>
@@ -385,7 +438,7 @@ export default function ChatWidget() {
             </div>
             <p className="text-[10px] text-gray-600 text-center mt-1.5">
               {supportStatus === "active"
-                ? "Live support · NovaBit team"
+                ? `Live support · ${agentDisplay} · NovaBit`
                 : "AI assistant · Type \"agent\" for human support"}
             </p>
           </div>

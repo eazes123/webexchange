@@ -19,5 +19,5 @@ export async function GET(request: NextRequest) {
   }
 
   const messages = await getSupportMessages(chatId);
-  return NextResponse.json({ status: chat.status, messages });
+  return NextResponse.json({ status: chat.status, messages, agentName: chat.agentName ?? null });
 }
