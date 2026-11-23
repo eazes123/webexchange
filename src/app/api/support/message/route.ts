@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUser, getSupportChatById, addSupportMessage } from "@/lib/db";
-import { SESSION_COOKIE } from "@/lib/auth-utils";
+import { getSupportChatById, addSupportMessage } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = await getSessionUser(token);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { chatId, content } = await request.json();
   if (!chatId || !content?.trim()) {
     return NextResponse.json({ error: "chatId and content required" }, { status: 400 });
   }
 
+  // chatId UUID is the access token — no session needed
   const chat = await getSupportChatById(chatId);
-  if (!chat || chat.userId !== user.id) {
+  if (!chat) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   if (chat.status !== "active") {

@@ -10,6 +10,7 @@ import {
   AlertCircle, Ban, Edit3, Save, Headset, Send, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
+import SupportPanels from "@/components/SupportPanels";
 
 type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals" | "transactions" | "deposits" | "support";
 
@@ -288,11 +289,10 @@ export default function AdminPage() {
   const [supportPending, setSupportPending]   = useState<SupportChatItem[]>([]);
   const [supportActive, setSupportActive]     = useState<SupportChatItem[]>([]);
   const [supportClosed, setSupportClosed]     = useState<SupportChatItem[]>([]);
-  const [openChatId, setOpenChatId]           = useState<string | null>(null);
-  const [chatMessages, setChatMessages]       = useState<Record<string, SupportMsgItem[]>>({});
-  const [replyInput, setReplyInput]           = useState<Record<string, string>>({});
-  const [chatActionLoading, setChatActionLoading] = useState<string | null>(null);
   const supportPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [historyModal, setHistoryModal] = useState<{
+    chat: SupportChatItem; messages: SupportMsgItem[];
+  } | null>(null);
 
   // Loading state per section
   const [loadingStats, setLoadingStats]     = useState(false);
@@ -418,38 +418,14 @@ export default function AdminPage() {
     } catch {}
   }, []);
 
-  const fetchChatMessages = useCallback(async (chatId: string) => {
+  const openHistoryModal = useCallback(async (chat: SupportChatItem) => {
     try {
-      const r = await fetch(`/api/admin/support?chatId=${chatId}`);
+      const r = await fetch(`/api/admin/support?chatId=${chat.id}`);
       if (!r.ok) return;
       const d = await r.json();
-      setChatMessages(prev => ({ ...prev, [chatId]: d.messages ?? [] }));
+      setHistoryModal({ chat, messages: d.messages ?? [] });
     } catch {}
   }, []);
-
-  const handleSupportAction = useCallback(async (chatId: string, action: "accept" | "close" | "message", content?: string) => {
-    setChatActionLoading(`${chatId}-${action}`);
-    try {
-      const r = await fetch("/api/admin/support", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId, action, content }),
-      });
-      if (r.ok) {
-        await fetchSupport();
-        if (action === "message" || action === "accept") {
-          await fetchChatMessages(chatId);
-        }
-        if (action === "message") {
-          setReplyInput(prev => ({ ...prev, [chatId]: "" }));
-        }
-        if (action === "accept") {
-          setOpenChatId(chatId);
-        }
-      }
-    } catch {}
-    setChatActionLoading(null);
-  }, [fetchSupport, fetchChatMessages]);
 
   const handleSweep = useCallback(async (userId: string, chain: "TRC20" | "BSC", pin: string) => {
     const key = `${userId}-${chain}`;
@@ -507,17 +483,13 @@ export default function AdminPage() {
     if (tab === "support") fetchSupport();
   }, [tab]);
 
-  // Poll support chats every 5s while on support tab
+  // Always poll support chats for tab badge
   useEffect(() => {
-    if (tab !== "support") {
-      if (supportPollRef.current) { clearInterval(supportPollRef.current); supportPollRef.current = null; }
-      return;
-    }
-    supportPollRef.current = setInterval(fetchSupport, 5000);
+    supportPollRef.current = setInterval(fetchSupport, 8000);
     return () => {
       if (supportPollRef.current) { clearInterval(supportPollRef.current); supportPollRef.current = null; }
     };
-  }, [tab, fetchSupport]);
+  }, [fetchSupport]);
 
   const refreshAll = () => {
     fetchStats(); fetchUsers(); fetchWithdrawals();
@@ -1954,43 +1926,38 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Info banner */}
+            <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
+              <Headset className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-300/80">
+                <span className="font-semibold text-blue-300">Chats open automatically as floating panels</span> at the bottom of your screen — no need to stay on this tab.
+                Accept a pending chat directly from the panel.
+              </div>
+            </div>
+
             {/* Pending queue */}
             {supportPending.length > 0 && (
               <div>
                 <h3 className="text-sm font-bold text-ex-yellow mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-ex-yellow animate-pulse inline-block" />
-                  Pending Queue ({supportPending.length})
+                  Pending ({supportPending.length})
                 </h3>
                 <div className="space-y-2">
                   {supportPending.map(chat => (
-                    <div key={chat.id} className="bg-ex-card border border-ex-yellow/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-ex-yellow/10 border border-ex-yellow/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-yellow text-sm">
-                          {chat.userName.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-sm text-white truncate">{chat.userName}</div>
-                          <div className="text-xs text-gray-500 truncate">{chat.userEmail}</div>
-                          {chat.lastMessage && (
-                            <div className="text-xs text-gray-400 mt-0.5 truncate">{chat.lastMessage}</div>
-                          )}
-                        </div>
+                    <div key={chat.id} className="bg-ex-card border border-ex-yellow/20 rounded-2xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-ex-yellow/10 border border-ex-yellow/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-yellow text-sm">
+                        {chat.userName.charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <div className="text-xs text-gray-500 hidden md:block">
-                          {new Date(chat.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </div>
-                        <button
-                          disabled={chatActionLoading === `${chat.id}-accept`}
-                          onClick={() => handleSupportAction(chat.id, "accept")}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-ex-green/10 text-ex-green border border-ex-green/30 rounded-xl hover:bg-ex-green/20 transition-colors disabled:opacity-50"
-                        >
-                          {chatActionLoading === `${chat.id}-accept`
-                            ? <RefreshCw className="w-3 h-3 animate-spin" />
-                            : <Check className="w-3 h-3" />}
-                          Accept
-                        </button>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm text-white truncate">{chat.userName}</div>
+                        <div className="text-xs text-gray-500 truncate">{chat.userEmail}</div>
                       </div>
+                      <div className="text-xs text-gray-600 flex-shrink-0">
+                        {new Date(chat.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                      <span className="text-[10px] text-[#f0b90b] bg-[#f0b90b]/10 border border-[#f0b90b]/20 px-2 py-1 rounded-lg flex-shrink-0">
+                        Accept via panel ↓
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2002,145 +1969,62 @@ export default function AdminPage() {
               <div>
                 <h3 className="text-sm font-bold text-ex-green mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-ex-green inline-block" />
-                  Active Chats ({supportActive.length})
+                  Active ({supportActive.length})
                 </h3>
-                <div className="space-y-3">
-                  {supportActive.map(chat => {
-                    const isOpen = openChatId === chat.id;
-                    const msgs = chatMessages[chat.id] ?? [];
-                    return (
-                      <div key={chat.id} className="bg-ex-card border border-ex-green/20 rounded-2xl overflow-hidden">
-                        {/* Chat header */}
-                        <div
-                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
-                          onClick={async () => {
-                            if (!isOpen) {
-                              setOpenChatId(chat.id);
-                              await fetchChatMessages(chat.id);
-                            } else {
-                              setOpenChatId(null);
-                            }
-                          }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-ex-green/10 border border-ex-green/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-green text-sm">
-                              {chat.userName.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-sm text-white">{chat.userName}</div>
-                              <div className="text-xs text-gray-500">{chat.userEmail}</div>
-                              {chat.lastMessage && !isOpen && (
-                                <div className="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{chat.lastMessage}</div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              disabled={chatActionLoading === `${chat.id}-close`}
-                              onClick={async e => {
-                                e.stopPropagation();
-                                if (window.confirm(`Close chat with ${chat.userName}?`)) {
-                                  await handleSupportAction(chat.id, "close");
-                                  setOpenChatId(null);
-                                }
-                              }}
-                              className="flex items-center gap-1 px-2.5 py-1 text-xs text-ex-red border border-ex-red/30 bg-ex-red/5 rounded-xl hover:bg-ex-red/10 transition-colors disabled:opacity-50"
-                            >
-                              <X className="w-3 h-3" /> Close
-                            </button>
-                            {isOpen
-                              ? <ChevronUp className="w-4 h-4 text-gray-500" />
-                              : <ChevronDown className="w-4 h-4 text-gray-500" />}
-                          </div>
-                        </div>
-
-                        {/* Messages & reply */}
-                        {isOpen && (
-                          <div className="border-t border-ex-border">
-                            {/* Messages */}
-                            <div className="max-h-72 overflow-y-auto px-4 py-3 space-y-2 bg-[#080808]">
-                              {msgs.length === 0 && (
-                                <div className="text-xs text-gray-500 text-center py-4">No messages yet. Say hello!</div>
-                              )}
-                              {msgs.map(msg => (
-                                <div key={msg.id} className={`flex gap-2 ${msg.sender === "admin" ? "flex-row-reverse" : "flex-row"}`}>
-                                  <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 text-xs font-bold ${
-                                    msg.sender === "admin"
-                                      ? "bg-blue-500/20 border border-blue-500/30 text-blue-300"
-                                      : "bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow"
-                                  }`}>
-                                    {msg.sender === "admin" ? "A" : "U"}
-                                  </div>
-                                  <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
-                                    msg.sender === "admin"
-                                      ? "bg-blue-600/10 border border-blue-500/20 text-blue-100 rounded-tr-sm"
-                                      : "bg-[#111] border border-[#1e1e1e] text-gray-200 rounded-tl-sm"
-                                  }`}>
-                                    {msg.content}
-                                    <div className="text-[10px] opacity-50 mt-0.5">
-                                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Reply input */}
-                            <div className="flex gap-2 p-3 border-t border-ex-border bg-ex-card">
-                              <input
-                                type="text"
-                                value={replyInput[chat.id] ?? ""}
-                                onChange={e => setReplyInput(prev => ({ ...prev, [chat.id]: e.target.value }))}
-                                onKeyDown={async e => {
-                                  if (e.key === "Enter" && !e.shiftKey && (replyInput[chat.id] ?? "").trim()) {
-                                    e.preventDefault();
-                                    await handleSupportAction(chat.id, "message", replyInput[chat.id]);
-                                  }
-                                }}
-                                placeholder="Type a reply..."
-                                className="ex-input flex-1 text-sm"
-                              />
-                              <button
-                                disabled={!(replyInput[chat.id] ?? "").trim() || chatActionLoading === `${chat.id}-message`}
-                                onClick={() => handleSupportAction(chat.id, "message", replyInput[chat.id])}
-                                className="w-9 h-9 rounded-xl bg-ex-yellow text-black flex items-center justify-center hover:bg-ex-yellow/80 disabled:opacity-30 transition-colors flex-shrink-0"
-                              >
-                                {chatActionLoading === `${chat.id}-message`
-                                  ? <RefreshCw className="w-4 h-4 animate-spin" />
-                                  : <Send className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                <div className="space-y-2">
+                  {supportActive.map(chat => (
+                    <div key={chat.id} className="bg-ex-card border border-ex-green/20 rounded-2xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-ex-green/10 border border-ex-green/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-green text-sm">
+                        {chat.userName.charAt(0).toUpperCase()}
                       </div>
-                    );
-                  })}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm text-white truncate">{chat.userName}</div>
+                        <div className="text-xs text-gray-500 truncate">{chat.userEmail}</div>
+                        {chat.agentName && <div className="text-[10px] text-blue-400/70 mt-0.5">Agent: {chat.agentName}</div>}
+                      </div>
+                      <span className="text-[10px] text-ex-green bg-ex-green/10 border border-ex-green/20 px-2 py-1 rounded-lg flex-shrink-0">Live</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Closed chats */}
+            {/* Chat history */}
             {supportClosed.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-gray-500 mb-3">Recent Closed ({Math.min(supportClosed.length, 20)})</h3>
+                <h3 className="text-sm font-bold text-gray-500 mb-3">
+                  History ({Math.min(supportClosed.length, 50)})
+                </h3>
                 <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-ex-border text-xs text-gray-500">
                         <th className="text-left p-3 font-semibold">User</th>
-                        <th className="text-left p-3 font-semibold hidden md:table-cell">Email</th>
+                        <th className="text-left p-3 font-semibold hidden sm:table-cell">Agent</th>
                         <th className="text-left p-3 font-semibold hidden lg:table-cell">Last message</th>
                         <th className="text-left p-3 font-semibold">Date</th>
+                        <th className="p-3" />
                       </tr>
                     </thead>
                     <tbody>
-                      {supportClosed.slice(0, 20).map(chat => (
+                      {supportClosed.slice(0, 50).map(chat => (
                         <tr key={chat.id} className="border-b border-ex-border/40 hover:bg-white/[0.02]">
-                          <td className="p-3 text-sm font-medium text-white">{chat.userName}</td>
-                          <td className="p-3 text-xs text-gray-400 hidden md:table-cell">{chat.userEmail}</td>
+                          <td className="p-3">
+                            <div className="text-sm font-medium text-white">{chat.userName}</div>
+                            <div className="text-xs text-gray-500">{chat.userEmail}</div>
+                          </td>
+                          <td className="p-3 text-xs text-blue-400/70 hidden sm:table-cell">{chat.agentName ?? "—"}</td>
                           <td className="p-3 text-xs text-gray-500 hidden lg:table-cell max-w-xs truncate">{chat.lastMessage ?? "—"}</td>
-                          <td className="p-3 text-xs text-gray-500">
+                          <td className="p-3 text-xs text-gray-500 whitespace-nowrap">
                             {new Date(chat.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => openHistoryModal(chat)}
+                              className="text-xs text-gray-400 hover:text-white px-2.5 py-1 border border-[#1e1e1e] rounded-lg hover:border-gray-500 transition-colors"
+                            >
+                              View
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -2162,6 +2046,81 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+
+    {/* ── Floating Support Panels ───────────────────────────────────────────── */}
+    <SupportPanels />
+
+    {/* ── Chat History Modal ────────────────────────────────────────────────── */}
+    {historyModal && (
+      <div
+        className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        onClick={() => setHistoryModal(null)}
+      >
+        <div
+          className="bg-ex-card border border-ex-border rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-ex-border flex-shrink-0">
+            <div>
+              <div className="font-bold text-white">{historyModal.chat.userName}</div>
+              <div className="text-xs text-gray-500">{historyModal.chat.userEmail}</div>
+              {historyModal.chat.agentName && (
+                <div className="text-[11px] text-blue-400/70 mt-0.5">Agent: {historyModal.chat.agentName}</div>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-500">
+                {new Date(historyModal.chat.updatedAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+              <button
+                onClick={() => setHistoryModal(null)}
+                className="text-gray-400 hover:text-white transition-colors p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 min-h-0">
+            {historyModal.messages.length === 0 && (
+              <div className="text-center py-8 text-xs text-gray-600">No messages in this conversation</div>
+            )}
+            {historyModal.messages.map(msg => (
+              <div key={msg.id} className={`flex gap-2.5 ${msg.sender === "admin" ? "flex-row-reverse" : ""}`}>
+                <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold mt-0.5 ${
+                  msg.sender === "admin"
+                    ? "bg-blue-500/20 text-blue-300"
+                    : "bg-ex-yellow/20 text-ex-yellow"
+                }`}>
+                  {msg.sender === "admin" ? "A" : "U"}
+                </div>
+                <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                  msg.sender === "admin"
+                    ? "bg-blue-600/10 border border-blue-500/15 text-blue-100 rounded-tr-sm"
+                    : "bg-[#111] border border-[#1e1e1e] text-gray-200 rounded-tl-sm"
+                }`}>
+                  {msg.sender === "admin" && (
+                    <div className="text-[10px] text-blue-400/60 mb-0.5">{historyModal.chat.agentName ?? "Agent"}</div>
+                  )}
+                  {msg.content}
+                  <div className="text-[10px] opacity-40 mt-0.5">
+                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-ex-border px-5 py-3 flex items-center justify-between flex-shrink-0">
+            <span className="text-xs text-gray-600">{historyModal.messages.length} messages</span>
+            <button
+              onClick={() => setHistoryModal(null)}
+              className="text-xs text-gray-400 hover:text-white px-3 py-1.5 border border-[#1e1e1e] rounded-lg hover:border-gray-500 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* ── PIN Modal ──────────────────────────────────────────────────────────── */}
     {pinModal.show && (

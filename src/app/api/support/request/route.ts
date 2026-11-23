@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, createSupportChat, getActiveSupportChatByUser } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
 import { sendAgentRequestEmail } from "@/lib/email";
+import { getSupportStatus } from "@/lib/support-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  if (!getSupportStatus()) {
+    return NextResponse.json({ offline: true });
+  }
+
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const user = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

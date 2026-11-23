@@ -4,6 +4,8 @@ import {
   updateSupportChatStatus, addSupportMessage,
 } from "@/lib/db";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { isUserOnline } from "@/lib/presence";
+import { setAgentStealth, getAgentStealth } from "@/lib/support-status";
 
 const AGENT_NAMES = [
   "Alex", "Sarah", "Michael", "Emma", "James", "Olivia",
@@ -27,7 +29,12 @@ export async function GET(request: NextRequest) {
     const chat = await getSupportChatById(chatId);
     if (!chat) return NextResponse.json({ error: "Not found" }, { status: 404 });
     const messages = await getSupportMessages(chatId);
-    return NextResponse.json({ chat, messages });
+    return NextResponse.json({
+      chat,
+      messages,
+      userOnline: isUserOnline(chatId),
+      agentOnline: !getAgentStealth(chatId),
+    });
   }
 
   // Fetch all chats grouped by status
@@ -44,7 +51,7 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdminSession(request);
   if (auth instanceof NextResponse) return auth;
 
-  const { chatId, action, content } = await request.json();
+  const { chatId, action, content, hidden } = await request.json();
   if (!chatId || !action) {
     return NextResponse.json({ error: "chatId and action required" }, { status: 400 });
   }
@@ -78,6 +85,11 @@ export async function POST(request: NextRequest) {
     }
     await updateSupportChatStatus(chatId, "closed");
     return NextResponse.json({ success: true });
+  }
+
+  if (action === "stealth") {
+    setAgentStealth(chatId, !!hidden);
+    return NextResponse.json({ success: true, agentOnline: !getAgentStealth(chatId) });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
