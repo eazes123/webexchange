@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
     if (user.loanWithdrawnToExternal) {
       return NextResponse.json({ error: "Already withdrawn" }, { status: 400 });
     }
+    const TRON_ADDR = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
+    if (!address || !TRON_ADDR.test(address)) {
+      return NextResponse.json({ error: "Invalid TRON wallet address" }, { status: 400 });
+    }
 
     await updateUser(user.id, { loanWithdrawnToExternal: true });
     if (usdt) {

@@ -86,7 +86,7 @@ function rowToUser(r: any): DbUser {
     email: r.email,
     phone: r.phone ?? "",
     country: r.country ?? "",
-    passwordHash: r.password_hash,
+    passwordHash: r.password_hash ?? "",
     queuePosition: r.queue_position ?? 0,
     kycStatus: r.kyc_status,
     loanStatus: r.loan_status,
@@ -146,7 +146,7 @@ export async function getSessionUser(token: string | undefined): Promise<DbUser 
   if (!token) return null;
   const { data } = await supabaseAdmin
     .from("sessions")
-    .select("*, users(*)")
+    .select("*, users(id, full_name, email, phone, country, queue_position, kyc_status, loan_status, loan_amount, activation_fee_paid, activation_fee_refund_requested, loan_withdrawn_to_external, deposit_address, address_index, bsc_deposit_address, bsc_wallet_index, stake_amount, stake_status, staked_at, reward_distributed, created_at)")
     .eq("token", token)
     .gt("expires_at", new Date().toISOString())
     .single();

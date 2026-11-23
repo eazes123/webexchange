@@ -303,7 +303,12 @@ export default function AdminPage() {
     setLoadingStats(true);
     try {
       const r = await fetch("/api/admin/stats");
-      if (r.ok) setStats(await r.json());
+      if (r.ok) {
+        setStats(await r.json());
+      } else if (r.status === 403) {
+        const d = await r.json().catch(() => ({}));
+        if (d.code === "2FA_REQUIRED") window.location.href = "/admin/verify";
+      }
     } finally { setLoadingStats(false); }
   }, []);
 
