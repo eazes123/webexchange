@@ -294,9 +294,30 @@ async function callGemini(
     "Sorry, I couldn't generate a response. Please try again.";
 }
 
+const chatRateMap = new Map<string, { count: number; resetAt: number }>();
+const CHAT_RATE_MAX = 20;
+const CHAT_RATE_WINDOW_MS = 60_000;
+
+function checkChatRate(userId: string): boolean {
+  const now = Date.now();
+  const entry = chatRateMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    chatRateMap.set(userId, { count: 1, resetAt: now + CHAT_RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= CHAT_RATE_MAX) return false;
+  entry.count++;
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const user  = await getSessionUser(token);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!checkChatRate(user.id)) {
+    return NextResponse.json({ error: "Too many messages. Please wait a moment." }, { status: 429 });
+  }
 
   const { message, history = [] } = await request.json() as {
     message: string;
@@ -307,10 +328,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
   }
 
+  const safeHistory = history
+    .slice(-10)
+    .filter(m => m.role === "user" || m.role === "model")
+    .map(m => ({ role: m.role as "user" | "model", text: String(m.text).slice(0, 2000) }));
+
   // Check if user wants a human agent
   if (wantsHumanAgent(message)) {
-    const name  = user?.fullName ?? "Guest";
-    const email = user?.email   ?? "unknown";
+    const name  = user.fullName;
+    const email = user.email;
     await sendAgentEmail(name, email, message);
     return NextResponse.json({
       reply: `I've notified our support team that you'd like to speak with an agent. Someone will reach out to you at ${email} within a few hours. Is there anything else I can help you with in the meantime?`,
@@ -319,6 +345,6 @@ export async function POST(request: NextRequest) {
   }
 
   const chatModel = (await getSetting("chat_model")) ?? "gemini-3.5-flash-lite";
-  const reply = await callGemini(message, history, chatModel);
+  const reply = await callGemini(message, safeHistory, chatModel);
   return NextResponse.json({ reply, agentRequested: false });
 }

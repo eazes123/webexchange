@@ -2,6 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, createSession, getUserWallet, getUserTransactions } from "@/lib/db";
 import { verifyPassword, generateToken, SESSION_COOKIE } from "@/lib/auth-utils";
 
+// Brute-force protection: max 5 failed attempts per email per 15 minutes
+const loginFailMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS   = 15 * 60 * 1000;
+
+function checkLoginRate(email: string): { allowed: boolean; retryAfter?: number } {
+  const key = email.toLowerCase().trim();
+  const now = Date.now();
+  const entry = loginFailMap.get(key);
+  if (!entry || now > entry.resetAt) return { allowed: true };
+  if (entry.count >= MAX_ATTEMPTS) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+  return { allowed: true };
+}
+
+function recordLoginFail(email: string) {
+  const key = email.toLowerCase().trim();
+  const now = Date.now();
+  const entry = loginFailMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    loginFailMap.set(key, { count: 1, resetAt: now + LOCKOUT_MS });
+  } else {
+    entry.count++;
+  }
+}
+
+function clearLoginFail(email: string) {
+  loginFailMap.delete(email.toLowerCase().trim());
+}
+
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
 
@@ -9,10 +40,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email and password required" }, { status: 400 });
   }
 
+  const rateCheck = checkLoginRate(email);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many failed attempts. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } }
+    );
+  }
+
   const user = await findUserByEmail(email);
   if (!user || !verifyPassword(password, user.passwordHash)) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    recordLoginFail(email);
+    // Same message for both "not found" and "wrong password" — prevents email enumeration
+    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
+
+  clearLoginFail(email);
 
   const token = generateToken();
   await createSession(user.id, token);
