@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getUserById, updateUser, updateKycStatus } from "@/lib/db";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { sendKycApprovedEmail, sendKycRejectedEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
     }
     // Best-effort update of kyc_submissions (may not exist)
     try { await updateKycStatus(userId, "approved"); } catch {}
+    sendKycApprovedEmail(user.email, user.fullName).catch(() => {});
     return NextResponse.json({
       success: true,
       message: `KYC approved for ${user.fullName}. Loan will be disbursed on Dec 31, 2026.`,
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `DB update failed: ${err.message}` }, { status: 500 });
     }
     try { await updateKycStatus(userId, "rejected"); } catch {}
+    sendKycRejectedEmail(user.email, user.fullName).catch(() => {});
     return NextResponse.json({ success: true, message: `KYC rejected for ${user.fullName}.` });
   }
 

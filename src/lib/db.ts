@@ -566,3 +566,95 @@ export async function getSetting(key: string): Promise<string | null> {
 export async function setSetting(key: string, value: string): Promise<void> {
   await supabaseAdmin.from("settings").upsert({ key, value }, { onConflict: "key" });
 }
+
+// ── Support Chat ───────────────────────────────────────────────────────────────
+export interface DbSupportChat {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  status: "pending" | "active" | "closed";
+  lastMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DbSupportMessage {
+  id: string;
+  chatId: string;
+  sender: "user" | "admin";
+  content: string;
+  createdAt: string;
+}
+
+function rowToSupportChat(r: any): DbSupportChat {
+  return {
+    id: r.id, userId: r.user_id, userName: r.user_name, userEmail: r.user_email,
+    status: r.status, lastMessage: r.last_message ?? null,
+    createdAt: r.created_at, updatedAt: r.updated_at,
+  };
+}
+
+function rowToSupportMessage(r: any): DbSupportMessage {
+  return { id: r.id, chatId: r.chat_id, sender: r.sender, content: r.content, createdAt: r.created_at };
+}
+
+export async function createSupportChat(userId: string, userName: string, userEmail: string): Promise<DbSupportChat> {
+  const { data, error } = await supabaseAdmin
+    .from("support_chats")
+    .insert({ user_id: userId, user_name: userName, user_email: userEmail, status: "pending" })
+    .select().single();
+  if (error) throw new Error(error.message);
+  return rowToSupportChat(data);
+}
+
+export async function getActiveSupportChatByUser(userId: string): Promise<DbSupportChat | null> {
+  const { data } = await supabaseAdmin
+    .from("support_chats")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["pending", "active"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  return data ? rowToSupportChat(data) : null;
+}
+
+export async function getSupportChatById(chatId: string): Promise<DbSupportChat | null> {
+  const { data } = await supabaseAdmin.from("support_chats").select("*").eq("id", chatId).single();
+  return data ? rowToSupportChat(data) : null;
+}
+
+export async function updateSupportChatStatus(chatId: string, status: "pending" | "active" | "closed"): Promise<void> {
+  await supabaseAdmin.from("support_chats")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", chatId);
+}
+
+export async function addSupportMessage(chatId: string, sender: "user" | "admin", content: string): Promise<DbSupportMessage> {
+  const { data, error } = await supabaseAdmin
+    .from("support_messages")
+    .insert({ chat_id: chatId, sender, content })
+    .select().single();
+  if (error) throw new Error(error.message);
+  await supabaseAdmin.from("support_chats")
+    .update({ last_message: content.slice(0, 120), updated_at: new Date().toISOString() })
+    .eq("id", chatId);
+  return rowToSupportMessage(data);
+}
+
+export async function getSupportMessages(chatId: string): Promise<DbSupportMessage[]> {
+  const { data } = await supabaseAdmin
+    .from("support_messages")
+    .select("*")
+    .eq("chat_id", chatId)
+    .order("created_at", { ascending: true });
+  return (data ?? []).map(rowToSupportMessage);
+}
+
+export async function getAllSupportChats(status?: "pending" | "active" | "closed"): Promise<DbSupportChat[]> {
+  let q = supabaseAdmin.from("support_chats").select("*").order("updated_at", { ascending: false });
+  if (status) q = q.eq("status", status);
+  const { data } = await q.limit(100);
+  return (data ?? []).map(rowToSupportChat);
+}

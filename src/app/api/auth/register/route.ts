@@ -6,6 +6,7 @@ import {
 import { hashPassword, generateToken, SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
 import { deriveAddress } from "@/lib/tron";
 import { deriveEvmAddress } from "@/lib/bsc";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -63,6 +64,9 @@ export async function POST(request: NextRequest) {
   });
 
   await createInitialWallets(user.id, ASSETS);
+
+  // Best-effort welcome email — never blocks registration
+  sendWelcomeEmail(user.email, user.fullName).catch(() => {});
 
   const token = generateToken();
   await createSession(user.id, token);

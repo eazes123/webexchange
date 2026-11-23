@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, getSetting } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
+import { sendAgentRequestEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -225,34 +226,9 @@ function wantsHumanAgent(message: string): boolean {
 }
 
 async function sendAgentEmail(userName: string, userEmail: string, lastMessage: string) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
-
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) return;
-
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "NovaBit Support <onboarding@resend.dev>",
-      to: [adminEmail],
-      subject: `[NovaBit] Agent Request — ${userName}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0b0e1a;color:#fff;border-radius:8px;">
-          <h2 style="color:#f0b90b;margin-top:0;">New Agent Chat Request</h2>
-          <p><strong>User:</strong> ${userName}</p>
-          <p><strong>Email:</strong> ${userEmail}</p>
-          <p><strong>Last message:</strong></p>
-          <blockquote style="border-left:3px solid #f0b90b;padding-left:12px;color:#ccc;">${lastMessage}</blockquote>
-          <p style="color:#888;font-size:12px;margin-top:24px;">Sent from NovaBit Exchange chat widget</p>
-        </div>
-      `,
-    }),
-  }).catch(() => {});
+  await sendAgentRequestEmail(adminEmail, userName, userEmail, lastMessage);
 }
 
 async function callGemini(

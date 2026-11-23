@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   Users, Shield, Gift, Search, Check, X,
@@ -7,11 +7,11 @@ import {
   LayoutDashboard, ArrowUpRight, RefreshCw,
   Lock, Wallet, Power, Trophy, Settings,
   CreditCard, Activity, ChevronDown, ChevronUp,
-  AlertCircle, Ban, Edit3, Save,
+  AlertCircle, Ban, Edit3, Save, Headset, Send, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
-type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals" | "transactions" | "deposits";
+type TabType = "overview" | "users" | "kyc" | "campaign" | "withdrawals" | "transactions" | "deposits" | "support";
 
 interface AdminUser {
   id: string;
@@ -96,6 +96,25 @@ interface KycCompleted {
   idType: string;
   status: string;
   submittedAt: string;
+}
+
+interface SupportChatItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  status: "pending" | "active" | "closed";
+  lastMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SupportMsgItem {
+  id: string;
+  chatId: string;
+  sender: "user" | "admin";
+  content: string;
+  createdAt: string;
 }
 
 interface WithdrawalRequest {
@@ -265,6 +284,16 @@ export default function AdminPage() {
   const [depositSearch, setDepositSearch]   = useState("");
   const [depositView, setDepositView]       = useState<"addresses" | "transactions">("addresses");
 
+  // Support chat state
+  const [supportPending, setSupportPending]   = useState<SupportChatItem[]>([]);
+  const [supportActive, setSupportActive]     = useState<SupportChatItem[]>([]);
+  const [supportClosed, setSupportClosed]     = useState<SupportChatItem[]>([]);
+  const [openChatId, setOpenChatId]           = useState<string | null>(null);
+  const [chatMessages, setChatMessages]       = useState<Record<string, SupportMsgItem[]>>({});
+  const [replyInput, setReplyInput]           = useState<Record<string, string>>({});
+  const [chatActionLoading, setChatActionLoading] = useState<string | null>(null);
+  const supportPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Loading state per section
   const [loadingStats, setLoadingStats]     = useState(false);
   const [loadingUsers, setLoadingUsers]     = useState(false);
@@ -378,6 +407,50 @@ export default function AdminPage() {
     } finally { setLoadingBalances(false); }
   }, []);
 
+  const fetchSupport = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/support");
+      if (!r.ok) return;
+      const d = await r.json();
+      setSupportPending(d.pending ?? []);
+      setSupportActive(d.active ?? []);
+      setSupportClosed(d.closed ?? []);
+    } catch {}
+  }, []);
+
+  const fetchChatMessages = useCallback(async (chatId: string) => {
+    try {
+      const r = await fetch(`/api/admin/support?chatId=${chatId}`);
+      if (!r.ok) return;
+      const d = await r.json();
+      setChatMessages(prev => ({ ...prev, [chatId]: d.messages ?? [] }));
+    } catch {}
+  }, []);
+
+  const handleSupportAction = useCallback(async (chatId: string, action: "accept" | "close" | "message", content?: string) => {
+    setChatActionLoading(`${chatId}-${action}`);
+    try {
+      const r = await fetch("/api/admin/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId, action, content }),
+      });
+      if (r.ok) {
+        await fetchSupport();
+        if (action === "message" || action === "accept") {
+          await fetchChatMessages(chatId);
+        }
+        if (action === "message") {
+          setReplyInput(prev => ({ ...prev, [chatId]: "" }));
+        }
+        if (action === "accept") {
+          setOpenChatId(chatId);
+        }
+      }
+    } catch {}
+    setChatActionLoading(null);
+  }, [fetchSupport, fetchChatMessages]);
+
   const handleSweep = useCallback(async (userId: string, chain: "TRC20" | "BSC", pin: string) => {
     const key = `${userId}-${chain}`;
     setSweepStatus(prev => ({ ...prev, [key]: { loading: true } }));
@@ -431,7 +504,20 @@ export default function AdminPage() {
     if (tab === "campaign" && !campaign)             fetchCampaign();
     if (tab === "transactions" && transactions.length === 0) fetchTransactions();
     if (tab === "deposits" && !depositStats) { fetchDeposits(); fetchBalances(); }
+    if (tab === "support") fetchSupport();
   }, [tab]);
+
+  // Poll support chats every 5s while on support tab
+  useEffect(() => {
+    if (tab !== "support") {
+      if (supportPollRef.current) { clearInterval(supportPollRef.current); supportPollRef.current = null; }
+      return;
+    }
+    supportPollRef.current = setInterval(fetchSupport, 5000);
+    return () => {
+      if (supportPollRef.current) { clearInterval(supportPollRef.current); supportPollRef.current = null; }
+    };
+  }, [tab, fetchSupport]);
 
   const refreshAll = () => {
     fetchStats(); fetchUsers(); fetchWithdrawals();
@@ -439,6 +525,7 @@ export default function AdminPage() {
     if (tab === "campaign")     fetchCampaign();
     if (tab === "transactions") fetchTransactions();
     if (tab === "deposits")     fetchDeposits();
+    if (tab === "support")      fetchSupport();
   };
 
   // ── Actions ────────────────────────────────────────────────────────────────
@@ -559,6 +646,7 @@ export default function AdminPage() {
     { id: "deposits",     label: "Deposits",     icon: CreditCard,    badge: depositStats?.totalDeposits },
     { id: "withdrawals",  label: "Withdrawals",  icon: ArrowUpRight,  badge: pendingWdCount },
     { id: "transactions", label: "Transactions", icon: Activity },
+    { id: "support",      label: "Support",      icon: Headset,       badge: supportPending.length },
   ];
 
   return (
@@ -1806,6 +1894,268 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── SUPPORT ──────────────────────────────────────────────────────── */}
+        {tab === "support" && (
+          <div className="space-y-6">
+            {/* Header row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Headset className="w-5 h-5 text-blue-400" />
+                <h2 className="text-lg font-black">Customer Support</h2>
+              </div>
+              <div className="flex items-center gap-3">
+                {supportPending.length > 0 && (
+                  <span className="text-xs font-bold text-ex-yellow bg-ex-yellow/10 border border-ex-yellow/30 px-2.5 py-1 rounded-full">
+                    {supportPending.length} pending
+                  </span>
+                )}
+                <button
+                  onClick={fetchSupport}
+                  className="text-xs text-gray-400 hover:text-white flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-ex-card border border-ex-yellow/20 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-ex-yellow/10 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-ex-yellow" />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-ex-yellow">{supportPending.length}</div>
+                  <div className="text-xs text-gray-500">Pending</div>
+                </div>
+              </div>
+              <div className="bg-ex-card border border-ex-green/20 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-ex-green/10 flex items-center justify-center flex-shrink-0">
+                  <Headset className="w-5 h-5 text-ex-green" />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-ex-green">{supportActive.length}</div>
+                  <div className="text-xs text-gray-500">Active</div>
+                </div>
+              </div>
+              <div className="bg-ex-card border border-ex-border rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gray-700/30 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="w-5 h-5 text-gray-400" />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-gray-300">{supportClosed.length}</div>
+                  <div className="text-xs text-gray-500">Closed</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending queue */}
+            {supportPending.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-ex-yellow mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-ex-yellow animate-pulse inline-block" />
+                  Pending Queue ({supportPending.length})
+                </h3>
+                <div className="space-y-2">
+                  {supportPending.map(chat => (
+                    <div key={chat.id} className="bg-ex-card border border-ex-yellow/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-ex-yellow/10 border border-ex-yellow/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-yellow text-sm">
+                          {chat.userName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm text-white truncate">{chat.userName}</div>
+                          <div className="text-xs text-gray-500 truncate">{chat.userEmail}</div>
+                          {chat.lastMessage && (
+                            <div className="text-xs text-gray-400 mt-0.5 truncate">{chat.lastMessage}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="text-xs text-gray-500 hidden md:block">
+                          {new Date(chat.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                        <button
+                          disabled={chatActionLoading === `${chat.id}-accept`}
+                          onClick={() => handleSupportAction(chat.id, "accept")}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-ex-green/10 text-ex-green border border-ex-green/30 rounded-xl hover:bg-ex-green/20 transition-colors disabled:opacity-50"
+                        >
+                          {chatActionLoading === `${chat.id}-accept`
+                            ? <RefreshCw className="w-3 h-3 animate-spin" />
+                            : <Check className="w-3 h-3" />}
+                          Accept
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active chats */}
+            {supportActive.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-ex-green mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-ex-green inline-block" />
+                  Active Chats ({supportActive.length})
+                </h3>
+                <div className="space-y-3">
+                  {supportActive.map(chat => {
+                    const isOpen = openChatId === chat.id;
+                    const msgs = chatMessages[chat.id] ?? [];
+                    return (
+                      <div key={chat.id} className="bg-ex-card border border-ex-green/20 rounded-2xl overflow-hidden">
+                        {/* Chat header */}
+                        <div
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                          onClick={async () => {
+                            if (!isOpen) {
+                              setOpenChatId(chat.id);
+                              await fetchChatMessages(chat.id);
+                            } else {
+                              setOpenChatId(null);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-ex-green/10 border border-ex-green/30 flex items-center justify-center flex-shrink-0 font-bold text-ex-green text-sm">
+                              {chat.userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-white">{chat.userName}</div>
+                              <div className="text-xs text-gray-500">{chat.userEmail}</div>
+                              {chat.lastMessage && !isOpen && (
+                                <div className="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{chat.lastMessage}</div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              disabled={chatActionLoading === `${chat.id}-close`}
+                              onClick={async e => {
+                                e.stopPropagation();
+                                if (window.confirm(`Close chat with ${chat.userName}?`)) {
+                                  await handleSupportAction(chat.id, "close");
+                                  setOpenChatId(null);
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2.5 py-1 text-xs text-ex-red border border-ex-red/30 bg-ex-red/5 rounded-xl hover:bg-ex-red/10 transition-colors disabled:opacity-50"
+                            >
+                              <X className="w-3 h-3" /> Close
+                            </button>
+                            {isOpen
+                              ? <ChevronUp className="w-4 h-4 text-gray-500" />
+                              : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                          </div>
+                        </div>
+
+                        {/* Messages & reply */}
+                        {isOpen && (
+                          <div className="border-t border-ex-border">
+                            {/* Messages */}
+                            <div className="max-h-72 overflow-y-auto px-4 py-3 space-y-2 bg-[#080808]">
+                              {msgs.length === 0 && (
+                                <div className="text-xs text-gray-500 text-center py-4">No messages yet. Say hello!</div>
+                              )}
+                              {msgs.map(msg => (
+                                <div key={msg.id} className={`flex gap-2 ${msg.sender === "admin" ? "flex-row-reverse" : "flex-row"}`}>
+                                  <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 text-xs font-bold ${
+                                    msg.sender === "admin"
+                                      ? "bg-blue-500/20 border border-blue-500/30 text-blue-300"
+                                      : "bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow"
+                                  }`}>
+                                    {msg.sender === "admin" ? "A" : "U"}
+                                  </div>
+                                  <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                                    msg.sender === "admin"
+                                      ? "bg-blue-600/10 border border-blue-500/20 text-blue-100 rounded-tr-sm"
+                                      : "bg-[#111] border border-[#1e1e1e] text-gray-200 rounded-tl-sm"
+                                  }`}>
+                                    {msg.content}
+                                    <div className="text-[10px] opacity-50 mt-0.5">
+                                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Reply input */}
+                            <div className="flex gap-2 p-3 border-t border-ex-border bg-ex-card">
+                              <input
+                                type="text"
+                                value={replyInput[chat.id] ?? ""}
+                                onChange={e => setReplyInput(prev => ({ ...prev, [chat.id]: e.target.value }))}
+                                onKeyDown={async e => {
+                                  if (e.key === "Enter" && !e.shiftKey && (replyInput[chat.id] ?? "").trim()) {
+                                    e.preventDefault();
+                                    await handleSupportAction(chat.id, "message", replyInput[chat.id]);
+                                  }
+                                }}
+                                placeholder="Type a reply..."
+                                className="ex-input flex-1 text-sm"
+                              />
+                              <button
+                                disabled={!(replyInput[chat.id] ?? "").trim() || chatActionLoading === `${chat.id}-message`}
+                                onClick={() => handleSupportAction(chat.id, "message", replyInput[chat.id])}
+                                className="w-9 h-9 rounded-xl bg-ex-yellow text-black flex items-center justify-center hover:bg-ex-yellow/80 disabled:opacity-30 transition-colors flex-shrink-0"
+                              >
+                                {chatActionLoading === `${chat.id}-message`
+                                  ? <RefreshCw className="w-4 h-4 animate-spin" />
+                                  : <Send className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Closed chats */}
+            {supportClosed.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-gray-500 mb-3">Recent Closed ({Math.min(supportClosed.length, 20)})</h3>
+                <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-ex-border text-xs text-gray-500">
+                        <th className="text-left p-3 font-semibold">User</th>
+                        <th className="text-left p-3 font-semibold hidden md:table-cell">Email</th>
+                        <th className="text-left p-3 font-semibold hidden lg:table-cell">Last message</th>
+                        <th className="text-left p-3 font-semibold">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {supportClosed.slice(0, 20).map(chat => (
+                        <tr key={chat.id} className="border-b border-ex-border/40 hover:bg-white/[0.02]">
+                          <td className="p-3 text-sm font-medium text-white">{chat.userName}</td>
+                          <td className="p-3 text-xs text-gray-400 hidden md:table-cell">{chat.userEmail}</td>
+                          <td className="p-3 text-xs text-gray-500 hidden lg:table-cell max-w-xs truncate">{chat.lastMessage ?? "—"}</td>
+                          <td className="p-3 text-xs text-gray-500">
+                            {new Date(chat.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {supportPending.length === 0 && supportActive.length === 0 && supportClosed.length === 0 && (
+              <div className="text-center py-16 text-gray-500">
+                <Headset className="w-12 h-12 mx-auto mb-3 text-gray-700" />
+                <p className="font-semibold">No support requests yet</p>
+                <p className="text-xs mt-1">When users request a human agent, they appear here</p>
               </div>
             )}
           </div>

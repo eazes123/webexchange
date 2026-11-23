@@ -1,14 +1,23 @@
 ﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, Headset } from "lucide-react";
 
-interface Message {
-  id:   string;
+interface AiMessage {
+  id: string;
   role: "user" | "assistant";
   text: string;
   agentRequested?: boolean;
 }
+
+interface SupportMsg {
+  id: string;
+  sender: "user" | "admin";
+  content: string;
+  createdAt: string;
+}
+
+type SupportStatus = "none" | "pending" | "active" | "closed";
 
 const QUICK_QUESTIONS = [
   "How do I deposit USDT?",
@@ -22,44 +31,105 @@ function uid() {
 }
 
 export default function ChatWidget() {
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen]       = useState(false);
-  const [input, setInput]     = useState("");
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "init",
-      role: "assistant",
-      text: "Hi! I'm Nova, NovaBit's AI assistant. How can I help you today?",
-    },
+  const [mounted, setMounted]   = useState(false);
+  const [open, setOpen]         = useState(false);
+  const [input, setInput]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [messages, setMessages] = useState<AiMessage[]>([
+    { id: "init", role: "assistant", text: "Hi! I'm Nova, NovaBit's AI assistant. How can I help you today?" },
   ]);
+
+  // Support chat
+  const [supportChatId, setSupportChatId]   = useState<string | null>(null);
+  const [supportStatus, setSupportStatus]   = useState<SupportStatus>("none");
+  const [supportMsgs, setSupportMsgs]       = useState<SupportMsg[]>([]);
+  const [supportSending, setSupportSending] = useState(false);
+  const [unreadCount, setUnreadCount]       = useState(0);
+  const lastAdminMsgCountRef                = useRef(0);
+  const pollingRef                          = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  const bottomRef  = useRef<HTMLDivElement>(null);
-  const inputRef   = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       setTimeout(() => inputRef.current?.focus(), 100);
+      setUnreadCount(0);
+      lastAdminMsgCountRef.current = supportMsgs.filter(m => m.sender === "admin").length;
     }
-  }, [open, messages]);
+  }, [open, messages, supportMsgs]);
+
+  const pollSupport = useCallback(async (chatId: string) => {
+    try {
+      const r = await fetch(`/api/support/chat?chatId=${chatId}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const newStatus = data.status as SupportStatus;
+      const newMsgs: SupportMsg[] = data.messages ?? [];
+
+      setSupportStatus(newStatus);
+      setSupportMsgs(newMsgs);
+
+      // Count unread admin messages when chat is closed
+      if (!open) {
+        const adminMsgCount = newMsgs.filter(m => m.sender === "admin").length;
+        const newUnread = adminMsgCount - lastAdminMsgCountRef.current;
+        if (newUnread > 0) setUnreadCount(prev => prev + newUnread);
+        lastAdminMsgCountRef.current = adminMsgCount;
+      }
+
+      if (newStatus === "closed") {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      }
+    } catch {}
+  }, [open]);
+
+  useEffect(() => {
+    if (supportChatId && (supportStatus === "pending" || supportStatus === "active")) {
+      pollingRef.current = setInterval(() => pollSupport(supportChatId), 3000);
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
+    }
+  }, [supportChatId, supportStatus, pollSupport]);
 
   const historyForApi = messages
-    .filter((m) => m.id !== "init")
+    .filter(m => m.id !== "init")
     .slice(-10)
-    .map((m) => ({
-      role: m.role === "user" ? ("user" as const) : ("model" as const),
-      text: m.text,
-    }));
+    .map(m => ({ role: m.role === "user" ? ("user" as const) : ("model" as const), text: m.text }));
 
   const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading || supportSending) return;
 
-    const userMsg: Message = { id: uid(), role: "user", text: trimmed };
-    setMessages((prev) => [...prev, userMsg]);
+    // Active support mode: send to human agent
+    if (supportStatus === "active" && supportChatId) {
+      setSupportSending(true);
+      setInput("");
+      try {
+        await fetch("/api/support/message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chatId: supportChatId, content: trimmed }),
+        });
+        await pollSupport(supportChatId);
+      } catch {}
+      setSupportSending(false);
+      return;
+    }
+
+    // AI mode
+    const userMsg: AiMessage = { id: uid(), role: "user", text: trimmed };
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
@@ -70,7 +140,7 @@ export default function ChatWidget() {
         body: JSON.stringify({ message: trimmed, history: historyForApi }),
       });
       const data = await res.json();
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         {
           id: uid(),
@@ -79,8 +149,24 @@ export default function ChatWidget() {
           agentRequested: data.agentRequested,
         },
       ]);
+
+      // AI flagged agent request → open support chat
+      if (data.agentRequested && supportStatus === "none") {
+        try {
+          const r2 = await fetch("/api/support/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lastMessage: trimmed }),
+          });
+          const d2 = await r2.json();
+          if (d2.chatId) {
+            setSupportChatId(d2.chatId);
+            setSupportStatus(d2.status ?? "pending");
+          }
+        } catch {}
+      }
     } catch {
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         { id: uid(), role: "assistant", text: "Connection error. Please try again." },
       ]);
@@ -89,42 +175,71 @@ export default function ChatWidget() {
     }
   };
 
-  const unreadCount = 0;
-
   if (!mounted) return null;
+
+  const inSupport        = supportStatus !== "none";
+  const inputDisabled    = loading || supportSending || supportStatus === "pending" || supportStatus === "closed";
+  const inputPlaceholder =
+    supportStatus === "pending" ? "Waiting for agent..." :
+    supportStatus === "closed"  ? "Chat has ended" :
+    supportStatus === "active"  ? "Reply to agent..." :
+    "Ask anything...";
 
   return (
     <>
-      {/* Chat window */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-[350px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-[#1e1e1e] bg-[#0d0d0d]"
-          style={{ height: "480px" }}>
-
+        <div
+          className="fixed bottom-20 right-4 z-50 w-[350px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-[#1e1e1e] bg-[#0d0d0d]"
+          style={{ height: "480px" }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-[#080808] border-b border-[#1e1e1e]">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#f0b90b]/10 border border-[#f0b90b]/30 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-[#f0b90b]" />
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center ${
+                supportStatus === "active"
+                  ? "bg-blue-500/10 border-blue-500/30"
+                  : "bg-[#f0b90b]/10 border-[#f0b90b]/30"
+              }`}>
+                {supportStatus === "active"
+                  ? <Headset className="w-4 h-4 text-blue-400" />
+                  : <Bot className="w-4 h-4 text-[#f0b90b]" />}
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Nova</p>
-                <p className="text-[11px] text-[#22c55e] flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] inline-block" />
-                  Online
+                <p className="text-sm font-bold text-white">
+                  {supportStatus === "active" ? "Live Support" : "Nova"}
+                </p>
+                <p className={`text-[11px] flex items-center gap-1 ${
+                  supportStatus === "pending" ? "text-[#f0b90b]" :
+                  supportStatus === "active"  ? "text-[#22c55e]" :
+                  supportStatus === "closed"  ? "text-gray-500" :
+                  "text-[#22c55e]"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full inline-block ${
+                    supportStatus === "pending" ? "bg-[#f0b90b] animate-pulse" :
+                    supportStatus === "active"  ? "bg-[#22c55e]" :
+                    supportStatus === "closed"  ? "bg-gray-500" :
+                    "bg-[#22c55e]"
+                  }`} />
+                  {supportStatus === "pending" ? "Connecting..." :
+                   supportStatus === "active"  ? "Agent connected" :
+                   supportStatus === "closed"  ? "Chat ended" :
+                   "Online"}
                 </p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)}
-              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5">
+            <button
+              onClick={() => setOpen(false)}
+              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Messages */}
+          {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
-            {messages.map((msg) => (
-              <div key={msg.id}
-                className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+            {/* AI messages */}
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                 <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
                   msg.role === "user"
                     ? "bg-[#f0b90b]/20 border border-[#f0b90b]/30"
@@ -132,7 +247,7 @@ export default function ChatWidget() {
                 }`}>
                   {msg.role === "user"
                     ? <User className="w-3 h-3 text-[#f0b90b]" />
-                    : <Bot  className="w-3 h-3 text-gray-400" />}
+                    : <Bot className="w-3 h-3 text-gray-400" />}
                 </div>
                 <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                   msg.role === "user"
@@ -143,7 +258,7 @@ export default function ChatWidget() {
                   {msg.agentRequested && (
                     <div className="mt-2 pt-2 border-t border-[#f0b90b]/20 text-[11px] text-[#f0b90b]/80 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#f0b90b]/60 inline-block" />
-                      Support team notified
+                      {supportStatus === "none" ? "Support team notified" : "Connecting you now..."}
                     </div>
                   )}
                 </div>
@@ -160,13 +275,79 @@ export default function ChatWidget() {
                 </div>
               </div>
             )}
+
+            {/* Support section */}
+            {inSupport && (
+              <>
+                <div className="flex items-center gap-2 my-1">
+                  <div className="flex-1 h-px bg-[#1e1e1e]" />
+                  <span className="text-[10px] text-gray-500 flex items-center gap-1 px-1">
+                    <Headset className="w-3 h-3" />
+                    {supportStatus === "pending" ? "Connecting to live support" :
+                     supportStatus === "active"  ? "Live support session" :
+                     "Support session ended"}
+                  </span>
+                  <div className="flex-1 h-px bg-[#1e1e1e]" />
+                </div>
+
+                {supportStatus === "pending" && (
+                  <div className="flex justify-center py-2">
+                    <div className="flex items-center gap-2 text-[11px] text-[#f0b90b] bg-[#f0b90b]/5 border border-[#f0b90b]/20 rounded-xl px-3 py-2">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Waiting for a support agent...
+                    </div>
+                  </div>
+                )}
+
+                {supportStatus === "active" && supportMsgs.length === 0 && (
+                  <div className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Headset className="w-3 h-3 text-blue-400" />
+                    </div>
+                    <div className="bg-[#0d1b2e] border border-blue-500/10 rounded-2xl rounded-tl-sm px-3 py-2 text-sm text-blue-100">
+                      Support agent connected! How can I help you?
+                    </div>
+                  </div>
+                )}
+
+                {supportMsgs.map(msg => (
+                  <div key={msg.id} className={`flex gap-2 ${msg.sender === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
+                      msg.sender === "user"
+                        ? "bg-[#f0b90b]/20 border border-[#f0b90b]/30"
+                        : "bg-blue-500/10 border border-blue-500/20"
+                    }`}>
+                      {msg.sender === "user"
+                        ? <User className="w-3 h-3 text-[#f0b90b]" />
+                        : <Headset className="w-3 h-3 text-blue-400" />}
+                    </div>
+                    <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                      msg.sender === "user"
+                        ? "bg-[#f0b90b] text-black font-medium rounded-tr-sm"
+                        : "bg-[#0d1b2e] border border-blue-500/10 text-blue-100 rounded-tl-sm"
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+
+                {supportStatus === "closed" && (
+                  <div className="flex justify-center py-1">
+                    <span className="text-[10px] text-gray-500 bg-[#111] border border-[#1e1e1e] rounded-full px-3 py-1">
+                      Support session ended · Start a new chat anytime
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
-          {/* Quick questions (shown when only greeting exists) */}
-          {messages.length === 1 && (
+          {/* Quick questions */}
+          {messages.length === 1 && supportStatus === "none" && (
             <div className="px-3 pb-2 flex flex-wrap gap-1.5">
-              {QUICK_QUESTIONS.map((q) => (
+              {QUICK_QUESTIONS.map(q => (
                 <button key={q} onClick={() => send(q)}
                   className="text-[11px] px-2.5 py-1 rounded-full bg-[#111] border border-[#1e1e1e] text-gray-300 hover:border-[#f0b90b]/40 hover:text-[#f0b90b] transition-colors">
                   {q}
@@ -177,35 +358,44 @@ export default function ChatWidget() {
 
           {/* Input */}
           <div className="px-3 pb-3 pt-1 border-t border-[#1e1e1e]">
-            <div className="flex gap-2 items-center bg-[#080808] rounded-xl border border-[#1e1e1e] px-3 py-2 focus-within:border-[#f0b90b]/40 transition-colors">
+            <div className={`flex gap-2 items-center bg-[#080808] rounded-xl border px-3 py-2 transition-colors ${
+              inputDisabled ? "border-[#1e1e1e]" : "border-[#1e1e1e] focus-within:border-[#f0b90b]/40"
+            }`}>
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send(input)}
-                placeholder="Ask anything..."
-                disabled={loading}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && !e.shiftKey && !inputDisabled && send(input)}
+                placeholder={inputPlaceholder}
+                disabled={inputDisabled}
                 className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none disabled:opacity-50"
               />
-              <button
-                onClick={() => send(input)}
-                disabled={!input.trim() || loading}
-                className="w-7 h-7 rounded-lg bg-[#f0b90b] text-black flex items-center justify-center disabled:opacity-30 hover:bg-[#f0b90b]/90 transition-all disabled:cursor-not-allowed flex-shrink-0">
-                <Send className="w-3.5 h-3.5" />
-              </button>
+              {supportSending
+                ? <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />
+                : (
+                  <button
+                    onClick={() => send(input)}
+                    disabled={!input.trim() || inputDisabled}
+                    className="w-7 h-7 rounded-lg bg-[#f0b90b] text-black flex items-center justify-center disabled:opacity-30 hover:bg-[#f0b90b]/90 transition-all disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                )}
             </div>
             <p className="text-[10px] text-gray-600 text-center mt-1.5">
-              AI assistant &middot; Type &quot;agent&quot; for human support
+              {supportStatus === "active"
+                ? "Live support · NovaBit team"
+                : "AI assistant · Type \"agent\" for human support"}
             </p>
           </div>
         </div>
       )}
 
-      {/* Floating toggle button */}
+      {/* Toggle button */}
       <button
-        onClick={() => setOpen((p) => !p)}
-        className="fixed bottom-4 right-4 z-50 w-13 h-13 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+        onClick={() => setOpen(p => !p)}
+        className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
         style={{ width: 52, height: 52, background: open ? "#111" : "#f0b90b", border: "2px solid", borderColor: open ? "#1e1e1e" : "transparent" }}
         aria-label="Chat with Nova"
       >

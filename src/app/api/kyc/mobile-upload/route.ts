@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase";
-import { mobileTokenMap } from "@/lib/kyc-mobile-tokens";
+import { verifyMobileToken } from "@/lib/kyc-mobile-tokens";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +19,9 @@ const MAX_SIZE = 10 * 1024 * 1024;
 
 async function getUserFromToken(kycToken: string | null) {
   if (!kycToken) return null;
-  const entry = mobileTokenMap.get(kycToken);
-  if (!entry || Date.now() > entry.expiresAt) return null;
-  return getSessionUser(entry.sessionToken);
+  const sessionToken = verifyMobileToken(kycToken);
+  if (!sessionToken) return null;
+  return getSessionUser(sessionToken);
 }
 
 export async function POST(request: NextRequest) {

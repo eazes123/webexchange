@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, isDepositProcessed, markDepositProcessed, updateWalletBalance, createTransaction } from "@/lib/db";
 import { fetchBep20Deposits } from "@/lib/bsc";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
+import { sendDepositConfirmedEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
 
     credited += dep.amount;
     newDeposits.push({ txHash: dep.txHash, amount: dep.amount });
+    sendDepositConfirmedEmail(user.email, user.fullName, dep.amount, dep.txHash).catch(() => {});
   }
 
   return NextResponse.json({ credited, newDeposits });

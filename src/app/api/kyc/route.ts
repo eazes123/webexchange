@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, getKyc, upsertKyc, updateUser } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
+import { sendKycSubmittedEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
@@ -39,6 +40,8 @@ export async function POST(request: NextRequest) {
   });
 
   await updateUser(user.id, { kycStatus: "under_review" });
+
+  sendKycSubmittedEmail(user.email, user.fullName).catch(() => {});
 
   return NextResponse.json({ success: true, kycStatus: "under_review" });
 }

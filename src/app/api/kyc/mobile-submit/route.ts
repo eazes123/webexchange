@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, upsertKyc, updateUser } from "@/lib/db";
-import { mobileTokenMap } from "@/lib/kyc-mobile-tokens";
+import { verifyMobileToken } from "@/lib/kyc-mobile-tokens";
+import { sendKycSubmittedEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +14,12 @@ export async function POST(request: NextRequest) {
     docBackUrl: string | null; addressDocUrl: string | null;
   };
 
-  const entry = mobileTokenMap.get(body.kycToken ?? "");
-  if (!entry || Date.now() > entry.expiresAt) {
+  const sessionToken = verifyMobileToken(body.kycToken ?? "");
+  if (!sessionToken) {
     return NextResponse.json({ error: "Link expired — scan the QR code again" }, { status: 401 });
   }
 
-  const user = await getSessionUser(entry.sessionToken);
+  const user = await getSessionUser(sessionToken);
   if (!user) return NextResponse.json({ error: "Session invalid" }, { status: 401 });
 
   if (user.kycStatus === "approved") {
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
 
   await updateUser(user.id, { kycStatus: "under_review" });
 
-  // Token stays valid so desktop polling can still verify the status
+  sendKycSubmittedEmail(user.email, user.fullName).catch(() => {});
+
   return NextResponse.json({ success: true, kycStatus: "under_review" });
 }
