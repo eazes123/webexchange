@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import WithdrawalsClient from "./WithdrawalsClient";
 
 export const metadata: Metadata = {
-  title: "Campaign | NovaBit",
+  title: "Campaign | GROXchange",
   description: "October 2024 loan campaign disbursement records. Verified TRC20 USDT transfers on the TRON blockchain.",
 };
 

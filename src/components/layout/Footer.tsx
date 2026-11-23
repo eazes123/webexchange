@@ -38,7 +38,7 @@ export default function Footer() {
                 <TrendingUp style={{ width: "16px", height: "16px", color: "#000" }} />
               </div>
               <span style={{ fontWeight: 900, fontSize: "15px", color: "#fff", letterSpacing: "-0.02em" }}>
-                Nova<span style={{ color: "#f0b90b" }}>Bit</span>
+                GROX<span style={{ color: "#f0b90b" }}>change</span>
               </span>
             </div>
             <p style={{ fontSize: "12px", color: "#555", lineHeight: 1.7, maxWidth: "220px" }}>
@@ -82,7 +82,7 @@ export default function Footer() {
           <AlertTriangle style={{ width: "14px", height: "14px", color: "#f6465d", flexShrink: 0, marginTop: "1px" }} />
           <p style={{ fontSize: "11px", color: "#555", lineHeight: 1.7, margin: 0 }}>
             <strong style={{ color: "#666", fontWeight: 600 }}>DISCLAIMER: </strong>
-            NovaBit is a demo project created for a class assignment. It is NOT a real exchange. All features,
+            GROXchange is a demo project created for a class assignment. It is NOT a real exchange. All features,
             loan campaigns, KYC flows, and transactions are simulated for educational purposes only. Do NOT send
             any real money or personal documents. The gas-fee withdrawal flow is an intentional demonstration of
             advance-fee fraud patterns used in scam operations.
@@ -92,7 +92,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div style={{ borderTop: "1px solid #111", padding: "20px 0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <p style={{ fontSize: "11px", color: "#333", margin: 0, letterSpacing: "0.02em" }}>
-            © 2026 NovaBit Exchange | Demo Project
+            © 2026 GROXchange | Demo Project
           </p>
           <div style={{ display: "flex", gap: "24px" }}>
             {["Privacy Policy", "Terms of Service", "Risk Disclosure"].map((item) => (

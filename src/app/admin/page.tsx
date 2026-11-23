@@ -629,7 +629,7 @@ export default function AdminPage() {
       <div className="bg-ex-card border-b border-ex-border px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-ex-yellow" />
-          <span className="font-black text-white">NovaBit Admin</span>
+          <span className="font-black text-white">GROXchange Admin</span>
           <span className="text-xs text-gray-500 hidden md:block ml-2">v2 · Expert Panel</span>
         </div>
         <div className="flex items-center gap-3">

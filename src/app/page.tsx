@@ -399,7 +399,7 @@ export default function LandingPage() {
       {/* ─── FEATURES ─── */}
       <section style={{ padding: "80px 16px", maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Why NovaBit</span>
+          <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Why GROXchange</span>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
             Built Different
           </h2>

@@ -236,7 +236,7 @@ export default function KycMobilePage() {
         <div className="w-12 h-12 rounded-2xl bg-[#f0b90b] flex items-center justify-center mb-3 shadow-lg shadow-[#f0b90b]/20">
           <Shield className="w-6 h-6 text-black" />
         </div>
-        <span className="text-xl font-black text-white tracking-tight">NovaBit</span>
+        <span className="text-xl font-black text-white tracking-tight">GROXchange</span>
         <span className="text-xs text-gray-500 mt-0.5">Identity Verification</span>
       </div>
 

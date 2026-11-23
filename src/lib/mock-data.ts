@@ -206,7 +206,7 @@ export const CAMPAIGN_STATS = {
 export const MOCK_USER = {
   id: "demo-001",
   name: "Demo User",
-  email: "demo@novabit.demo",
+  email: "demo@groxchange.demo",
   phone: "+1 212 555 0147",
   country: "United States",
   kycStatus: "approved" as const,

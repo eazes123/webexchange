@@ -1,11 +1,11 @@
 /**
  * Centralised Resend email utility.
  * FROM address: set RESEND_FROM in .env.local for a verified domain,
- * e.g. "NovaBit <noreply@novabit.exchange>". Falls back to Resend sandbox.
+ * e.g. "GROXchange <noreply@groxchange.com>". Falls back to Resend sandbox.
  */
 
 const FROM =
-  process.env.RESEND_FROM ?? "NovaBit <onboarding@resend.dev>";
+  process.env.RESEND_FROM ?? "GROXchange <onboarding@resend.dev>";
 
 // ── Base branded template ───────────────────────────────────────────────────
 function baseTemplate(content: string): string {
@@ -25,7 +25,7 @@ function baseTemplate(content: string): string {
                   <span style="font-size:22px;line-height:44px;display:block;">⬡</span>
                 </td>
                 <td style="padding-left:12px;vertical-align:middle;">
-                  <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">NovaBit</span>
+                  <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">GROXchange</span>
                 </td>
               </tr>
             </table>
@@ -41,8 +41,8 @@ function baseTemplate(content: string): string {
         <tr>
           <td align="center" style="padding-top:28px;">
             <p style="margin:0;font-size:12px;color:#555555;line-height:1.6;">
-              You received this email because you have an account on NovaBit Exchange.<br>
-              © 2026 NovaBit Exchange · All rights reserved
+              You received this email because you have an account on GROXchange.<br>
+              © 2026 GROXchange · All rights reserved
             </p>
           </td>
         </tr>
@@ -90,9 +90,9 @@ export function sendWelcomeEmail(to: string, fullName: string): Promise<void> {
   const firstName = fullName.split(" ")[0];
   return sendEmail({
     to,
-    subject: `Welcome to NovaBit, ${firstName}!`,
+    subject: `Welcome to GROXchange, ${firstName}!`,
     html: baseTemplate(`
-      ${badge("Welcome to NovaBit")}
+      ${badge("Welcome to GROXchange")}
       ${h1(`Hello, ${firstName}! 👋`)}
       ${p("Your account has been created. You're now on your way to unlocking the <strong style='color:#ffffff;'>$50,000 USDT interest-free loan</strong>.")}
       ${divider()}
@@ -114,7 +114,7 @@ export function sendWelcomeEmail(to: string, fullName: string): Promise<void> {
         </tr>`).join("")}
       </table>
       ${divider()}
-      ${btn("Go to My Dashboard", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novabit.exchange"}/dashboard`)}
+      ${btn("Go to My Dashboard", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://groxchange.com"}/dashboard`)}
     `),
   });
 }
@@ -136,7 +136,7 @@ export function sendKycSubmittedEmail(to: string, fullName: string): Promise<voi
       </table>
       ${divider()}
       ${p("No further action is needed. We'll email you as soon as a decision is made.")}
-      ${btn("View KYC Status", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novabit.exchange"}/kyc`)}
+      ${btn("View KYC Status", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://groxchange.com"}/kyc`)}
     `),
   });
 }
@@ -159,7 +159,7 @@ export function sendKycApprovedEmail(to: string, fullName: string): Promise<void
       </table>
       ${divider()}
       ${p("You are now eligible for the <strong style='color:#ffffff;'>$50,000 USDT interest-free loan</strong>. Deposit and stake 500 USDT to secure your slot.")}
-      ${btn("Stake Now", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novabit.exchange"}/campaign`)}
+      ${btn("Stake Now", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://groxchange.com"}/campaign`)}
     `),
   });
 }
@@ -189,7 +189,7 @@ export function sendKycRejectedEmail(to: string, fullName: string): Promise<void
         ].map(r => `<tr><td style="padding:4px 0;font-size:13px;color:#aaaaaa;">• ${r}</td></tr>`).join("")}
       </table>
       ${divider()}
-      ${btn("Resubmit KYC", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novabit.exchange"}/kyc`)}
+      ${btn("Resubmit KYC", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://groxchange.com"}/kyc`)}
     `),
   });
 }
@@ -211,7 +211,7 @@ export function sendDepositConfirmedEmail(
     html: baseTemplate(`
       ${badge("✓ Deposit Confirmed", "#0ecb81")}
       ${h1(`${amount.toLocaleString()} USDT Received`)}
-      ${p(`Hi ${firstName}, your USDT deposit has been confirmed on-chain and credited to your NovaBit wallet.`)}
+      ${p(`Hi ${firstName}, your USDT deposit has been confirmed on-chain and credited to your GROXchange wallet.`)}
       <table cellpadding="0" cellspacing="0" width="100%" style="background:#0ecb8108;border:1px solid #0ecb8130;border-radius:12px;padding:4px 16px;margin:16px 0;">
         ${infoRow("Amount", `${amount.toLocaleString()} USDT`)}
         ${infoRow("Network", "TRON (TRC20)")}
@@ -220,7 +220,7 @@ export function sendDepositConfirmedEmail(
       </table>
       ${divider()}
       ${p("Your balance has been updated. You can now proceed to stake for the campaign.")}
-      ${btn("View Wallet", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novabit.exchange"}/wallet`)}
+      ${btn("View Wallet", `${process.env.NEXT_PUBLIC_APP_URL ?? "https://groxchange.com"}/wallet`)}
     `),
   });
 }
@@ -234,7 +234,7 @@ export function sendAgentRequestEmail(
 ): Promise<void> {
   return sendEmail({
     to: adminEmail,
-    subject: `[NovaBit] Agent Request — ${userName}`,
+    subject: `[GROXchange] Agent Request — ${userName}`,
     html: baseTemplate(`
       ${badge("Support Request")}
       ${h1("New Human Agent Request")}

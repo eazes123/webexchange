@@ -83,7 +83,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow text-sm px-3 py-1.5 rounded-full mb-4">
-            <Zap className="w-4 h-4" /> NovaBit Exchange
+            <Zap className="w-4 h-4" /> GROXchange
           </div>
           <h1 className="text-3xl font-black">Sign In</h1>
           <p className="text-gray-400 mt-1">Access your account and loan dashboard</p>

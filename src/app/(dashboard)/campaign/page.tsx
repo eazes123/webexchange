@@ -503,7 +503,7 @@ export default function CampaignPage() {
           {
             icon: TrendingUp,
             title: "Trade with $50K",
-            desc: "Use the full loan balance to trade on NovaBit Exchange when live trading launches.",
+            desc: "Use the full loan balance to trade on GROXchange when live trading launches.",
             color: "#f0b90b",
             bg: "bg-[#f0b90b]/5 border-[#f0b90b]/15",
           },
@@ -568,7 +568,7 @@ export default function CampaignPage() {
           {[
             {
               q: "Is the $50,000 loan real?",
-              a: "Yes. Every eligible user who maintains an active stake and passes KYC receives exactly $50,000 USDT credited to their NovaBit wallet on December 31, 2026.",
+              a: "Yes. Every eligible user who maintains an active stake and passes KYC receives exactly $50,000 USDT credited to their GROXchange wallet on December 31, 2026.",
             },
             {
               q: "Can I withdraw my staked 500 USDT before Dec 31?",

@@ -58,7 +58,7 @@ export default function ChatWidget() {
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [messages, setMessages] = useState<AiMessage[]>([
-    { id: "init", role: "assistant", text: "Hi! I'm Nova, NovaBit's AI assistant. How can I help you today?" },
+    { id: "init", role: "assistant", text: "Hi! I'm Groxi, GROXchange's AI assistant. How can I help you today?" },
   ]);
 
   // Support chat
@@ -315,7 +315,7 @@ export default function ChatWidget() {
               </div>
               <div>
                 <p className="text-sm font-bold text-white">
-                  {supportStatus === "active" ? agentDisplay : "Nova"}
+                  {supportStatus === "active" ? agentDisplay : "Groxi"}
                 </p>
                 <p className={`text-[11px] flex items-center gap-1 ${
                   supportStatus === "pending" ? "text-[#f0b90b]" :
@@ -330,7 +330,7 @@ export default function ChatWidget() {
                     "bg-[#22c55e]"
                   }`} />
                   {supportStatus === "pending" ? "Connecting..." :
-                   supportStatus === "active"  ? (agentOnline ? "NovaBit Support" : "Away") :
+                   supportStatus === "active"  ? (agentOnline ? "GROXchange Support" : "Away") :
                    supportStatus === "closed"  ? "Chat ended" :
                    "Online"}
                 </p>
@@ -414,7 +414,7 @@ export default function ChatWidget() {
                       <Headset className="w-3 h-3 text-blue-400" />
                     </div>
                     <div className="bg-[#0d1b2e] border border-blue-500/10 rounded-2xl rounded-tl-sm px-3 py-2 text-sm text-blue-100">
-                      Hi! I&apos;m {agentDisplay} from NovaBit Support. How can I help you today?
+                      Hi! I&apos;m {agentDisplay} from GROXchange Support. How can I help you today?
                     </div>
                   </div>
                 )}
@@ -514,7 +514,7 @@ export default function ChatWidget() {
             </div>
             <p className="text-[10px] text-gray-600 text-center mt-1.5">
               {supportStatus === "active"
-                ? `Live support · ${agentDisplay} · NovaBit`
+                ? `Live support · ${agentDisplay} · GROXchange`
                 : supportStatus === "closed"
                 ? "Chat ended · Start a new chat above"
                 : "AI assistant · Type \"agent\" for human support"}
@@ -528,7 +528,7 @@ export default function ChatWidget() {
         onClick={() => setOpen(p => !p)}
         className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
         style={{ width: 52, height: 52, background: open ? "#111" : "#f0b90b", border: "2px solid", borderColor: open ? "#1e1e1e" : "transparent" }}
-        aria-label="Chat with Nova"
+        aria-label="Chat with Groxi"
       >
         {open
           ? <ChevronDown className="w-5 h-5 text-gray-400" />

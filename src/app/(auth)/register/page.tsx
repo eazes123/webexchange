@@ -80,7 +80,7 @@ export default function RegisterPage() {
     setLoading(true);
     await hydrate();
     setLoading(false);
-    toast.success("Account created! Welcome to NovaBit 🎉");
+    toast.success("Account created! Welcome to GROXchange 🎉");
     router.push("/dashboard");
   };
 

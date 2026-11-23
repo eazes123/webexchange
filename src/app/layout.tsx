@@ -9,9 +9,9 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "NovaBit Exchange: Crypto Trading & Loans",
+  title: "GROXchange: Crypto Trading & Loans",
   description:
-    "NovaBit Exchange: Trade crypto and get a $50,000 USDT interest-free loan. Stake 500 USDT after KYC and receive your loan instantly.",
+    "GROXchange: Trade crypto and get a $50,000 USDT interest-free loan. Stake 500 USDT after KYC and receive your loan instantly.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

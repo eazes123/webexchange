@@ -40,7 +40,7 @@ export function verifyTotp(secret: string, token: string): boolean {
 }
 
 export function totpUri(secret: string): string {
-  const issuer = "NovaBit Admin";
+  const issuer = "GROXchange Admin";
   const account = process.env.ADMIN_EMAIL ?? "admin";
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }

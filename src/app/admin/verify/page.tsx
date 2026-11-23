@@ -59,7 +59,7 @@ export default function AdminVerifyPage() {
             border: "1px solid rgba(88,166,255,0.2)", padding: "3px 10px",
             borderRadius: 20, marginBottom: "0.75rem",
           }}>
-            NovaBit Admin
+            GROXchange Admin
           </div>
           <h1 style={{ margin: "0 0 0.3rem", fontSize: "1.35rem", fontWeight: 700 }}>
             Two-Factor Verification

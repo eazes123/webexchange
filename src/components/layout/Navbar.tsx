@@ -54,7 +54,7 @@ export default function Navbar() {
             <TrendingUp className="w-4 h-4 text-black" />
           </div>
           <span className="font-black text-base tracking-tight text-white">
-            Nova<span style={{ color: "#f0b90b" }}>Bit</span>
+            GROX<span style={{ color: "#f0b90b" }}>change</span>
           </span>
         </Link>
 
