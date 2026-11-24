@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { fetchDailyProofs } from "@/lib/tron-proofs";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300; // 5 min — TRONSCAN caps at 50/page so we may need 100 pages
 
 export async function GET(request: NextRequest) {
   // Verify cron secret (Vercel sends Authorization header)
@@ -12,8 +13,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const now = Date.now();
-  const proofs = await fetchDailyProofs(now, 7);
+  // Fetch YESTERDAY's data — the full day is complete, no future-timestamp 400 errors
+  const yesterday = Date.now() - 86_400_000;
+  const proofs = await fetchDailyProofs(yesterday, 7);
 
   if (proofs.length === 0) {
     return NextResponse.json({ success: true, inserted: 0, message: "No qualifying transactions found today" });
@@ -34,5 +36,5 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ success: true, inserted: rows.length, date: new Date(now).toISOString().split("T")[0] });
+  return NextResponse.json({ success: true, inserted: rows.length, date: new Date(yesterday).toISOString().split("T")[0] });
 }

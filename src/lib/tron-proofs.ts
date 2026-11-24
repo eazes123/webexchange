@@ -74,7 +74,7 @@ export async function fetchDailyProofs(
   const results: TronProof[] = [];
   let offset = 0;
   const PAGE_SIZE = 200;
-  const MAX_PAGES = 20; // up to 4,000 txns scanned per day
+  const MAX_PAGES = 100; // up to 5,000 txns scanned — TRONSCAN caps at 50/page
 
   for (let page = 0; page < MAX_PAGES; page++) {
     const { txns, total } = await fetchPage(startMs, endMs, offset, PAGE_SIZE);
@@ -86,9 +86,9 @@ export async function fetchDailyProofs(
       }
     }
 
-    offset += PAGE_SIZE;
-    // Stop if we've fetched everything
-    if (offset >= total || txns.length < PAGE_SIZE) break;
+    // Use actual returned count so API rate-limiting (e.g. 50/page cap) doesn't break pagination
+    offset += txns.length || PAGE_SIZE;
+    if (offset >= total || txns.length === 0) break;
 
     // Small delay to respect rate limits
     await new Promise((r) => setTimeout(r, 150));

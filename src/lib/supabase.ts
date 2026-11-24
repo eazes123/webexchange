@@ -8,9 +8,13 @@ const secretKey = process.env.SUPABASE_SECRET_KEY!;
 export const supabase = createClient(url, publishableKey);
 
 // Server-only admin client (secret key — API routes only, bypasses RLS)
+// Pass cache:'no-store' so Next.js data cache never stales Supabase responses
 export const supabaseAdmin = createClient(url, secretKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
+  },
+  global: {
+    fetch: (input, init = {}) => fetch(input, { ...init, cache: "no-store" }),
   },
 });

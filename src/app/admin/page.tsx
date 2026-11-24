@@ -1193,7 +1193,7 @@ export default function AdminPage() {
                         {settingsForm.chatModel || "gemini-2.5-flash"}
                       </div>
                     )}
-                    <p className="text-xs text-gray-600 mt-1">Gemini model ID used by the Nova chat widget. Must match a valid model on <span className="text-gray-500">ai.google.dev</span>.</p>
+                    <p className="text-xs text-gray-600 mt-1">Gemini model ID used by the Groxi chat widget. Must match a valid model on <span className="text-gray-500">ai.google.dev</span>.</p>
                   </div>
                 </div>
 

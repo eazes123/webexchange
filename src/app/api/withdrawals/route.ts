@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { unstable_noStore as noStore } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase";
 import { formatUsdt, shortAddr } from "@/lib/tron-proofs";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  noStore(); // bypass Next.js data cache for Supabase fetch calls
+
   const { data, error } = await supabaseAdmin
     .from("withdrawal_proof_txns")
     .select("tx_hash, from_address, to_address, amount_raw, block_timestamp, block_number")
@@ -35,5 +38,8 @@ export async function GET() {
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, txns]) => ({ date, txns }));
 
-  return NextResponse.json({ days, total: data?.length ?? 0 });
+  return NextResponse.json(
+    { days, total: data?.length ?? 0, _db: process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(-20) },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
