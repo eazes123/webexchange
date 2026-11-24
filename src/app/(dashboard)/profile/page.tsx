@@ -35,7 +35,6 @@ export default function ProfilePage() {
     }
   }, [demoUser.name]);
 
-  const isGoogleAccount = demoUser.email && !demoUser.phone && !demoUser.country && demoUser.name;
   const profileIncomplete = !demoUser.phone || !demoUser.country;
 
   async function handleSave(e: React.FormEvent) {

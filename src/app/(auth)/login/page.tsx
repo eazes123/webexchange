@@ -1,19 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const router       = useRouter();
-  const searchParams = useSearchParams();
-  const { hydrate }  = useStore();
+  const router      = useRouter();
+  const { hydrate } = useStore();
 
   useEffect(() => {
-    const err = searchParams.get("error");
-    if (err === "oauth_no_email") toast.error("Your X/Twitter account has no public email. Please enable email sharing in Twitter settings or use another login method.");
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err === "oauth_no_email") toast.error("Your X/Twitter account has no public email. Enable email sharing in Twitter settings or use another login method.");
     if (err === "oauth_failed")   toast.error("Social login failed. Please try again.");
   }, []);
 
