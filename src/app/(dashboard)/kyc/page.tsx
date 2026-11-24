@@ -273,7 +273,7 @@ export default function KycPage() {
       <div>
         <h1 className="text-2xl font-black text-white mb-2">KYC Submitted!</h1>
         <p className="text-gray-400 text-sm max-w-xs mx-auto leading-relaxed">
-          Your documents are under review. Go back to your computer — the page will update automatically.
+          Your documents are under review. Go back to your computer. The page will update automatically.
         </p>
       </div>
       <div className="flex items-center gap-2 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl px-4 py-2.5 text-xs text-gray-500">
@@ -649,7 +649,7 @@ export default function KycPage() {
                     <p className="text-xs text-gray-500 mt-1">
                       {livenessMode === "done"
                         ? "Retake if you want a better photo"
-                        : "Recommended — AI-verified, most secure"}
+                        : "Recommended: AI-verified, most secure"}
                     </p>
                   </button>
 
@@ -657,7 +657,7 @@ export default function KycPage() {
 
                 <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
                   <Lock className="w-3 h-3" />
-                  All biometric data is processed locally — never uploaded to any server
+                  All biometric data is processed locally, never uploaded to any server
                 </div>
               </>
             )}

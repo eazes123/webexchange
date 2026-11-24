@@ -393,7 +393,7 @@ export default function ChatWidget() {
                   <span className="text-[10px] text-gray-500 flex items-center gap-1 px-1">
                     <Headset className="w-3 h-3" />
                     {supportStatus === "pending" ? "Connecting to live support" :
-                     supportStatus === "active"  ? `Live — ${agentDisplay}` :
+                     supportStatus === "active"  ? `Live: ${agentDisplay}` :
                      "Support session ended"}
                   </span>
                   <div className="flex-1 h-px bg-[#1e1e1e]" />

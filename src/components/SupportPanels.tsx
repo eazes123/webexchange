@@ -379,7 +379,7 @@ export default function SupportPanels() {
         <button
           onClick={toggleSupport}
           disabled={togglingSupport}
-          title={supportAvailable ? "Support is Online — click to go Offline" : "Support is Offline — click to go Online"}
+          title={supportAvailable ? "Support is Online - click to go Offline" : "Support is Offline - click to go Online"}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold border shadow-lg transition-all ${
             supportAvailable
               ? "bg-[#0a1a0e] border-[#22c55e]/30 text-[#22c55e] hover:bg-[#22c55e]/10"

@@ -124,7 +124,7 @@ export function sendKycSubmittedEmail(to: string, fullName: string): Promise<voi
   const firstName = fullName.split(" ")[0];
   return sendEmail({
     to,
-    subject: "KYC Submitted — Under Review",
+    subject: "KYC Submitted: Under Review",
     html: baseTemplate(`
       ${badge("⏳ Under Review", "#f0b90b")}
       ${h1("KYC Submitted Successfully")}
@@ -146,7 +146,7 @@ export function sendKycApprovedEmail(to: string, fullName: string): Promise<void
   const firstName = fullName.split(" ")[0];
   return sendEmail({
     to,
-    subject: "🎉 KYC Approved — Loan Unlocked",
+    subject: "🎉 KYC Approved: Loan Unlocked",
     html: baseTemplate(`
       ${badge("✓ Identity Verified", "#0ecb81")}
       ${h1("KYC Approved!")}
@@ -169,7 +169,7 @@ export function sendKycRejectedEmail(to: string, fullName: string): Promise<void
   const firstName = fullName.split(" ")[0];
   return sendEmail({
     to,
-    subject: "KYC Verification — Action Required",
+    subject: "KYC Verification: Action Required",
     html: baseTemplate(`
       ${badge("⚠ Action Required", "#f6465d")}
       ${h1("KYC Needs Attention")}
@@ -207,7 +207,7 @@ export function sendDepositConfirmedEmail(
     : txHash;
   return sendEmail({
     to,
-    subject: `Deposit Confirmed — ${amount.toLocaleString()} USDT`,
+    subject: `Deposit Confirmed: ${amount.toLocaleString()} USDT`,
     html: baseTemplate(`
       ${badge("✓ Deposit Confirmed", "#0ecb81")}
       ${h1(`${amount.toLocaleString()} USDT Received`)}
@@ -234,7 +234,7 @@ export function sendAgentRequestEmail(
 ): Promise<void> {
   return sendEmail({
     to: adminEmail,
-    subject: `[GROXchange] Agent Request — ${userName}`,
+    subject: `[GROXchange] Agent Request: ${userName}`,
     html: baseTemplate(`
       ${badge("Support Request")}
       ${h1("New Human Agent Request")}

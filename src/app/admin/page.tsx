@@ -1505,7 +1505,7 @@ export default function AdminPage() {
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-gray-700">—</span>
+                                  <span className="text-xs text-gray-700">-</span>
                                 )}
                               </td>
                               <td>
@@ -1521,7 +1521,7 @@ export default function AdminPage() {
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-gray-700">—</span>
+                                  <span className="text-xs text-gray-700">-</span>
                                 )}
                               </td>
                               <td>
@@ -1579,7 +1579,7 @@ export default function AdminPage() {
                                     </div>
                                   )}
                                   {!u.trc20Address && !u.bscAddress && (
-                                    <span className="text-xs text-gray-700">—</span>
+                                    <span className="text-xs text-gray-700">-</span>
                                   )}
                                 </div>
                               </td>
@@ -1661,7 +1661,7 @@ export default function AdminPage() {
                                     {tx.txHash.slice(0, 12)}…
                                   </a>
                                 ) : (
-                                  <span className="text-xs text-gray-700">—</span>
+                                  <span className="text-xs text-gray-700">-</span>
                                 )}
                               </td>
                               <td className="text-gray-400 text-xs hidden md:table-cell">
@@ -1931,7 +1931,7 @@ export default function AdminPage() {
             <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
               <Headset className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-300/80">
-                <span className="font-semibold text-blue-300">Chats open automatically as floating panels</span> at the bottom of your screen — no need to stay on this tab.
+                <span className="font-semibold text-blue-300">Chats open automatically as floating panels</span> at the bottom of your screen, no need to stay on this tab.
                 Accept a pending chat directly from the panel.
               </div>
             </div>
@@ -2014,8 +2014,8 @@ export default function AdminPage() {
                             <div className="text-sm font-medium text-white">{chat.userName}</div>
                             <div className="text-xs text-gray-500">{chat.userEmail}</div>
                           </td>
-                          <td className="p-3 text-xs text-blue-400/70 hidden sm:table-cell">{chat.agentName ?? "—"}</td>
-                          <td className="p-3 text-xs text-gray-500 hidden lg:table-cell max-w-xs truncate">{chat.lastMessage ?? "—"}</td>
+                          <td className="p-3 text-xs text-blue-400/70 hidden sm:table-cell">{chat.agentName ?? "-"}</td>
+                          <td className="p-3 text-xs text-gray-500 hidden lg:table-cell max-w-xs truncate">{chat.lastMessage ?? "-"}</td>
                           <td className="p-3 text-xs text-gray-500 whitespace-nowrap">
                             {new Date(chat.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}
                           </td>
@@ -2138,8 +2138,8 @@ export default function AdminPage() {
             <div>
               <div className="font-semibold text-sm text-white">
                 {pinModal.mode === "bulk"
-                  ? `Sweep All — ${pinModal.chain === "all" ? "TRC20 + BSC" : pinModal.chain}`
-                  : `Sweep ${pinModal.chain} — ${pinModal.userName ?? ""}`}
+                  ? `Sweep All: ${pinModal.chain === "all" ? "TRC20 + BSC" : pinModal.chain}`
+                  : `Sweep ${pinModal.chain}: ${pinModal.userName ?? ""}`}
               </div>
               <div className="text-xs text-gray-500 mt-0.5">Enter your sweep PIN to continue</div>
             </div>
