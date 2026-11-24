@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Trophy, Clock, CheckCircle, Shield,
   Wallet, TrendingUp, Gift, ChevronRight,
-  Lock, AlertCircle, Zap, PartyPopper, Star
+  Lock, AlertCircle, Zap, PartyPopper, Star, UserCircle
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
@@ -76,8 +76,22 @@ export default function DashboardPage() {
     return "pending";
   };
 
+  const profileIncomplete = !demoUser.phone || !demoUser.country;
+
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full">
+
+      {/* Profile incomplete banner (Google users) */}
+      {profileIncomplete && (
+        <Link href="/profile" className="flex items-center gap-3 bg-amber-500/8 border border-amber-500/25 rounded-xl px-4 py-3 mb-5 hover:bg-amber-500/12 transition-colors group">
+          <UserCircle className="w-5 h-5 text-amber-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-300">Complete your profile</p>
+            <p className="text-xs text-gray-500 truncate">Add your phone number and country to unlock full platform access</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+        </Link>
+      )}
 
       {/* Welcome / status banner */}
       {isRewarded ? (

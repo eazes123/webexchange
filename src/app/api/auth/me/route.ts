@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     user: {
       id: user.id, fullName: user.fullName, email: user.email,
+      phone: user.phone, country: user.country,
       queuePosition: user.queuePosition, kycStatus: user.kycStatus,
       loanStatus: user.loanStatus, loanAmount: user.loanAmount,
       activationFeePaid: user.activationFeePaid,

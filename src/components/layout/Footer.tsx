@@ -42,7 +42,7 @@ export default function Footer() {
               </span>
             </div>
             <p style={{ fontSize: "12px", color: "#555", lineHeight: 1.7, maxWidth: "220px" }}>
-              A demo exchange platform built for academic and educational purposes only. Not a real financial service.
+              An exchange platform built for trading and staking-loan.
             </p>
           </div>
 
@@ -92,13 +92,11 @@ export default function Footer() {
         {/* Bottom bar */}
         <div style={{ borderTop: "1px solid #111", padding: "20px 0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <p style={{ fontSize: "11px", color: "#333", margin: 0, letterSpacing: "0.02em" }}>
-            © 2026 GROXchange | Demo Project
-          </p>
+            © 2026 GROXchange
           <div style={{ display: "flex", gap: "24px" }}>
             {[
               { label: "Privacy Policy", href: "/privacy" },
               { label: "Terms of Service", href: "/terms" },
-              { label: "Risk Disclosure", href: "/terms#10" },
             ].map(({ label, href }) => (
               <Link key={label} href={href}
                 style={{ fontSize: "11px", color: "#333", textDecoration: "none", transition: "color 0.15s" }}

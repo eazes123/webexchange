@@ -23,6 +23,8 @@ export interface Transaction {
 interface DemoUser {
   name: string;
   email: string;
+  phone: string;
+  country: string;
   kycStatus: KycStatus;
   queuePosition: number;
   loanStatus: LoanStatus;
@@ -41,6 +43,8 @@ interface DemoUser {
 const DEFAULT_USER: DemoUser = {
   name: "",
   email: "",
+  phone: "",
+  country: "",
   kycStatus: "none",
   queuePosition: 0,
   loanStatus: "none",
@@ -112,6 +116,8 @@ export const useStore = create<AppStore>((set, get) => ({
         demoUser: {
           name: user.fullName,
           email: user.email,
+          phone: user.phone ?? "",
+          country: user.country ?? "",
           kycStatus: user.kycStatus,
           queuePosition: user.queuePosition,
           loanStatus: user.loanStatus,

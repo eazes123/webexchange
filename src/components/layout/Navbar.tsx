@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   TrendingUp, Menu, X, ChevronDown,
-  LogOut, LayoutDashboard, FileText, Zap
+  LogOut, LayoutDashboard, FileText, Zap, UserCircle
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -124,6 +124,10 @@ export default function Navbar() {
                   <Link href="/dashboard" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
                     <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+                  </Link>
+                  <Link href="/profile" onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
+                    <UserCircle className="w-3.5 h-3.5" /> My Profile
                   </Link>
                   <Link href="/kyc" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">

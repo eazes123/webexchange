@@ -195,6 +195,18 @@ export async function createUser(user: Omit<DbUser, "id" | "createdAt">): Promis
   return rowToUser(data);
 }
 
+export async function updateUserProfile(userId: string, fields: {
+  fullName?: string; phone?: string; country?: string;
+}): Promise<void> {
+  const row: any = {};
+  if (fields.fullName !== undefined) row.full_name = fields.fullName.trim();
+  if (fields.phone    !== undefined) row.phone     = fields.phone.trim();
+  if (fields.country  !== undefined) row.country   = fields.country.trim();
+  if (Object.keys(row).length === 0) return;
+  const { error } = await supabaseAdmin.from("users").update(row).eq("id", userId);
+  if (error) throw new Error(`updateUserProfile failed: ${error.message}`);
+}
+
 export async function updateUser(userId: string, fields: Partial<{
   kycStatus: string; loanStatus: string; activationFeePaid: boolean;
   activationFeeRefundRequested: boolean; loanWithdrawnToExternal: boolean;
