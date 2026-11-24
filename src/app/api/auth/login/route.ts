@@ -49,6 +49,12 @@ export async function POST(request: NextRequest) {
   }
 
   const user = await findUserByEmail(email);
+  if (user?.passwordHash === "GOOGLE_OAUTH") {
+    return NextResponse.json(
+      { error: "This account uses Google Sign-In. Please use the \"Continue with Google\" button." },
+      { status: 401 }
+    );
+  }
   if (!user || !verifyPassword(password, user.passwordHash)) {
     recordLoginFail(email);
     // Same message for both "not found" and "wrong password" — prevents email enumeration

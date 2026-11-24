@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "GROXchange: Crypto Trading & Loans",
   description:
     "GROXchange: Trade crypto and get a $50,000 USDT interest-free loan. Stake 500 USDT after KYC and receive your loan instantly.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

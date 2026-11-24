@@ -95,13 +95,17 @@ export default function Footer() {
             © 2026 GROXchange | Demo Project
           </p>
           <div style={{ display: "flex", gap: "24px" }}>
-            {["Privacy Policy", "Terms of Service", "Risk Disclosure"].map((item) => (
-              <Link key={item} href="#"
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Terms of Service", href: "/terms" },
+              { label: "Risk Disclosure", href: "/terms#10" },
+            ].map(({ label, href }) => (
+              <Link key={label} href={href}
                 style={{ fontSize: "11px", color: "#333", textDecoration: "none", transition: "color 0.15s" }}
                 onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "#666")}
                 onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#333")}
               >
-                {item}
+                {label}
               </Link>
             ))}
           </div>
