@@ -133,10 +133,11 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-ex-card border border-ex-border rounded-2xl p-8">
-          {/* Google OAuth */}
+          {/* OAuth buttons */}
+          <div className="flex gap-2 mb-4">
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-3 w-full py-2.5 mb-4 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -146,6 +147,16 @@ export default function RegisterPage() {
             </svg>
             Sign up with Google
           </a>
+          <a
+            href="/api/auth/twitter"
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Sign up with X
+          </a>
+          </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-ex-border" />
             <span className="text-xs text-gray-600">or create account with email</span>

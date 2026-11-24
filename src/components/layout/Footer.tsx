@@ -93,6 +93,7 @@ export default function Footer() {
         <div style={{ borderTop: "1px solid #111", padding: "20px 0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <p style={{ fontSize: "11px", color: "#333", margin: 0, letterSpacing: "0.02em" }}>
             © 2026 GROXchange
+          </p>
           <div style={{ display: "flex", gap: "24px" }}>
             {[
               { label: "Privacy Policy", href: "/privacy" },

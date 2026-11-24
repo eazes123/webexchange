@@ -1,14 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { hydrate } = useStore();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const { hydrate }  = useStore();
+
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err === "oauth_no_email") toast.error("Your X/Twitter account has no public email. Please enable email sharing in Twitter settings or use another login method.");
+    if (err === "oauth_failed")   toast.error("Social login failed. Please try again.");
+  }, []);
 
   const [step, setStep]           = useState<"login" | "2fa">("login");
   const [email, setEmail]         = useState("");
@@ -90,12 +97,13 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-ex-card border border-ex-border rounded-2xl p-8">
-          {/* Google OAuth */}
+          {/* OAuth buttons */}
+          <div className="flex gap-2 mb-4">
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-3 w-full py-2.5 mb-4 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
           >
-            <svg width="18" height="18" viewBox="0 0 48 48">
+            <svg width="16" height="16" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
@@ -103,6 +111,16 @@ export default function LoginPage() {
             </svg>
             Continue with Google
           </a>
+          <a
+            href="/api/auth/twitter"
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-white/5 border border-ex-border rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Continue with X
+          </a>
+          </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-ex-border" />
             <span className="text-xs text-gray-600">or sign in with email</span>

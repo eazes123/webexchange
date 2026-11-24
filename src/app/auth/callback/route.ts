@@ -26,11 +26,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url));
   }
 
-  const googleUser = data.user;
-  const email = googleUser.email!.toLowerCase().trim();
+  const oauthUser = data.user;
+  const provider  = (oauthUser.app_metadata?.provider as string | undefined) ?? "oauth";
+
+  if (!oauthUser.email) {
+    return NextResponse.redirect(new URL("/login?error=oauth_no_email", request.url));
+  }
+
+  const email = oauthUser.email.toLowerCase().trim();
   const fullName =
-    (googleUser.user_metadata?.full_name as string | undefined) ??
-    (googleUser.user_metadata?.name as string | undefined) ??
+    (oauthUser.user_metadata?.full_name as string | undefined) ??
+    (oauthUser.user_metadata?.name as string | undefined) ??
+    (oauthUser.user_metadata?.user_name as string | undefined) ??
     email.split("@")[0];
 
   let user = await findUserByEmail(email);
@@ -45,12 +52,14 @@ export async function GET(request: NextRequest) {
     try { depositAddress = deriveAddress(tronMnemonic, addressIndex); } catch {}
     try { bscDepositAddress = deriveEvmAddress(bscMnemonic, addressIndex); } catch {}
 
+    const passwordHash = provider === "twitter" ? "TWITTER_OAUTH" : "GOOGLE_OAUTH";
+
     user = await createUser({
       fullName,
       email,
       phone: "",
       country: "",
-      passwordHash: "GOOGLE_OAUTH",
+      passwordHash,
       queuePosition: count + 1,
       kycStatus: "none",
       loanStatus: "none",

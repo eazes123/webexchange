@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Mail, Phone, Globe, Lock, CheckCircle, AlertCircle, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { User, Mail, Phone, Globe, Lock, CheckCircle, AlertCircle, ChevronDown, FileText, Clock, XCircle, ChevronRight } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { COUNTRIES, flagEmoji } from "@/lib/countries";
 import { toast } from "sonner";
@@ -242,6 +242,58 @@ export default function ProfilePage() {
         </button>
 
       </form>
+
+      {/* KYC status card */}
+      <div className="mt-5 bg-ex-card border border-ex-border rounded-2xl p-5">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">KYC Verification</h2>
+        {demoUser.kycStatus === "none" && (
+          <Link href="/kyc" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-full bg-gray-800 border border-ex-border flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 text-gray-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-white">Not submitted</p>
+              <p className="text-xs text-gray-500">Complete KYC to unlock staking and loan access</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </Link>
+        )}
+        {(demoUser.kycStatus === "under_review" || demoUser.kycStatus === "pending") && (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-300">Under Review</p>
+              <p className="text-xs text-gray-500">Your documents are being reviewed. Usually takes 24-48 hours.</p>
+            </div>
+          </div>
+        )}
+        {demoUser.kycStatus === "approved" && (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-green-400">Verified</p>
+              <p className="text-xs text-gray-500">Your identity has been successfully verified.</p>
+            </div>
+          </div>
+        )}
+        {demoUser.kycStatus === "rejected" && (
+          <Link href="/kyc" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+              <XCircle className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-400">Rejected — Resubmit required</p>
+              <p className="text-xs text-gray-500">Your KYC was rejected. Click here to resubmit with correct documents.</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </Link>
+        )}
+      </div>
+
     </div>
   );
 }
