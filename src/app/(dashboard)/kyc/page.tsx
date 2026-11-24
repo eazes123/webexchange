@@ -7,6 +7,7 @@ import {
   AlertCircle, Lock, Sparkles, Info, Loader2,
   Smartphone, Copy, Check, Monitor,
 } from "lucide-react";
+import { COUNTRIES, flagEmoji } from "@/lib/countries";
 import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
@@ -536,12 +537,10 @@ export default function KycPage() {
         {/* ── Step 1: Personal Info ── */}
         {step === 1 && (
           <div className="space-y-4">
-            {[
-              { label: "Full Name",     key: "fullName",    type: "text", ph: "John Doe" },
-              { label: "Date of Birth", key: "dob",         type: "date", ph: "" },
-              { label: "Nationality",   key: "nationality", type: "text", ph: "American" },
-              { label: "Home Address",  key: "address",     type: "text", ph: "123 Main St, New York, NY 10001" },
-            ].map(f => (
+            {([
+              { label: "Full Name",     key: "fullName", type: "text", ph: "John Doe" },
+              { label: "Date of Birth", key: "dob",      type: "date", ph: "" },
+            ] as { label: string; key: string; type: string; ph: string }[]).map(f => (
               <div key={f.key}>
                 <label className="text-sm font-semibold text-gray-300 block mb-2">{f.label} *</label>
                 <input
@@ -553,6 +552,31 @@ export default function KycPage() {
                 />
               </div>
             ))}
+            <div>
+              <label className="text-sm font-semibold text-gray-300 block mb-2">Nationality *</label>
+              <select
+                className="ex-input"
+                value={formData.nationality}
+                onChange={e => setFormData(d => ({ ...d, nationality: e.target.value }))}
+              >
+                <option value="">Select nationality</option>
+                {COUNTRIES.map(c => (
+                  <option key={c.code} value={c.name}>
+                    {flagEmoji(c.code)} {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-300 block mb-2">Home Address *</label>
+              <input
+                className="ex-input"
+                type="text"
+                placeholder="123 Main St, New York, NY 10001"
+                value={formData.address}
+                onChange={e => setFormData(d => ({ ...d, address: e.target.value }))}
+              />
+            </div>
           </div>
         )}
 

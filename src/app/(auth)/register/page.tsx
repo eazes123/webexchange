@@ -2,10 +2,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw, CheckCircle, ChevronDown } from "lucide-react";
 import { useStore } from "@/lib/store";
-
-const COUNTRIES = ["United States","United Kingdom","Canada","Germany","Australia","UAE","India","Singapore","Turkey","France","Netherlands","Saudi Arabia","Malaysia","Bangladesh","Pakistan"];
+import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, type Country } from "@/lib/countries";
 import { toast } from "sonner";
 
 const STEPS = ["Account Details", "Verify Email"] as const;
@@ -19,6 +18,8 @@ export default function RegisterPage() {
   const [showPw, setShowPw]       = useState(false);
   const [otp, setOtp]             = useState("");
   const [spotsLeft, setSpotsLeft] = useState(985);
+  const [dialCountry, setDialCountry] = useState<Country>(DEFAULT_COUNTRY);
+  const [phoneRaw, setPhoneRaw]       = useState("");
 
   useEffect(() => {
     fetch("/api/stats")
@@ -30,13 +31,18 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     fullName:        "",
     email:           "",
-    phone:           "",
-    country:         "United States",
+    country:         DEFAULT_COUNTRY.name,
     password:        "",
     confirmPassword: "",
     referral:        "",
     agreeTerms:      false,
   });
+
+  const handleCountryChange = (countryName: string) => {
+    const c = COUNTRIES.find(x => x.name === countryName) ?? DEFAULT_COUNTRY;
+    setForm(f => ({ ...f, country: countryName }));
+    setDialCountry(c);
+  };
 
   const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value }));
@@ -55,7 +61,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           fullName: form.fullName,
           email: form.email,
-          phone: form.phone,
+          phone: phoneRaw ? `${dialCountry.dial}${phoneRaw}` : "",
           country: form.country,
           password: form.password,
         }),
@@ -139,16 +145,48 @@ export default function RegisterPage() {
                 <input className="ex-input" type="email" required placeholder="you@example.com"
                   value={form.email} onChange={field("email")} />
               </div>
-              <div>
+              <div className="col-span-2">
                 <label className="block text-sm text-gray-400 mb-1.5">Phone *</label>
-                <input className="ex-input" type="tel" required placeholder="+1 (555) 000-0000"
-                  value={form.phone} onChange={field("phone")} />
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <select
+                      className="ex-input pl-2 pr-7 appearance-none cursor-pointer"
+                      style={{ minWidth: "90px" }}
+                      value={dialCountry.code}
+                      onChange={e => {
+                        const c = COUNTRIES.find(x => x.code === e.target.value) ?? DEFAULT_COUNTRY;
+                        setDialCountry(c);
+                      }}
+                    >
+                      {COUNTRIES.map(c => (
+                        <option key={c.code} value={c.code}>
+                          {flagEmoji(c.code)} {c.dial}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                  </div>
+                  <input
+                    className="ex-input flex-1"
+                    type="tel"
+                    required
+                    placeholder="555 000 0000"
+                    value={phoneRaw}
+                    onChange={e => setPhoneRaw(e.target.value.replace(/[^\d\s\-().]/g, ""))}
+                  />
+                </div>
               </div>
-              <div>
+              <div className="col-span-2">
                 <label className="block text-sm text-gray-400 mb-1.5">Country *</label>
-                <select className="ex-input" value={form.country} onChange={field("country")}>
+                <select
+                  className="ex-input"
+                  value={form.country}
+                  onChange={e => handleCountryChange(e.target.value)}
+                >
                   {COUNTRIES.map(c => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c.code} value={c.name}>
+                      {flagEmoji(c.code)} {c.name}
+                    </option>
                   ))}
                 </select>
               </div>

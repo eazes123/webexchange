@@ -5,6 +5,7 @@ import {
   Shield, User, FileText, Camera, Home, CheckCircle,
   Upload, ArrowRight, AlertCircle, Lock, Loader2, X, Monitor, Clock,
 } from "lucide-react";
+import { COUNTRIES, flagEmoji } from "@/lib/countries";
 
 const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
   ssr: false,
@@ -271,12 +272,10 @@ export default function KycMobilePage() {
         {/* Step 1: Personal Info */}
         {step === 1 && (
           <div className="space-y-3">
-            {[
-              { label: "Full Name",     key: "fullName",    type: "text", ph: "John Doe" },
-              { label: "Date of Birth", key: "dob",         type: "date", ph: "" },
-              { label: "Nationality",   key: "nationality", type: "text", ph: "American" },
-              { label: "Home Address",  key: "address",     type: "text", ph: "123 Main St, New York" },
-            ].map(f => (
+            {([
+              { label: "Full Name",     key: "fullName", type: "text", ph: "John Doe" },
+              { label: "Date of Birth", key: "dob",      type: "date", ph: "" },
+            ] as { label: string; key: string; type: string; ph: string }[]).map(f => (
               <div key={f.key}>
                 <label className="text-sm font-semibold text-gray-300 block mb-1.5">{f.label} *</label>
                 <input
@@ -288,6 +287,31 @@ export default function KycMobilePage() {
                 />
               </div>
             ))}
+            <div>
+              <label className="text-sm font-semibold text-gray-300 block mb-1.5">Nationality *</label>
+              <select
+                value={form.nationality}
+                onChange={e => setForm(d => ({ ...d, nationality: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl bg-[#111] border border-[#1e1e1e] text-white text-sm outline-none focus:border-[#f0b90b]/50 appearance-none"
+              >
+                <option value="">Select nationality</option>
+                {COUNTRIES.map(c => (
+                  <option key={c.code} value={c.name}>
+                    {flagEmoji(c.code)} {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-300 block mb-1.5">Home Address *</label>
+              <input
+                type="text"
+                placeholder="123 Main St, New York"
+                value={form.address}
+                onChange={e => setForm(d => ({ ...d, address: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl bg-[#111] border border-[#1e1e1e] text-white placeholder-gray-600 text-sm outline-none focus:border-[#f0b90b]/50"
+              />
+            </div>
           </div>
         )}
 
