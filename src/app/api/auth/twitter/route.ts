@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const supabase = createSupabaseServerClient();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "twitter",
+    provider: "x",
     options: {
       redirectTo: `${origin}/auth/callback`,
     },

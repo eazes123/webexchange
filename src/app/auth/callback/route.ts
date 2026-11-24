@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     try { depositAddress = deriveAddress(tronMnemonic, addressIndex); } catch {}
     try { bscDepositAddress = deriveEvmAddress(bscMnemonic, addressIndex); } catch {}
 
-    const passwordHash = provider === "twitter" ? "TWITTER_OAUTH" : "GOOGLE_OAUTH";
+    const passwordHash = provider === "x" ? "TWITTER_OAUTH" : "GOOGLE_OAUTH";
 
     user = await createUser({
       fullName,
