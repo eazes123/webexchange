@@ -8,7 +8,6 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { demoUser, hydrate } = useStore();
-  const router = useRouter();
 
   const [fullName, setFullName]       = useState("");
   const [phone, setPhone]             = useState("");
