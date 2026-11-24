@@ -289,9 +289,11 @@ function checkChatRate(userId: string): boolean {
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const user  = await getSessionUser(token);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Guests are allowed — no auth requirement for Groxi AI chat
 
-  if (!checkChatRate(user.id)) {
+  // Rate limit by user ID if logged in, else by IP
+  const rateLimitKey = user?.id ?? (request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "guest");
+  if (!checkChatRate(rateLimitKey)) {
     return NextResponse.json({ error: "Too many messages. Please wait a moment." }, { status: 429 });
   }
 
@@ -311,12 +313,17 @@ export async function POST(request: NextRequest) {
 
   // Check if user wants a human agent
   if (wantsHumanAgent(message)) {
-    const name  = user.fullName;
-    const email = user.email;
-    await sendAgentEmail(name, email, message);
+    if (user) {
+      await sendAgentEmail(user.fullName, user.email, message);
+      return NextResponse.json({
+        reply: `I've notified our support team that you'd like to speak with an agent. Someone will reach out to you at ${user.email} within a few hours. Is there anything else I can help you with in the meantime?`,
+        agentRequested: true,
+      });
+    }
+    // Guest — can't open live chat without an account
     return NextResponse.json({
-      reply: `I've notified our support team that you'd like to speak with an agent. Someone will reach out to you at ${email} within a few hours. Is there anything else I can help you with in the meantime?`,
-      agentRequested: true,
+      reply: "To connect with a live support agent, please log in or create an account first. Once logged in, type \"agent\" again and I'll connect you right away!",
+      agentRequested: false,
     });
   }
 
