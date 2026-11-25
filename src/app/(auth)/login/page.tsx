@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
-  const router      = useRouter();
+  const t        = useTranslations("auth");
+  const router   = useRouter();
   const { hydrate } = useStore();
 
   useEffect(() => {
@@ -64,8 +66,8 @@ export default function LoginPage() {
             <div className="w-14 h-14 bg-ex-yellow/10 rounded-2xl flex items-center justify-center mb-5">
               <Shield className="w-7 h-7 text-ex-yellow" />
             </div>
-            <h2 className="text-2xl font-black mb-1">2-Factor Authentication</h2>
-            <p className="text-gray-400 text-sm mb-6">Enter the 6-digit code sent to your email</p>
+            <h2 className="text-2xl font-black mb-1">{t("2fa_title")}</h2>
+            <p className="text-gray-400 text-sm mb-6">{t("2fa_subtitle")}</p>
             <form onSubmit={handle2FA} className="space-y-4">
               <input
                 className="ex-input text-center text-2xl font-num tracking-[0.4em] font-bold"
@@ -73,10 +75,10 @@ export default function LoginPage() {
                 value={otp} onChange={e => setOtp(e.target.value)} autoFocus required
               />
               <div className="text-xs text-gray-600 text-center">
-                Check your email for the verification code
+                {t("2fa_check_email")}
               </div>
               <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
-                {loading ? "Verifying..." : "Verify & Sign In"}
+                {loading ? t("verifying") : t("2fa_verify")}
               </button>
             </form>
           </div>
@@ -92,8 +94,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow text-sm px-3 py-1.5 rounded-full mb-4">
             <Zap className="w-4 h-4" /> GROXchange
           </div>
-          <h1 className="text-3xl font-black">Sign In</h1>
-          <p className="text-gray-400 mt-1">Access your account and loan dashboard</p>
+          <h1 className="text-3xl font-black">{t("login_title")}</h1>
+          <p className="text-gray-400 mt-1">{t("login_subtitle")}</p>
         </div>
 
         <div className="bg-ex-card border border-ex-border rounded-2xl p-8">
@@ -109,7 +111,7 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Continue with Google
+            {t("continue_google")}
           </a>
           <a
             href="/api/auth/twitter"
@@ -118,26 +120,26 @@ export default function LoginPage() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
-            Continue with X
+            {t("continue_x")}
           </a>
           </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-ex-border" />
-            <span className="text-xs text-gray-600">or sign in with email</span>
+            <span className="text-xs text-gray-600">{t("or_signin_email")}</span>
             <div className="flex-1 h-px bg-ex-border" />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Email Address</label>
+              <label className="block text-sm text-gray-400 mb-1.5">{t("email_label")}</label>
               <input className="ex-input" type="email" required autoComplete="email"
-                placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                placeholder={t("email_placeholder")} value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Password</label>
+              <label className="block text-sm text-gray-400 mb-1.5">{t("password_label")}</label>
               <div className="relative">
                 <input className="ex-input pr-10" type={showPw ? "text" : "password"} required
-                  autoComplete="current-password" placeholder="Your password"
+                  autoComplete="current-password" placeholder={t("password_placeholder")}
                   value={password} onChange={e => setPassword(e.target.value)} />
                 <button type="button" onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
@@ -147,14 +149,14 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary w-full py-3 flex items-center justify-center gap-2" disabled={loading}>
-              {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Signing in...</> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
+              {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> {t("signing_in")}</> : <>{t("login_button")} <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-400 mt-6">
-            No account?{" "}
+            {t("no_account")}{" "}
             <Link href="/register" className="text-ex-yellow hover:underline font-semibold">
-              Register here
+              {t("sign_up")}
             </Link>
           </p>
         </div>

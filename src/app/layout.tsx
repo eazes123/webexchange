@@ -5,6 +5,9 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import { Toaster } from "sonner";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import { rtlLocales } from "@/i18n";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -18,20 +21,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const dir = (rtlLocales as readonly string[]).includes(locale) ? "rtl" : "ltr";
+
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang={locale} dir={dir} className={inter.variable}>
       <body className="bg-ex-bg text-white min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <ChatWidget />
-        <Toaster
-          theme="dark"
-          toastOptions={{
-            style: { background: "#0d0d0d", border: "1px solid #1e1e1e", color: "white" },
-          }}
-        />
+        <NextIntlClientProvider messages={messages}>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <ChatWidget />
+          <Toaster
+            theme="dark"
+            toastOptions={{
+              style: { background: "#0d0d0d", border: "1px solid #1e1e1e", color: "white" },
+            }}
+          />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

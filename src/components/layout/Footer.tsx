@@ -1,29 +1,41 @@
 "use client";
 import Link from "next/link";
-import { TrendingUp, AlertTriangle } from "lucide-react";
-
-const LINKS: Record<string, { label: string; href: string }[]> = {
-  Exchange: [
-    { label: "Markets",        href: "/markets" },
-    { label: "Trade",          href: "/trade/BTC-USDT" },
-    { label: "Spot Trading",   href: "/trade/BTC-USDT" },
-    { label: "Futures (Demo)", href: "/markets" },
-  ],
-  Account: [
-    { label: "Register",          href: "/register" },
-    { label: "Login",             href: "/login" },
-    { label: "Dashboard",         href: "/dashboard" },
-    { label: "KYC Verification",  href: "/kyc" },
-  ],
-  Campaign: [
-    { label: "Loan Campaign",  href: "/campaign" },
-    { label: "How It Works",   href: "/#how-it-works" },
-    { label: "FAQ",            href: "/#faq" },
-    { label: "Contact",        href: "#" },
-  ],
-};
+import { TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+
+  const LINKS = [
+    {
+      heading: t("exchange"),
+      items: [
+        { label: t("markets"),      href: "/markets" },
+        { label: t("trade"),        href: "/trade/BTC-USDT" },
+        { label: t("spot_trading"), href: "/trade/BTC-USDT" },
+        { label: t("futures_demo"), href: "/markets" },
+      ],
+    },
+    {
+      heading: t("account"),
+      items: [
+        { label: t("register"),          href: "/register" },
+        { label: t("login"),             href: "/login" },
+        { label: t("dashboard"),         href: "/dashboard" },
+        { label: t("kyc_verification"),  href: "/kyc" },
+      ],
+    },
+    {
+      heading: t("campaign_section"),
+      items: [
+        { label: t("loan_campaign"), href: "/campaign" },
+        { label: t("how_it_works"),  href: "/#how-it-works" },
+        { label: t("faq"),           href: "/#faq" },
+        { label: t("contact"),       href: "#" },
+      ],
+    },
+  ];
+
   return (
     <footer style={{ background: "#080808", borderTop: "1px solid #141414", marginTop: "0" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "56px 16px 0" }}>
@@ -42,12 +54,12 @@ export default function Footer() {
               </span>
             </div>
             <p style={{ fontSize: "12px", color: "#555", lineHeight: 1.7, maxWidth: "220px" }}>
-              An exchange platform built for trading and staking-loan.
+              {t("brand_desc")}
             </p>
           </div>
 
           {/* Link columns */}
-          {Object.entries(LINKS).map(([heading, items]) => (
+          {LINKS.map(({ heading, items }) => (
             <div key={heading}>
               <h4 style={{ fontSize: "10px", fontWeight: 700, color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "16px" }}>
                 {heading}
@@ -69,44 +81,26 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Disclaimer */}
-        {/* <div style={{
-          background: "rgba(246,70,93,0.04)",
-          border: "1px solid rgba(246,70,93,0.12)",
-          borderRadius: "12px",
-          padding: "16px 20px",
-          display: "flex",
-          gap: "12px",
-          marginBottom: "32px",
-        }}>
-          <AlertTriangle style={{ width: "14px", height: "14px", color: "#f6465d", flexShrink: 0, marginTop: "1px" }} />
-          <p style={{ fontSize: "11px", color: "#555", lineHeight: 1.7, margin: 0 }}>
-            <strong style={{ color: "#666", fontWeight: 600 }}>DISCLAIMER: </strong>
-            GROXchange is a demo project created for a class assignment. It is NOT a real exchange. All features,
-            loan campaigns, KYC flows, and transactions are simulated for educational purposes only. Do NOT send
-            any real money or personal documents. The gas-fee withdrawal flow is an intentional demonstration of
-            advance-fee fraud patterns used in scam operations.
-          </p>
-        </div> */}
-
         {/* Bottom bar */}
         <div style={{ borderTop: "1px solid #111", padding: "20px 0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <p style={{ fontSize: "11px", color: "#333", margin: 0, letterSpacing: "0.02em" }}>
-            © 2026 GROXchange
+            {t("copyright")}
           </p>
           <div style={{ display: "flex", gap: "24px" }}>
-            {[
-              { label: "Privacy Policy", href: "/privacy" },
-              { label: "Terms of Service", href: "/terms" },
-            ].map(({ label, href }) => (
-              <Link key={label} href={href}
-                style={{ fontSize: "11px", color: "#333", textDecoration: "none", transition: "color 0.15s" }}
-                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "#666")}
-                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#333")}
-              >
-                {label}
-              </Link>
-            ))}
+            <Link href="/privacy"
+              style={{ fontSize: "11px", color: "#333", textDecoration: "none", transition: "color 0.15s" }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "#666")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#333")}
+            >
+              {t("privacy_policy")}
+            </Link>
+            <Link href="/terms"
+              style={{ fontSize: "11px", color: "#333", textDecoration: "none", transition: "color 0.15s" }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "#666")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#333")}
+            >
+              {t("terms_of_service")}
+            </Link>
           </div>
         </div>
       </div>

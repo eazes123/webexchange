@@ -6,10 +6,12 @@ import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw, CheckCircle, ChevronDo
 import { useStore } from "@/lib/store";
 import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, type Country } from "@/lib/countries";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const STEPS = ["Account Details", "Verify Email"] as const;
 
 export default function RegisterPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const { hydrate, setRegisteredEmail } = useStore();
 

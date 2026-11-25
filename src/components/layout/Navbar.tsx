@@ -8,15 +8,11 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-const NAV_LINKS: { href: string; label: string; badge?: string; badgeRed?: boolean }[] = [
-  { href: "/markets",       label: "Markets" },
-  { href: "/trade/BTC-USDT", label: "Trade" },
-  { href: "/campaign",      label: "Campaign", badge: "LIVE" },
-  { href: "/withdrawals",   label: "Campaign", badge: "ENDED", badgeRed: true },
-];
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Navbar() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -30,6 +26,13 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const NAV_LINKS = [
+    { href: "/markets",        label: t("markets") },
+    { href: "/trade/BTC-USDT", label: t("trade") },
+    { href: "/campaign",       label: t("campaign"), badge: "LIVE" },
+    { href: "/withdrawals",    label: t("campaign"), badge: "ENDED", badgeRed: true },
+  ];
 
   return (
     <nav
@@ -97,6 +100,7 @@ export default function Navbar() {
 
         {/* Right */}
         <div className="hidden md:flex items-center gap-2">
+          <LanguageSwitcher />
           {isLoggedIn ? (
             <div className="relative">
               <button
@@ -123,20 +127,20 @@ export default function Navbar() {
                 >
                   <Link href="/dashboard" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
-                    <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+                    <LayoutDashboard className="w-3.5 h-3.5" /> {t("dashboard")}
                   </Link>
                   <Link href="/profile" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
-                    <UserCircle className="w-3.5 h-3.5" /> My Profile
+                    <UserCircle className="w-3.5 h-3.5" /> {t("my_profile")}
                   </Link>
                   <Link href="/kyc" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
-                    <FileText className="w-3.5 h-3.5" /> KYC Status
+                    <FileText className="w-3.5 h-3.5" /> {t("kyc_status")}
                   </Link>
                   <Link href="/campaign" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-white/[0.03] transition-colors"
                     style={{ color: "#f0b90b" }}>
-                    <Zap className="w-3.5 h-3.5" /> New Year Campaign
+                    <Zap className="w-3.5 h-3.5" /> {t("new_year_campaign")}
                   </Link>
                   <div style={{ borderTop: "1px solid #1a1a1a", margin: "4px 0" }} />
                   <button
@@ -144,7 +148,7 @@ export default function Navbar() {
                     className="flex items-center gap-2 w-full px-4 py-2.5 text-sm hover:bg-white/[0.03] transition-colors"
                     style={{ color: "#f6465d" }}
                   >
-                    <LogOut className="w-3.5 h-3.5" /> Sign Out
+                    <LogOut className="w-3.5 h-3.5" /> {t("logout")}
                   </button>
                 </div>
               )}
@@ -153,7 +157,7 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <Link href="/login"
                 className="px-3 py-1.5 text-sm text-[#555] hover:text-[#aaa] transition-colors rounded-lg">
-                Login
+                {t("login")}
               </Link>
               <Link href="/register"
                 className="px-4 py-1.5 text-sm font-bold text-black rounded-lg transition-all"
@@ -161,20 +165,23 @@ export default function Navbar() {
                 onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
                 onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
               >
-                Register
+                {t("register")}
               </Link>
             </div>
           )}
         </div>
 
         {/* Mobile btn */}
-        <button
-          className="md:hidden p-2 rounded-lg transition-colors"
-          style={{ color: "#555" }}
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageSwitcher />
+          <button
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: "#555" }}
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -206,12 +213,12 @@ export default function Navbar() {
                 <Link href="/dashboard" onClick={() => setMobileOpen(false)}
                   className="flex-1 text-center py-2 text-sm rounded-lg"
                   style={{ background: "#111", color: "#aaa", border: "1px solid #1e1e1e" }}>
-                  Dashboard
+                  {t("dashboard")}
                 </Link>
                 <button onClick={async () => { await logout(); setMobileOpen(false); }}
                   className="flex-1 py-2 text-sm rounded-lg"
                   style={{ color: "#f6465d", border: "1px solid rgba(246,70,93,0.2)" }}>
-                  Sign Out
+                  {t("logout")}
                 </button>
               </>
             ) : (
@@ -219,12 +226,12 @@ export default function Navbar() {
                 <Link href="/login" onClick={() => setMobileOpen(false)}
                   className="flex-1 text-center py-2 text-sm rounded-lg"
                   style={{ color: "#888", border: "1px solid #1e1e1e" }}>
-                  Login
+                  {t("login")}
                 </Link>
                 <Link href="/register" onClick={() => setMobileOpen(false)}
                   className="flex-1 text-center py-2 text-sm font-bold rounded-lg"
                   style={{ background: "#f0b90b", color: "#000" }}>
-                  Register
+                  {t("register")}
                 </Link>
               </>
             )}
