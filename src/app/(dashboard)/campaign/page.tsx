@@ -9,6 +9,7 @@ import {
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 // -- Animated countdown block ---------------------------------------------------
 function CountdownBlock({ value, label, prev }: { value: number; label: string; prev: number }) {
@@ -94,6 +95,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 // -- Main page -----------------------------------------------------------------
 export default function CampaignPage() {
+  const t = useTranslations("campaign");
   const { demoUser, walletBalances, hydrate } = useStore();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const prevTime = useRef({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -187,17 +189,17 @@ export default function CampaignPage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#0ecb81_0%,_transparent_60%)] opacity-5 pointer-events-none" />
           <div className="text-5xl mb-4">🎉</div>
           <div className="inline-flex items-center gap-2 bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-full px-3 py-1 text-xs font-bold text-[#0ecb81] mb-4">
-            <BadgeCheck className="w-3.5 h-3.5" /> Loan Disbursed
+            <BadgeCheck className="w-3.5 h-3.5" /> {t("rewarded_badge")}
           </div>
-          <h2 className="text-3xl font-black mb-2">Congratulations!</h2>
-          <p className="text-gray-400 mb-6 text-sm">Your interest-free loan has been credited to your wallet.</p>
+          <h2 className="text-3xl font-black mb-2">{t("rewarded_congrats")}</h2>
+          <p className="text-gray-400 mb-6 text-sm">{t("rewarded_desc_long")}</p>
           <div className="bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-2xl p-6 mb-6">
             <div className="text-4xl font-black text-[#0ecb81] font-mono">+50,000 USDT</div>
-            <div className="text-sm text-gray-400 mt-1">Interest-free · 10 Years · Monthly installments apply</div>
+            <div className="text-sm text-gray-400 mt-1">{t("hero_interest_note")}</div>
           </div>
           <Link href="/wallet"
             className="inline-flex items-center gap-2 bg-[#f0b90b] hover:bg-[#f0b90b]/90 text-black font-bold px-6 py-3 rounded-xl transition-colors">
-            <Wallet className="w-4 h-4" /> View Wallet
+            <Wallet className="w-4 h-4" /> {t("view_wallet_btn")}
           </Link>
         </div>
       </div>
@@ -217,7 +219,7 @@ export default function CampaignPage() {
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
               <div className="inline-flex items-center gap-1.5 bg-[#f0b90b]/10 border border-[#f0b90b]/30 rounded-full px-3 py-1 text-xs font-bold text-[#f0b90b] mb-3">
-                <Sparkles className="w-3 h-3" /> New Year 2026 Campaign · Limited Spots
+                <Sparkles className="w-3 h-3" /> {t("hero_badge")}
               </div>
               <h1 className="text-3xl sm:text-4xl font-black leading-tight mb-2">
                 Get <span className="text-[#f0b90b]">$50,000</span> USDT<br />Interest-Free Loan
@@ -242,23 +244,23 @@ export default function CampaignPage() {
           <div className="mb-5">
             <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3 font-semibold">
               <Clock className="w-3.5 h-3.5" />
-              Campaign ends December 31, 2026
+              {t("campaign_ends_label")}
             </div>
             <div className="flex items-end gap-2 sm:gap-3">
-              <CountdownBlock value={timeLeft.days}    label="Days"    prev={prevTime.current.days}    />
+              <CountdownBlock value={timeLeft.days}    label={t("days_label")}  prev={prevTime.current.days}    />
               <span className="text-2xl font-black text-gray-600 pb-6">:</span>
-              <CountdownBlock value={timeLeft.hours}   label="Hours"   prev={prevTime.current.hours}   />
+              <CountdownBlock value={timeLeft.hours}   label={t("hours_label")} prev={prevTime.current.hours}   />
               <span className="text-2xl font-black text-gray-600 pb-6">:</span>
-              <CountdownBlock value={timeLeft.minutes} label="Min"     prev={prevTime.current.minutes} />
+              <CountdownBlock value={timeLeft.minutes} label={t("mins_label")}  prev={prevTime.current.minutes} />
               <span className="text-2xl font-black text-gray-600 pb-6">:</span>
-              <CountdownBlock value={timeLeft.seconds} label="Sec"     prev={prevTime.current.seconds} />
+              <CountdownBlock value={timeLeft.seconds} label={t("secs_label")}  prev={prevTime.current.seconds} />
             </div>
           </div>
 
           {/* Spots progress */}
           <div>
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-gray-500 font-semibold">Campaign Spots Filled</span>
+              <span className="text-gray-500 font-semibold">{t("spots_progress_label")}</span>
               <span className="text-[#f0b90b] font-bold">{displayFilled} / {maxSpots.toLocaleString()}</span>
             </div>
             <div className="h-2 bg-[#111] rounded-full overflow-hidden">
@@ -268,8 +270,8 @@ export default function CampaignPage() {
               />
             </div>
             <div className="flex justify-between mt-1.5 text-[11px] text-gray-600">
-              <span>{spotsLeft} spots remaining</span>
-              <span>First come, first served</span>
+              <span>{t("spots_left", { count: spotsLeft })}</span>
+              <span>{t("first_come_served")}</span>
             </div>
           </div>
         </div>
@@ -277,10 +279,10 @@ export default function CampaignPage() {
 
       {/* -- Stats row -- */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatTile icon={Users}     label="Participants"    value={displayFilled.toLocaleString()}      sub="Staked & active"          color="text-white" />
-        <StatTile icon={Trophy}    label="Loan Reward"     value="$50,000"      sub="Per eligible user"        color="text-[#f0b90b]" />
-        <StatTile icon={Shield}    label="Interest Rate"   value="0%"           sub="Zero interest, 10 years"  color="text-[#0ecb81]" />
-        <StatTile icon={Calendar}  label="Disbursement"    value="Dec 31"       sub="2026, 23:59 UTC"          color="text-white" />
+        <StatTile icon={Users}     label={t("participants")}        value={displayFilled.toLocaleString()} sub="Staked & active"         color="text-white" />
+        <StatTile icon={Trophy}    label={t("loan_reward")}         value="$50,000"      sub={t("per_eligible_user")}  color="text-[#f0b90b]" />
+        <StatTile icon={Shield}    label={t("interest_rate_label")} value="0%"           sub="Zero interest, 10 years" color="text-[#0ecb81]" />
+        <StatTile icon={Calendar}  label={t("disbursement_label")}  value="Dec 31"       sub="2026, 23:59 UTC"         color="text-white" />
       </div>
 
       {/* -- Status alert -- */}
@@ -288,10 +290,10 @@ export default function CampaignPage() {
         <div className="flex items-start gap-3 bg-[#f0b90b]/8 border border-[#f0b90b]/25 rounded-2xl p-4">
           <AlertTriangle className="w-5 h-5 text-[#f0b90b] shrink-0 mt-0.5" />
           <div className="flex-1">
-            <div className="font-bold text-[#f0b90b] text-sm">KYC Verification Required</div>
-            <div className="text-xs text-gray-400 mt-0.5 mb-2">Complete identity verification before you can stake in this campaign.</div>
+            <div className="font-bold text-[#f0b90b] text-sm">{t("kyc_required_alert")}</div>
+            <div className="text-xs text-gray-400 mt-0.5 mb-2">{t("kyc_required_desc")}</div>
             <Link href="/kyc" className="inline-flex items-center gap-1 text-xs font-bold text-[#f0b90b] hover:underline">
-              Complete KYC <ArrowRight className="w-3 h-3" />
+              {t("go_to_kyc")} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -301,8 +303,8 @@ export default function CampaignPage() {
         <div className="flex items-start gap-3 bg-[#0ecb81]/8 border border-[#0ecb81]/25 rounded-2xl p-4">
           <BadgeCheck className="w-5 h-5 text-[#0ecb81] shrink-0 mt-0.5" />
           <div>
-            <div className="font-bold text-[#0ecb81] text-sm">You Are Eligible for the $50,000 Loan</div>
-            <div className="text-xs text-gray-400 mt-0.5">Your stake is active. Loan will be disbursed to your wallet on December 31, 2026.</div>
+            <div className="font-bold text-[#0ecb81] text-sm">{t("staked_eligible_badge")}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{t("staked_eligible_desc")}</div>
           </div>
         </div>
       )}
@@ -311,8 +313,8 @@ export default function CampaignPage() {
         <div className="flex items-start gap-3 bg-[#f6465d]/8 border border-[#f6465d]/25 rounded-2xl p-4">
           <AlertTriangle className="w-5 h-5 text-[#f6465d] shrink-0 mt-0.5" />
           <div>
-            <div className="font-bold text-[#f6465d] text-sm">You Left the Campaign</div>
-            <div className="text-xs text-gray-400 mt-0.5">Your 500 USDT was returned to your wallet. Loan eligibility was forfeited.</div>
+            <div className="font-bold text-[#f6465d] text-sm">{t("unstaked_badge")}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{t("unstaked_desc")}</div>
           </div>
         </div>
       )}
@@ -321,7 +323,7 @@ export default function CampaignPage() {
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
           <Star className="w-5 h-5 text-[#f0b90b]" />
-          {isStaked ? "Your Campaign Status" : "Stake & Join Campaign"}
+          {isStaked ? t("your_status_title") : t("stake_now")}
         </h2>
 
         {isStaked ? (
@@ -329,10 +331,10 @@ export default function CampaignPage() {
             {/* Active stake info */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Staked",        val: `${stakeAmount} USDT`,    color: "text-white" },
-                { label: "Loan Amount",   val: "50,000 USDT",             color: "text-[#f0b90b]" },
-                { label: "Status",        val: "Active ✓",                color: "text-[#0ecb81]" },
-                { label: "Interest",      val: "0% (10 Years)",           color: "text-white" },
+                { label: t("staked_label"),    val: `${stakeAmount} USDT`,    color: "text-white" },
+                { label: t("loan_amount_col"), val: "50,000 USDT",        color: "text-[#f0b90b]" },
+                { label: t("status_col"),      val: t("active_status_val"), color: "text-[#0ecb81]" },
+                { label: t("interest_col"),    val: t("interest_val"),      color: "text-white" },
               ].map(({ label, val, color }) => (
                 <div key={label} className="bg-[#080808] border border-[#1e1e1e] rounded-xl p-3">
                   <div className="text-[11px] text-gray-500 font-semibold mb-1">{label}</div>
@@ -344,32 +346,32 @@ export default function CampaignPage() {
             {/* Progress to loan */}
             <div className="bg-[#080808] border border-[#0ecb81]/20 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-[#0ecb81]">Loan Disbursement Progress</span>
+                <span className="text-sm font-semibold text-[#0ecb81]">{t("loan_disburse_progress")}</span>
                 <span className="text-xs text-gray-500">Dec 31, 2026</span>
               </div>
               <div className="h-1.5 bg-[#111] rounded-full overflow-hidden mb-2">
                 <div className="h-full bg-[#0ecb81] rounded-full" style={{ width: "100%" }} />
               </div>
               <div className="flex justify-between text-[11px] text-gray-500">
-                <span>✓ KYC Approved</span>
-                <span>✓ 500 USDT Staked</span>
-                <span className="text-[#f0b90b]">⏳ Awaiting Dec 31</span>
+                <span>{t("kyc_progress_label")}</span>
+                <span>{t("stake_progress_label")}</span>
+                <span className="text-[#f0b90b]">{t("awaiting_label")}</span>
               </div>
             </div>
 
             {unstakeConfirm ? (
               <div className="space-y-3 p-4 bg-[#f6465d]/5 border border-[#f6465d]/20 rounded-xl">
                 <p className="text-xs text-[#f6465d] font-semibold text-center">
-                  Exiting permanently forfeits your $50,000 loan. Your 500 USDT will be returned. This cannot be undone.
+                  {t("unstake_warning")}
                 </p>
                 <div className="flex gap-2">
                   <button onClick={() => setUnstakeConfirm(false)}
                     className="flex-1 py-2.5 bg-[#111] border border-[#1e1e1e] rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors">
-                    Keep Stake
+                    {t("keep_stake_btn")}
                   </button>
                   <button onClick={handleUnstake} disabled={loading}
                     className="flex-1 py-2.5 bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl text-xs font-semibold text-[#f6465d] hover:bg-[#f6465d]/20 transition-colors disabled:opacity-40">
-                    {loading ? "Processing..." : "Exit Campaign"}
+                    {loading ? t("processing_btn") : t("exit_campaign_btn")}
                   </button>
                 </div>
               </div>
@@ -377,11 +379,11 @@ export default function CampaignPage() {
               <button onClick={() => setUnstakeConfirm(true)} disabled={loading}
                 className="w-full py-3 bg-[#111] border border-[#1e1e1e] rounded-xl text-sm font-semibold text-gray-400 hover:text-[#f6465d] hover:border-[#f6465d]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-40">
                 <Unlock className="w-4 h-4" />
-                {loading ? "Processing..." : "Exit Campaign (Returns 500 USDT, Forfeits Loan)"}
+                {loading ? t("processing_btn") : t("exit_campaign_full_btn")}
               </button>
             )}
             <p className="text-[11px] text-gray-600 text-center leading-relaxed">
-              Exiting the campaign permanently forfeits your $50,000 loan eligibility. Your staked 500 USDT will be returned immediately.
+              {t("exit_note")}
             </p>
           </div>
         ) : (
@@ -391,17 +393,17 @@ export default function CampaignPage() {
               {[
                 {
                   done: kycApproved,
-                  label: "KYC Verification",
-                  sub: kycApproved ? "Identity verified, full access unlocked" : "Complete identity verification",
+                  label: t("kyc_check_label"),
+                  sub: kycApproved ? t("kyc_check_done") : t("kyc_check_todo"),
                   link: !kycApproved ? "/kyc" : undefined,
-                  linkLabel: "Verify Now",
+                  linkLabel: t("verify_now_btn"),
                 },
                 {
                   done: usdtAvailable + usdtLocked >= 500,
-                  label: "500+ USDT Balance",
+                  label: t("usdt_check_label"),
                   sub: `Available: ${usdtAvailable.toFixed(2)} USDT`,
                   link: (usdtAvailable + usdtLocked) < 500 ? "/wallet" : undefined,
-                  linkLabel: "Deposit Now",
+                  linkLabel: t("deposit_now_btn"),
                 },
               ].map(({ done, label, sub, link, linkLabel }) => (
                 <div key={label} className={`flex items-center gap-3 p-3 rounded-xl border ${
@@ -428,14 +430,14 @@ export default function CampaignPage() {
             {/* Stake summary */}
             <div className="bg-[#080808] border border-[#1e1e1e] rounded-2xl p-4">
               <div className="flex items-center justify-between text-sm mb-3 pb-3 border-b border-[#1e1e1e]">
-                <span className="text-gray-500">You stake</span>
+                <span className="text-gray-500">{t("you_stake_label")}</span>
                 <span className="font-bold font-mono">500 USDT</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">You receive on Dec 31</span>
+                <span className="text-gray-500">{t("you_receive_label")}</span>
                 <span className="font-black font-mono text-[#f0b90b] text-lg">50,000 USDT</span>
               </div>
-              <div className="text-[11px] text-gray-600 text-right mt-0.5">Interest-free · 10 Years · Monthly installments apply</div>
+              <div className="text-[11px] text-gray-600 text-right mt-0.5">{t("hero_interest_note")}</div>
             </div>
 
             <button onClick={handleStake}
@@ -448,11 +450,11 @@ export default function CampaignPage() {
               )}
               <Lock className="w-5 h-5 relative z-10" />
               <span className="relative z-10">
-                {loading ? "Staking..." : "Stake 500 USDT & Claim $50,000 Loan"}
+                {loading ? t("staking_btn") : t("stake_btn")}
               </span>
             </button>
             <p className="text-[11px] text-gray-500 text-center">
-              500 USDT locked until Dec 31, 2026 · Loan disbursed automatically
+              {t("stake_lock_note")}
             </p>
           </div>
         )}
@@ -461,38 +463,38 @@ export default function CampaignPage() {
       {/* -- Steps -- */}
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-[#f0b90b]" /> How It Works
+          <TrendingUp className="w-5 h-5 text-[#f0b90b]" /> {t("steps_title")}
         </h2>
         <div className="space-y-3">
           <StepRow n={1} done={kycApproved}
             active={!kycApproved}
-            label="Complete KYC Verification"
-            sub="Upload government-issued ID + selfie. Reviewed within 24–48 hours."
+            label={t("step1_full_label")}
+            sub={t("step1_full_sub")}
             action={!kycApproved ? (
               <Link href="/kyc" className="inline-flex items-center gap-1 text-xs font-bold bg-[#f0b90b] text-black px-3 py-1.5 rounded-lg hover:bg-[#f0b90b]/90 transition-colors">
-                Go to KYC <ArrowRight className="w-3 h-3" />
+                {t("go_to_kyc_btn")} <ArrowRight className="w-3 h-3" />
               </Link>
             ) : undefined}
           />
           <StepRow n={2} done={usdtAvailable + usdtLocked >= 500}
             active={kycApproved && (usdtAvailable + usdtLocked) < 500}
-            label="Deposit 500+ USDT (TRC20)"
-            sub={`Send USDT TRC20 to your personal deposit address on the Wallet page. Current: ${(usdtAvailable + usdtLocked).toFixed(2)} USDT`}
+            label={t("step2_full_label")}
+            sub={`${t("step2_full_sub")} Current: ${(usdtAvailable + usdtLocked).toFixed(2)} USDT`}
             action={kycApproved && (usdtAvailable + usdtLocked) < 500 ? (
               <Link href="/wallet" className="inline-flex items-center gap-1 text-xs font-bold bg-[#f0b90b] text-black px-3 py-1.5 rounded-lg hover:bg-[#f0b90b]/90 transition-colors">
-                Deposit Now <ArrowRight className="w-3 h-3" />
+                {t("deposit_now_btn")} <ArrowRight className="w-3 h-3" />
               </Link>
             ) : undefined}
           />
           <StepRow n={3} done={isStaked || isRewarded}
             active={kycApproved && hasEnough && !isStaked && !isRewarded}
-            label="Stake 500 USDT in Campaign"
-            sub="One click to lock your stake and secure your spot. Keep staked until Dec 31 to receive the loan."
+            label={t("step3_full_label")}
+            sub={t("step3_full_sub")}
           />
           <StepRow n={4} done={isRewarded}
             active={false}
-            label="Receive $50,000 USDT Loan"
-            sub="Automatically credited to your wallet on December 31, 2026. Trade freely or withdraw anytime."
+            label={t("step4_full_label")}
+            sub={t("step4_full_sub")}
           />
         </div>
       </div>
@@ -502,22 +504,22 @@ export default function CampaignPage() {
         {[
           {
             icon: TrendingUp,
-            title: "Trade with $50K",
-            desc: "Use the full loan balance to trade on GROXchange when live trading launches.",
+            title: t("benefit1_title"),
+            desc: t("benefit1_desc"),
             color: "#f0b90b",
             bg: "bg-[#f0b90b]/5 border-[#f0b90b]/15",
           },
           {
             icon: Wallet,
-            title: "Withdraw Anytime",
-            desc: "After disbursement on Dec 31, withdraw the loan to any TRON wallet. No lock-up.",
+            title: t("benefit2_title"),
+            desc: t("benefit2_desc"),
             color: "#0ecb81",
             bg: "bg-[#0ecb81]/5 border-[#0ecb81]/15",
           },
           {
             icon: Shield,
-            title: "Zero Interest",
-            desc: "No interest, no hidden fees. The $50,000 loan is completely free for 10 years.",
+            title: t("benefit3_title"),
+            desc: t("benefit3_desc"),
             color: "#2196f3",
             bg: "bg-[#2196f3]/5 border-[#2196f3]/15",
           },
@@ -536,20 +538,20 @@ export default function CampaignPage() {
       {/* -- Loan terms table -- */}
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
-          <Gift className="w-5 h-5 text-[#f0b90b]" /> Loan Terms & Details
+          <Gift className="w-5 h-5 text-[#f0b90b]" /> {t("loan_terms_title")}
         </h2>
         <div className="divide-y divide-[#1e1e1e]/60 text-sm">
           {[
-            ["Minimum Stake",        "500 USDT"],
-            ["Maximum Stake",        "50,000 USDT"],
-            ["Loan Amount",          "$50,000 USDT (fixed for all users)"],
-            ["Interest Rate",        "0%, no interest, no hidden fees"],
-            ["Loan Term",            "10 Years from disbursement"],
-            ["Disbursement Date",    "December 31, 2026 at 23:59 UTC"],
-            ["Network",              "USDT TRC20 (TRON only)"],
-            ["KYC Required",         "Yes, approved before Dec 31"],
-            ["Early Exit Allowed",   "Yes, but forfeits loan permanently"],
-            ["Campaign Spots",       "1,000 total (first come, first served)"],
+            [t("lt_min_stake"),    t("lt_min_stake_val")],
+            [t("lt_max_stake"),    t("lt_max_stake_val")],
+            [t("lt_loan_amount"),  t("lt_loan_amount_val")],
+            [t("lt_interest_rate"), t("lt_interest_rate_val")],
+            [t("lt_loan_term"),    t("lt_loan_term_val")],
+            [t("lt_disbursement"), t("lt_disbursement_val")],
+            [t("lt_network"),      t("lt_network_val")],
+            [t("lt_kyc_required"), t("lt_kyc_required_val")],
+            [t("lt_early_exit"),   t("lt_early_exit_val")],
+            [t("lt_spots"),        t("lt_spots_val")],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between items-center py-3 gap-4">
               <span className="text-gray-500 shrink-0">{k}</span>
@@ -562,34 +564,16 @@ export default function CampaignPage() {
       {/* -- FAQ -- */}
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-3xl p-5 sm:p-6">
         <h2 className="font-black text-lg mb-5 flex items-center gap-2">
-          <Info className="w-5 h-5 text-[#f0b90b]" /> Frequently Asked Questions
+          <Info className="w-5 h-5 text-[#f0b90b]" /> {t("faq_title")}
         </h2>
         <div className="space-y-2">
           {[
-            {
-              q: "Is the $50,000 loan real?",
-              a: "Yes. Every eligible user who maintains an active stake and passes KYC receives exactly $50,000 USDT credited to their GROXchange wallet on December 31, 2026.",
-            },
-            {
-              q: "Can I withdraw my staked 500 USDT before Dec 31?",
-              a: "Yes, you can exit the campaign at any time. Your 500 USDT is immediately returned to your wallet. However, unstaking permanently forfeits your $50,000 loan eligibility. You will not receive the loan.",
-            },
-            {
-              q: "Can I stake more than 500 USDT?",
-              a: "Yes, the maximum stake is 50,000 USDT. However, the loan amount is fixed at $50,000 USDT regardless of how much you stake. All eligible participants receive the same loan.",
-            },
-            {
-              q: "What if I don't complete KYC before Dec 31?",
-              a: "KYC must be approved before December 31, 2026 to receive the loan. Even if you've staked, the loan will not be disbursed without an approved KYC.",
-            },
-            {
-              q: "How do I withdraw the loan after disbursement?",
-              a: "After December 31, the $50,000 appears in your available balance. Go to Wallet → Withdraw, enter your TRON wallet address, and submit a withdrawal request. Standard 1 USDT network fee applies.",
-            },
-            {
-              q: "What is USDT TRC20? Can I send ERC20?",
-              a: "USDT TRC20 is Tether on the TRON blockchain. You MUST use TRC20. Sending ERC20 or BEP20 will result in permanent loss of funds. Always double-check the network before sending.",
-            },
+            { q: t("faq5_q"), a: t("faq5_a") },
+            { q: t("faq6_q"), a: t("faq6_a") },
+            { q: t("faq7_q"), a: t("faq7_a") },
+            { q: t("faq8_q"), a: t("faq8_a") },
+            { q: t("faq9_q"), a: t("faq9_a") },
+            { q: t("faq10_q"), a: t("faq10_a") },
           ].map(({ q, a }) => (
             <FaqItem key={q} q={q} a={a} />
           ))}

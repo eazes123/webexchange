@@ -11,6 +11,7 @@ import { COINS, WITHDRAWAL_FEES } from "@/lib/mock-data";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslations } from "next-intl";
 
 type ModalType = "deposit" | "withdraw" | null;
 
@@ -74,6 +75,7 @@ function StatusChip({ status }: { status: string }) {
 }
 
 export default function WalletPage() {
+  const t = useTranslations("wallet");
   const { walletBalances, transactions, withdraw, coins, demoUser, hydrate } = useStore();
   const [modal, setModal]               = useState<ModalType>(null);
   const [selectedAsset, setSelectedAsset] = useState("USDT");
@@ -239,24 +241,24 @@ export default function WalletPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-black mb-1">Wallet</h1>
-          <p className="text-gray-400">Your assets, deposits and withdrawals</p>
+          <h1 className="text-3xl font-black mb-1">{t("title")}</h1>
+          <p className="text-gray-400">{t("subtitle")}</p>
         </div>
         <button onClick={() => setHideBalance(!hideBalance)}
           className="flex items-center gap-2 text-sm text-gray-400 hover:text-white px-3 py-2 bg-ex-card border border-ex-border rounded-xl transition-colors">
           {hideBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-          {hideBalance ? "Show" : "Hide"}
+          {hideBalance ? t("show_balance") : t("hide_balance")}
         </button>
       </div>
 
       {/* Total portfolio */}
       <div className="bg-gradient-to-r from-ex-card2 to-ex-card border border-ex-border rounded-2xl p-6 mb-6">
-        <p className="text-sm text-gray-400 mb-1">Total Portfolio Value</p>
+        <p className="text-sm text-gray-400 mb-1">{t("total_portfolio_value")}</p>
         <div className="text-4xl font-black font-num mb-1">
           {hideBalance ? "••••••" : `$${totalUSD.toLocaleString("en-US", { maximumFractionDigits: 2 })}`}
         </div>
         <p className="text-sm text-gray-500">
-          {ASSETS.filter(a => (walletBalances[a]?.available ?? 0) + (walletBalances[a]?.locked ?? 0) > 0).length} active assets
+          {t("active_assets", { count: ASSETS.filter(a => (walletBalances[a]?.available ?? 0) + (walletBalances[a]?.locked ?? 0) > 0).length })}
         </p>
       </div>
 
@@ -265,7 +267,7 @@ export default function WalletPage() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-ex-blue" />
-            <h2 className="font-bold">Your USDT Deposit Address</h2>
+            <h2 className="font-bold">{t("usdt_deposit_address_title")}</h2>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-ex-green">
             <span className="w-2 h-2 rounded-full bg-ex-green animate-pulse" />
@@ -298,7 +300,7 @@ export default function WalletPage() {
                 <div className="p-3 bg-white rounded-2xl">
                   <QRCodeSVG value={activeAddress} size={120} bgColor="#ffffff" fgColor="#000000" level="M" />
                 </div>
-                <span className="text-[10px] text-gray-600 font-semibold">Scan to get address</span>
+                <span className="text-[10px] text-gray-600 font-semibold">{t("scan_to_get_address")}</span>
               </div>
               <div className="flex-1 font-mono text-sm text-gray-200 break-all bg-ex-bg rounded-xl p-4 select-all border border-ex-border flex items-center">
                 {activeAddress}
@@ -321,7 +323,7 @@ export default function WalletPage() {
                         : <Radio className="w-3.5 h-3.5 text-ex-blue animate-pulse" />}
                       <div>
                         <div className={`font-semibold ${tx.confirmed ? "text-ex-yellow" : "text-ex-blue"}`}>
-                          {tx.confirmed ? "Deposit detected" : "Incoming on network"}
+                          {tx.confirmed ? t("deposit_detected_label") : t("incoming_on_network_label")}
                         </div>
                         <div className="text-gray-400 font-mono">{tx.txHash.slice(0, 20)}…</div>
                       </div>
@@ -329,7 +331,7 @@ export default function WalletPage() {
                     <div className="text-right">
                       <div className="font-semibold font-num text-ex-green">+{tx.amount} USDT</div>
                       <div className={`mt-0.5 font-semibold ${tx.confirmed ? "text-ex-yellow" : "text-ex-blue"}`}>
-                        {tx.confirmed ? "Crediting..." : "Confirming..."}
+                        {tx.confirmed ? t("crediting_label") : t("confirming_label")}
                       </div>
                     </div>
                   </div>
@@ -340,13 +342,13 @@ export default function WalletPage() {
             <div className="flex items-center gap-3 flex-wrap">
               <button onClick={handleCopyAddress}
                 className="flex items-center gap-2 text-sm text-ex-yellow hover:text-yellow-400 transition-colors font-semibold">
-                {copied ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Address</>}
+                {copied ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> {t("copy_address_btn")}</>}
               </button>
               <button onClick={handleManualCheck} disabled={checkingDeposit}
                 className="flex items-center gap-2 text-sm text-ex-blue hover:text-blue-400 transition-colors font-semibold disabled:opacity-50">
                 {checkingDeposit
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</>
-                  : <><RefreshCw className="w-4 h-4" /> Check Now</>}
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("checking")}</>
+                  : <><RefreshCw className="w-4 h-4" /> {t("check_now_btn")}</>}
               </button>
             </div>
             <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
@@ -372,29 +374,27 @@ export default function WalletPage() {
               ))}
             </div>
             <div className="mt-3 bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow">
-              {network === "TRC20"
-                ? "Only send USDT (TRC20) to this address. Sending other assets or networks may result in permanent loss."
-                : "Only send USDT (BEP20) to this address on the BSC network. Sending other assets or networks may result in permanent loss."}
+              {network === "TRC20" ? t("tron_trc20_warning") : t("bep20_warning")}
             </div>
           </>
         ) : (
-          <div className="text-sm text-gray-500 py-2">Deposit address not assigned yet. Please contact support.</div>
+          <div className="text-sm text-gray-500 py-2">{t("address_not_assigned")}</div>
         )}
       </div>
 
       {/* Asset table */}
       <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden mb-6">
         <div className="px-5 py-4 border-b border-ex-border flex items-center justify-between">
-          <h2 className="font-bold">Your Assets</h2>
+          <h2 className="font-bold">{t("your_assets_title")}</h2>
         </div>
         <table className="w-full">
           <thead>
             <tr className="text-xs text-gray-500 border-b border-ex-border">
-              <th className="text-left px-5 py-3 font-medium">Asset</th>
-              <th className="text-right px-5 py-3 font-medium">Available</th>
-              <th className="text-right px-5 py-3 font-medium hidden md:table-cell">Locked / Staked</th>
-              <th className="text-right px-5 py-3 font-medium hidden md:table-cell">USD Value</th>
-              <th className="text-center px-5 py-3 font-medium">Actions</th>
+              <th className="text-left px-5 py-3 font-medium">{t("th_asset")}</th>
+              <th className="text-right px-5 py-3 font-medium">{t("th_available")}</th>
+              <th className="text-right px-5 py-3 font-medium hidden md:table-cell">{t("th_locked_staked")}</th>
+              <th className="text-right px-5 py-3 font-medium hidden md:table-cell">{t("th_usd_value")}</th>
+              <th className="text-center px-5 py-3 font-medium">{t("th_actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -434,11 +434,11 @@ export default function WalletPage() {
                     <div className="flex items-center justify-center gap-2">
                       <button onClick={() => openDeposit(sym)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-ex-green/10 text-ex-green text-xs font-semibold rounded-lg hover:bg-ex-green/20 border border-ex-green/30 transition-colors">
-                        <ArrowDownLeft className="w-3.5 h-3.5" /> Deposit
+                        <ArrowDownLeft className="w-3.5 h-3.5" /> {t("deposit_btn")}
                       </button>
                       <button onClick={() => openWithdraw(sym)} disabled={bal <= 0}
                         className="flex items-center gap-1 px-3 py-1.5 bg-ex-card2 text-gray-300 text-xs font-semibold rounded-lg hover:bg-ex-border border border-ex-border transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                        <ArrowUpRight className="w-3.5 h-3.5" /> Withdraw
+                        <ArrowUpRight className="w-3.5 h-3.5" /> {t("withdraw_btn")}
                       </button>
                     </div>
                   </td>
@@ -452,11 +452,11 @@ export default function WalletPage() {
       {/* Transaction history */}
       <div className="bg-ex-card border border-ex-border rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-ex-border">
-          <h2 className="font-bold">Transaction History</h2>
+          <h2 className="font-bold">{t("transaction_history")}</h2>
         </div>
         <div className="divide-y divide-ex-border/50">
           {transactions.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">No transactions yet</div>
+            <div className="text-center py-12 text-gray-500">{t("no_history")}</div>
           ) : (
             transactions.map(tx => (
               <div key={tx.id} className="flex items-center gap-4 px-5 py-4 hover:bg-ex-card2/30 transition-colors">
@@ -503,7 +503,7 @@ export default function WalletPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-ex-card border border-ex-border rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-black">Deposit {selectedAsset}</h3>
+              <h3 className="text-xl font-black">{t("deposit_modal_title", { asset: selectedAsset })}</h3>
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -536,10 +536,10 @@ export default function WalletPage() {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-ex-green">
                       <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />
-                      Auto-detecting
+                      {t("auto_detecting_label")}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mb-2">Your Unique Deposit Address</div>
+                  <div className="text-xs text-gray-500 mb-2">{t("usdt_deposit_address_title")}</div>
                   <div className="font-mono text-sm text-gray-200 break-all mb-3 bg-ex-bg rounded-lg p-3 select-all">
                     {activeAddress ?? "Not assigned"}
                   </div>
@@ -562,7 +562,7 @@ export default function WalletPage() {
                             ? <Zap className="w-3.5 h-3.5 text-ex-yellow" />
                             : <Radio className="w-3.5 h-3.5 text-ex-blue animate-pulse" />}
                           <span className={tx.confirmed ? "text-ex-yellow font-semibold" : "text-ex-blue font-semibold"}>
-                            {tx.confirmed ? "Deposit detected" : "Incoming on network"}
+                            {tx.confirmed ? t("deposit_detected_label") : t("incoming_on_network_label")}
                           </span>
                         </div>
                         <span className="font-semibold font-num text-ex-green">+{tx.amount} USDT</span>
@@ -571,24 +571,19 @@ export default function WalletPage() {
                   </div>
                 )}
                 <div className="bg-ex-yellow/10 border border-ex-yellow/30 rounded-xl p-3 text-xs text-ex-yellow mb-4">
-                  {network === "TRC20"
-                    ? "Only send USDT (TRC20) to this address. Other assets will be lost permanently."
-                    : "Only send USDT (BEP20) to this BSC address. Other assets will be lost permanently."}
+                  {network === "TRC20" ? t("tron_trc20_modal_warning") : t("bep20_modal_warning")}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-ex-green animate-pulse" />
-                  Automatically checking every 30 seconds
+                  {t("checking_every_30s")}
                   {lastChecked && <span>· last {timeAgo(lastChecked)}</span>}
                 </div>
               </>
             ) : (
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-5 text-center">
                 <Info className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                <div className="text-sm font-semibold mb-1">Other Assets: Contact Support</div>
-                <div className="text-xs text-gray-500">
-                  For {selectedAsset} deposits, please contact our support team to get your deposit address.
-                  USDT (TRC20) is our primary supported deposit method for the campaign.
-                </div>
+                <div className="text-sm font-semibold mb-1">{t("other_assets_title")}</div>
+                <div className="text-xs text-gray-500">{t("contact_support_deposit", { asset: selectedAsset })}</div>
               </div>
             )}
           </div>
@@ -600,7 +595,7 @@ export default function WalletPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-ex-card border border-ex-border rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-black">Withdraw {selectedAsset}</h3>
+              <h3 className="text-xl font-black">{t("withdraw_modal_title", { asset: selectedAsset })}</h3>
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -618,37 +613,37 @@ export default function WalletPage() {
             {selectedAsset === "USDT" ? (
               <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-xs text-[#f6465d] mb-4 flex items-start gap-2">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>Double-check your withdrawal address. On-chain transfers are <strong>irreversible</strong>. Funds sent to a wrong address cannot be recovered.</span>
+                <span>{t("irreversible_warning")}</span>
               </div>
             ) : (
               <div className="bg-ex-blue/10 border border-ex-blue/30 rounded-xl p-3 text-xs text-ex-blue mb-4">
                 <Clock className="w-3.5 h-3.5 inline mr-1" />
-                Withdrawals require admin approval. Processing time: 24-48 hours.
+                {t("admin_approval_notice")}
               </div>
             )}
 
             <form onSubmit={handleWithdraw} className="space-y-4">
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-3 flex justify-between items-center">
-                <span className="text-sm text-gray-400">Available Balance</span>
+                <span className="text-sm text-gray-400">{t("available_balance_label")}</span>
                 <span className="font-num font-bold">{avail.toLocaleString("en-US", { maximumFractionDigits: 6 })} {selectedAsset}</span>
               </div>
               {wdFee && (
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1.5">Network</label>
+                  <label className="text-sm text-gray-400 block mb-1.5">{t("network_label")}</label>
                   <div className="ex-input text-sm text-gray-300">{wdFee.network}</div>
                 </div>
               )}
               <div>
-                <label className="text-sm text-gray-400 block mb-1.5">Destination Address *</label>
+                <label className="text-sm text-gray-400 block mb-1.5">{t("destination_address_label")}</label>
                 <input className="ex-input font-mono text-sm" type="text" required
                   placeholder={`Enter ${selectedAsset} address`}
                   value={withdrawAddress} onChange={e => setWithdrawAddress(e.target.value)} />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-sm text-gray-400">Amount *</label>
+                  <label className="text-sm text-gray-400">{t("amount_wd_label")}</label>
                   <button type="button" onClick={() => setWithdrawAmount(String(avail - (wdFee?.fee ?? 0)))}
-                    className="text-xs text-ex-yellow hover:underline">Max</button>
+                    className="text-xs text-ex-yellow hover:underline">{t("max_btn")}</button>
                 </div>
                 <input className="ex-input font-num" type="number" required step="any"
                   min={wdFee?.min} max={avail}
@@ -658,17 +653,17 @@ export default function WalletPage() {
               {wdFee && withdrawAmount && (
                 <div className="bg-ex-card2 border border-ex-border rounded-xl p-3 text-xs space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Network Fee</span>
+                    <span className="text-gray-500">{t("network_fee_label")}</span>
                     <span>{wdFee.fee} {selectedAsset}</span>
                   </div>
                   <div className="flex justify-between font-semibold">
-                    <span className="text-gray-500">You Receive</span>
+                    <span className="text-gray-500">{t("you_receive_label")}</span>
                     <span>{Math.max(0, parseFloat(withdrawAmount) - wdFee.fee).toFixed(6)} {selectedAsset}</span>
                   </div>
                 </div>
               )}
               <button type="submit" className="btn-primary w-full py-3" disabled={withdrawLoading}>
-                {withdrawLoading ? "Submitting..." : `Request Withdrawal`}
+                {withdrawLoading ? t("submitting") : t("request_withdrawal_btn")}
               </button>
             </form>
           </div>

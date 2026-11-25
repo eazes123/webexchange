@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 
 const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
   ssr: false,
@@ -23,15 +24,7 @@ const LivenessCheck = dynamic(() => import("@/components/kyc/LivenessCheck"), {
   ),
 });
 
-const STEPS = [
-  { id: 1, label: "Personal Info",    icon: User,        title: "Personal Information" },
-  { id: 2, label: "ID Document",      icon: FileText,    title: "Upload ID Document" },
-  { id: 3, label: "Liveness Check",   icon: Camera,      title: "Liveness Check" },
-  { id: 4, label: "Proof of Address", icon: Home,        title: "Proof of Address" },
-  { id: 5, label: "Review",           icon: CheckCircle, title: "Review & Submit" },
-];
-
-const DOC_TYPES = ["Passport", "National ID Card", "Driver's License"];
+const STEP_ICONS = [User, FileText, Camera, Home, CheckCircle];
 
 function UploadZone({
   id, label, required = true, accepted = ".jpg,.jpeg,.png,.pdf",
@@ -40,6 +33,7 @@ function UploadZone({
   id: string; label: string; required?: boolean; accepted?: string;
   value: File | null; onChange: (f: File | null) => void; hint?: string;
 }) {
+  const t = useTranslations("kyc");
   return (
     <div>
       <label className="text-sm font-semibold text-gray-300 block mb-2">{label}{required ? " *" : ""}</label>
@@ -57,7 +51,7 @@ function UploadZone({
               <CheckCircle className="w-5 h-5 text-[#0ecb81]" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold text-[#0ecb81]">Uploaded</p>
+              <p className="text-sm font-semibold text-[#0ecb81]">{t("uploaded_label")}</p>
               <p className="text-xs text-gray-500 truncate max-w-[180px]">{value.name}</p>
             </div>
             <button
@@ -73,8 +67,8 @@ function UploadZone({
             <div className="w-12 h-12 rounded-2xl bg-[#131313] border border-[#1e1e1e] flex items-center justify-center mx-auto mb-3">
               <Upload className="w-5 h-5 text-gray-500" />
             </div>
-            <p className="text-sm font-semibold text-white mb-1">Click to upload</p>
-            <p className="text-xs text-gray-500">{hint ?? "JPG, PNG, PDF up to 5MB"}</p>
+            <p className="text-sm font-semibold text-white mb-1">{t("click_to_upload")}</p>
+            <p className="text-xs text-gray-500">{hint ?? t("upload_hint")}</p>
           </>
         )}
         <input id={id} type="file" className="hidden" accept={accepted}
@@ -85,8 +79,18 @@ function UploadZone({
 }
 
 export default function KycPage() {
+  const t = useTranslations("kyc");
   const router = useRouter();
   const { demoUser, setKycStatus } = useStore();
+
+  const STEPS = [
+    { id: 1, label: t("step1_label"), icon: STEP_ICONS[0], title: t("step1_title") },
+    { id: 2, label: t("step2_label"), icon: STEP_ICONS[1], title: t("step2_title") },
+    { id: 3, label: t("step3_label"), icon: STEP_ICONS[2], title: t("step3_title") },
+    { id: 4, label: t("step4_label"), icon: STEP_ICONS[3], title: t("step4_title") },
+    { id: 5, label: t("step5_label"), icon: STEP_ICONS[4], title: t("step5_title") },
+  ];
+  const DOC_TYPES = [t("passport"), t("national_id"), t("drivers_license")];
   const [step, setStep] = useState(demoUser.kycStatus === "approved" ? 5 : 1);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(
@@ -189,26 +193,26 @@ export default function KycPage() {
 
   const handleNext = async () => {
     if (step === 1) {
-      if (!formData.fullName.trim())    { toast.error("Full name is required");      return; }
-      if (!formData.dob)                { toast.error("Date of birth is required");   return; }
-      if (!formData.nationality.trim()) { toast.error("Nationality is required");     return; }
-      if (!formData.address.trim())     { toast.error("Home address is required");    return; }
+      if (!formData.fullName.trim())    { toast.error(t("err_full_name_required"));  return; }
+      if (!formData.dob)                { toast.error(t("err_dob_required"));        return; }
+      if (!formData.nationality.trim()) { toast.error(t("err_nationality_required")); return; }
+      if (!formData.address.trim())     { toast.error(t("err_address_required"));    return; }
       const dob = new Date(formData.dob);
       const age = (Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
-      if (isNaN(dob.getTime()) || age < 18) { toast.error("You must be at least 18 years old"); return; }
+      if (isNaN(dob.getTime()) || age < 18) { toast.error(t("err_min_age")); return; }
     }
-    if (step === 2 && !formData.docFront)  { toast.error("Please upload the front of your ID document"); return; }
-    if (step === 3 && !formData.selfie)    { toast.error("Please take a selfie or upload a photo");     return; }
-    if (step === 4 && !formData.addressDoc){ toast.error("Please upload a proof of address document");   return; }
+    if (step === 2 && !formData.docFront)  { toast.error(t("err_upload_id_front")); return; }
+    if (step === 3 && !formData.selfie)    { toast.error(t("err_upload_selfie"));   return; }
+    if (step === 4 && !formData.addressDoc){ toast.error(t("err_upload_address"));  return; }
 
     if (step < 5) { setStep(s => s + 1); return; }
 
     if (!formData.fullName.trim() || !formData.dob || !formData.nationality.trim() || !formData.address.trim()) {
-      toast.error("Personal information is incomplete. Go back to Step 1."); return;
+      toast.error(t("err_incomplete_personal")); return;
     }
-    if (!formData.docFront)  { toast.error("ID document is missing. Go back to Step 2."); return; }
-    if (!formData.selfie)    { toast.error("Selfie is missing. Go back to Step 3."); return; }
-    if (!formData.addressDoc){ toast.error("Proof of address is missing. Go back to Step 4."); return; }
+    if (!formData.docFront)  { toast.error(t("err_missing_id"));      return; }
+    if (!formData.selfie)    { toast.error(t("err_missing_selfie"));   return; }
+    if (!formData.addressDoc){ toast.error(t("err_missing_address")); return; }
 
     setLoading(true);
     try {
@@ -259,7 +263,7 @@ export default function KycPage() {
       if (!isDesktop) { setMobileDone(true); return; }
       router.push("/dashboard");
     } catch {
-      toast.error("Failed to submit KYC. Please try again.");
+      toast.error(t("err_submit_failed"));
     } finally {
       setLoading(false);
     }
@@ -272,14 +276,14 @@ export default function KycPage() {
         <CheckCircle className="w-10 h-10 text-[#0ecb81]" />
       </div>
       <div>
-        <h1 className="text-2xl font-black text-white mb-2">KYC Submitted!</h1>
+        <h1 className="text-2xl font-black text-white mb-2">{t("mobile_submitted_title")}</h1>
         <p className="text-gray-400 text-sm max-w-xs mx-auto leading-relaxed">
-          Your documents are under review. Go back to your computer. The page will update automatically.
+          {t("mobile_submitted_desc")}
         </p>
       </div>
       <div className="flex items-center gap-2 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl px-4 py-2.5 text-xs text-gray-500">
         <Monitor className="w-4 h-4 text-[#58a6ff] shrink-0" />
-        Continue on your PC or laptop
+        {t("continue_on_pc")}
       </div>
     </div>
   );
@@ -292,23 +296,23 @@ export default function KycPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#0ecb8122_0%,_transparent_60%)] pointer-events-none" />
         <div className="relative p-8 text-center">
           <div className="inline-flex items-center gap-2 bg-[#0ecb81]/10 border border-[#0ecb81]/30 rounded-full px-4 py-1.5 text-xs font-bold text-[#0ecb81] mb-5">
-            <Sparkles className="w-3 h-3" /> Identity Verified
+            <Sparkles className="w-3 h-3" /> {t("identity_verified_badge")}
           </div>
           <div className="w-20 h-20 rounded-full bg-[#0ecb81]/15 border-2 border-[#0ecb81]/30 flex items-center justify-center mx-auto mb-4">
             <BadgeCheck className="w-10 h-10 text-[#0ecb81]" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">KYC Approved</h1>
-          <p className="text-gray-400 text-sm max-w-sm mx-auto">Your identity has been fully verified. You are eligible for the $50,000 USDT interest-free loan campaign.</p>
+          <h1 className="text-3xl font-black text-white mb-2">{t("kyc_approved_title")}</h1>
+          <p className="text-gray-400 text-sm max-w-sm mx-auto">{t("kyc_approved_desc")}</p>
         </div>
       </div>
 
       {/* Detail tiles */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Full Name",   value: demoUser.name,                        icon: User },
-          { label: "Status",      value: "Verified ✓",                         icon: BadgeCheck },
-          { label: "Verified On", value: new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}), icon: Clock },
-          { label: "ID Type",     value: "Government ID",                       icon: FileText },
+          { label: t("full_name_label"),  value: demoUser.name,                        icon: User },
+          { label: t("status_field"),     value: t("status_verified"),                 icon: BadgeCheck },
+          { label: t("verified_on"),      value: new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}), icon: Clock },
+          { label: t("id_type_label"),    value: t("government_id"),                   icon: FileText },
         ].map(r => (
           <div key={r.label} className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-4">
             <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">
@@ -325,8 +329,8 @@ export default function KycPage() {
           <CheckCircle className="w-5 h-5 text-[#f0b90b]" />
         </div>
         <div>
-          <div className="font-bold text-[#f0b90b] text-sm">Campaign Eligible</div>
-          <div className="text-xs text-gray-400 mt-0.5">New Year 2026 · $50,000 USDT Interest-Free Loan</div>
+          <div className="font-bold text-[#f0b90b] text-sm">{t("campaign_eligible_badge")}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{t("campaign_eligible_desc")}</div>
         </div>
       </div>
     </div>
@@ -339,31 +343,31 @@ export default function KycPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#ef444415_0%,_transparent_60%)] pointer-events-none" />
         <div className="relative p-8 text-center">
           <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-full px-4 py-1.5 text-xs font-bold text-red-400 mb-5">
-            <AlertCircle className="w-3 h-3" /> KYC Rejected
+            <AlertCircle className="w-3 h-3" /> {t("kyc_rejected_badge")}
           </div>
           <div className="w-20 h-20 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-10 h-10 text-red-400" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">Verification Failed</h1>
-          <p className="text-gray-400 text-sm max-w-sm mx-auto">Your KYC submission was not approved. Please ensure your documents are clear and accurate, then resubmit.</p>
+          <h1 className="text-3xl font-black text-white mb-2">{t("verification_failed_title")}</h1>
+          <p className="text-gray-400 text-sm max-w-sm mx-auto">{t("verification_failed_desc")}</p>
         </div>
       </div>
       <div className="bg-[#0d0d0d] border border-red-500/20 rounded-2xl p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm text-gray-300 font-semibold">Common reasons for rejection</p>
+          <p className="text-sm text-gray-300 font-semibold">{t("rejection_reasons_title")}</p>
           <ul className="text-xs text-gray-500 mt-1 space-y-0.5 list-disc list-inside">
-            <li>Document image was blurry or cut off</li>
-            <li>Name or date of birth did not match ID</li>
-            <li>Selfie did not clearly show your face</li>
-            <li>Proof of address was older than 3 months</li>
+            <li>{t("rejection_reason1")}</li>
+            <li>{t("rejection_reason2")}</li>
+            <li>{t("rejection_reason3")}</li>
+            <li>{t("rejection_reason4")}</li>
           </ul>
         </div>
       </div>
       <button
         onClick={() => setResubmitting(true)}
         className="w-full py-3.5 rounded-2xl bg-[#f0b90b] hover:bg-[#d4a30a] text-black font-bold text-sm transition-colors">
-        Resubmit KYC Application
+        {t("resubmit_kyc_btn")}
       </button>
     </div>
   );
@@ -375,18 +379,18 @@ export default function KycPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#f0b90b15_0%,_transparent_60%)] pointer-events-none" />
         <div className="relative p-8 text-center">
           <div className="inline-flex items-center gap-2 bg-[#f0b90b]/10 border border-[#f0b90b]/30 rounded-full px-4 py-1.5 text-xs font-bold text-[#f0b90b] mb-5">
-            <Clock className="w-3 h-3" /> Under Review
+            <Clock className="w-3 h-3" /> {t("under_review_badge")}
           </div>
           <div className="w-20 h-20 rounded-full bg-[#f0b90b]/10 border-2 border-[#f0b90b]/20 flex items-center justify-center mx-auto mb-4">
             <Clock className="w-10 h-10 text-[#f0b90b]" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">KYC Under Review</h1>
-          <p className="text-gray-400 text-sm max-w-sm mx-auto">Your documents have been submitted and are being reviewed by our team. This usually takes 24–48 hours.</p>
+          <h1 className="text-3xl font-black text-white mb-2">{t("kyc_under_review_title")}</h1>
+          <p className="text-gray-400 text-sm max-w-sm mx-auto">{t("kyc_under_review_desc")}</p>
         </div>
       </div>
       <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-4 flex items-center gap-3">
         <Info className="w-5 h-5 text-gray-500 shrink-0" />
-        <p className="text-sm text-gray-400">You will be notified by email once your KYC is approved. No further action is needed.</p>
+        <p className="text-sm text-gray-400">{t("no_further_action")}</p>
       </div>
     </div>
   );
@@ -403,16 +407,16 @@ export default function KycPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,_#f0b90b18_0%,_transparent_60%)] pointer-events-none" />
         <div className="relative p-6 sm:p-8">
           <div className="inline-flex items-center gap-1.5 bg-[#f0b90b]/10 border border-[#f0b90b]/30 rounded-full px-3 py-1 text-xs font-bold text-[#f0b90b] mb-4">
-            <Shield className="w-3 h-3" /> Identity Verification Required
+            <Shield className="w-3 h-3" /> {t("identity_verification_required")}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black mb-1.5">KYC Verification</h1>
-          <p className="text-gray-400 text-sm">Complete 5 steps to unlock your $50,000 USDT interest-free loan</p>
+          <h1 className="text-2xl sm:text-3xl font-black mb-1.5">{t("kyc_verification_title")}</h1>
+          <p className="text-gray-400 text-sm">{t("unlock_loan_desc")}</p>
 
           {/* Progress bar */}
           <div className="mt-5">
             <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>Step {step} of {STEPS.length}</span>
-              <span>{pct}% complete</span>
+              <span>{t("step_of", { step, total: STEPS.length })}</span>
+              <span>{t("pct_complete", { pct })}</span>
             </div>
             <div className="h-1.5 bg-[#111] rounded-full overflow-hidden">
               <div
@@ -456,7 +460,7 @@ export default function KycPage() {
       {/* Security badge */}
       <div className="flex items-center gap-2 bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl px-4 py-2.5 text-xs text-gray-500">
         <Lock className="w-3.5 h-3.5 text-[#0ecb81] shrink-0" />
-        Documents are end-to-end encrypted. We never share your personal data with third parties.
+        {t("encrypted_note")}
       </div>
 
       {/* Desktop QR handoff */}
@@ -478,19 +482,19 @@ export default function KycPage() {
             <div className="flex-1 min-w-0 pr-6">
               <div className="flex items-center gap-2 mb-1.5">
                 <Smartphone className="w-4 h-4 text-[#f0b90b] shrink-0" />
-                <span className="text-sm font-black text-white">Continue on your phone</span>
+                <span className="text-sm font-black text-white">{t("continue_on_phone")}</span>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed mb-3">
-                Scan to open this KYC on your phone. The selfie &amp; liveness step is much easier with a phone camera.
+                {t("scan_phone_desc")}
               </p>
               <div className="space-y-1 mb-3">
                 {[
-                  "Selfie & liveness check work better on mobile",
-                  "Progress syncs automatically to this screen",
-                ].map(t => (
-                  <div key={t} className="flex items-center gap-2 text-xs text-gray-500">
+                  t("selfie_liveness_mobile"),
+                  t("progress_syncs"),
+                ].map(item => (
+                  <div key={item} className="flex items-center gap-2 text-xs text-gray-500">
                     <div className="w-1 h-1 rounded-full bg-[#0ecb81] shrink-0" />
-                    {t}
+                    {item}
                   </div>
                 ))}
               </div>
@@ -506,15 +510,15 @@ export default function KycPage() {
                 style={{ color: qrCopied ? "#0ecb81" : "#58a6ff" }}
               >
                 {qrCopied
-                  ? <><Check className="w-3.5 h-3.5" /><span>Copied!</span></>
-                  : <><Copy className="w-3.5 h-3.5" /><span>Copy link</span></>
+                  ? <><Check className="w-3.5 h-3.5" /><span>{t("copied_label")}</span></>
+                  : <><Copy className="w-3.5 h-3.5" /><span>{t("copy_link")}</span></>
                 }
               </button>
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-[#1a1a1a] flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#0ecb81] animate-pulse" />
-            <span className="text-xs text-gray-600">Watching for submission from mobile…</span>
+            <span className="text-xs text-gray-600">{t("watching_mobile")}</span>
           </div>
         </div>
       )}
@@ -529,7 +533,7 @@ export default function KycPage() {
             {(() => { const Icon = STEPS[step - 1].icon; return <Icon className={`w-5 h-5 ${step === 5 ? "text-[#f0b90b]" : "text-gray-400"}`} />; })()}
           </div>
           <div>
-            <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide">Step {step}</div>
+            <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide">{t("step_label", { step })}</div>
             <h2 className="text-lg font-black">{STEPS[step - 1].title}</h2>
           </div>
         </div>
@@ -538,8 +542,8 @@ export default function KycPage() {
         {step === 1 && (
           <div className="space-y-4">
             {([
-              { label: "Full Name",     key: "fullName", type: "text", ph: "John Doe" },
-              { label: "Date of Birth", key: "dob",      type: "date", ph: "" },
+              { label: t("full_name_field"),  key: "fullName", type: "text", ph: t("full_name_placeholder") },
+              { label: t("dob_field"),        key: "dob",      type: "date", ph: "" },
             ] as { label: string; key: string; type: string; ph: string }[]).map(f => (
               <div key={f.key}>
                 <label className="text-sm font-semibold text-gray-300 block mb-2">{f.label} *</label>
@@ -553,13 +557,13 @@ export default function KycPage() {
               </div>
             ))}
             <div>
-              <label className="text-sm font-semibold text-gray-300 block mb-2">Nationality *</label>
+              <label className="text-sm font-semibold text-gray-300 block mb-2">{t("nationality_field")} *</label>
               <select
                 className="ex-input"
                 value={formData.nationality}
                 onChange={e => setFormData(d => ({ ...d, nationality: e.target.value }))}
               >
-                <option value="">Select nationality</option>
+                <option value="">{t("select_nationality")}</option>
                 {COUNTRIES.map(c => (
                   <option key={c.code} value={c.name}>
                     {flagEmoji(c.code)} {c.name}
@@ -568,11 +572,11 @@ export default function KycPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-300 block mb-2">Home Address *</label>
+              <label className="text-sm font-semibold text-gray-300 block mb-2">{t("home_address_field")} *</label>
               <input
                 className="ex-input"
                 type="text"
-                placeholder="123 Main St, New York, NY 10001"
+                placeholder={t("home_address_placeholder")}
                 value={formData.address}
                 onChange={e => setFormData(d => ({ ...d, address: e.target.value }))}
               />
@@ -584,16 +588,16 @@ export default function KycPage() {
         {step === 2 && (
           <div className="space-y-5">
             <div>
-              <label className="text-sm font-semibold text-gray-300 block mb-2">Document Type *</label>
+              <label className="text-sm font-semibold text-gray-300 block mb-2">{t("document_type_label")} *</label>
               <select className="ex-input" value={formData.docType}
                 onChange={e => setFormData(d => ({ ...d, docType: e.target.value }))}>
                 {DOC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <UploadZone id="docFront" label="Front Side" value={formData.docFront}
-              onChange={f => setFormData(d => ({ ...d, docFront: f }))} hint="JPG, PNG, PDF up to 5MB" />
-            <UploadZone id="docBack" label="Back Side" required={false} value={formData.docBack}
-              onChange={f => setFormData(d => ({ ...d, docBack: f }))} hint="Optional for Passport · JPG, PNG, PDF" />
+            <UploadZone id="docFront" label={t("front_side")} value={formData.docFront}
+              onChange={f => setFormData(d => ({ ...d, docFront: f }))} hint={t("front_side_hint")} />
+            <UploadZone id="docBack" label={t("back_side")} required={false} value={formData.docBack}
+              onChange={f => setFormData(d => ({ ...d, docBack: f }))} hint={t("back_side_hint")} />
           </div>
         )}
 
@@ -626,7 +630,7 @@ export default function KycPage() {
                     <img src={selfiePreview} alt="Selfie" className="w-full max-h-60 object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0ecb81] text-black text-xs font-bold px-3 py-1 rounded-full">
-                      <CheckCircle className="w-3 h-3" /> Liveness Verified
+                      <CheckCircle className="w-3 h-3" /> {t("liveness_verified")}
                     </div>
                   </div>
                 )}
@@ -639,15 +643,15 @@ export default function KycPage() {
                         <Shield className="w-5 h-5 text-[#f0b90b]" />
                       </div>
                       <div>
-                        <p className="font-bold text-white text-sm">AI Liveness Check</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Follow 3 on-screen instructions to verify you&apos;re a real person</p>
+                        <p className="font-bold text-white text-sm">{t("ai_liveness")}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{t("liveness_desc")}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-1">
                       {[
-                        { icon: "←→", label: "Head movements" },
-                        { icon: "👁",  label: "Blink detection" },
-                        { icon: "📸",  label: "Auto selfie" },
+                        { icon: "←→", label: t("head_movements") },
+                        { icon: "👁",  label: t("blink_detection") },
+                        { icon: "📸",  label: t("auto_selfie") },
                       ].map(f => (
                         <div key={f.label} className="bg-[#0d0d0d] rounded-xl p-2.5 text-center border border-[#222]">
                           <div className="text-lg mb-1">{f.icon}</div>
@@ -668,12 +672,10 @@ export default function KycPage() {
                       <Camera className="w-6 h-6 text-[#f0b90b]" />
                     </div>
                     <p className="font-bold text-white text-sm">
-                      {livenessMode === "done" ? "Redo Liveness Check" : "Start Liveness Check"}
+                      {livenessMode === "done" ? t("redo_liveness") : t("start_liveness")}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {livenessMode === "done"
-                        ? "Retake if you want a better photo"
-                        : "Recommended: AI-verified, most secure"}
+                      {livenessMode === "done" ? t("retake_desc") : t("recommended_secure")}
                     </p>
                   </button>
 
@@ -681,7 +683,7 @@ export default function KycPage() {
 
                 <div className="flex items-center justify-center gap-2 text-xs text-[#0ecb81]">
                   <Lock className="w-3 h-3" />
-                  All biometric data is processed locally, never uploaded to any server
+                  {t("biometric_note")}
                 </div>
               </>
             )}
@@ -692,15 +694,15 @@ export default function KycPage() {
         {step === 4 && (
           <div className="space-y-5">
             <div className="bg-[#131313] border border-[#1e1e1e] rounded-2xl p-4 space-y-2">
-              <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">Accepted Documents</p>
-              {["Utility bill (electricity, water, gas)", "Bank statement", "Government letter", "Must be dated within the last 3 months"].map(t => (
-                <div key={t} className="flex items-start gap-2 text-xs text-gray-400">
+              <p className="text-xs font-bold text-white uppercase tracking-wide mb-2">{t("accepted_docs_title")}</p>
+              {[t("utility_bill"), t("bank_statement"), t("government_letter"), t("within_3_months")].map(item => (
+                <div key={item} className="flex items-start gap-2 text-xs text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#f0b90b] mt-1.5 shrink-0" />
-                  {t}
+                  {item}
                 </div>
               ))}
             </div>
-            <UploadZone id="addressDoc" label="Proof of Address Document" value={formData.addressDoc}
+            <UploadZone id="addressDoc" label={t("proof_of_address_doc_label")} value={formData.addressDoc}
               onChange={f => setFormData(d => ({ ...d, addressDoc: f }))} hint="JPG, PNG, PDF up to 5MB" />
           </div>
         )}
@@ -710,14 +712,14 @@ export default function KycPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Full Name",        value: formData.fullName    || "-", ok: !!formData.fullName },
-                { label: "Date of Birth",    value: formData.dob         || "-", ok: !!formData.dob },
-                { label: "Nationality",      value: formData.nationality || "-", ok: !!formData.nationality },
-                { label: "ID Type",          value: formData.docType,              ok: true },
-                { label: "Front ID",         value: formData.docFront    ? "✓ Uploaded" : "✗ Missing", ok: !!formData.docFront },
-                { label: "Selfie",           value: formData.selfie      ? "✓ Uploaded" : "✗ Missing", ok: !!formData.selfie },
-                { label: "Proof of Address", value: formData.addressDoc  ? "✓ Uploaded" : "✗ Missing", ok: !!formData.addressDoc },
-                { label: "Home Address",     value: formData.address     || "-", ok: !!formData.address },
+                { label: t("full_name_field"),       value: formData.fullName    || "-", ok: !!formData.fullName },
+                { label: t("dob_field"),             value: formData.dob         || "-", ok: !!formData.dob },
+                { label: t("nationality_field"),     value: formData.nationality || "-", ok: !!formData.nationality },
+                { label: t("id_type_label"),         value: formData.docType,              ok: true },
+                { label: t("front_side"),            value: formData.docFront    ? t("review_uploaded") : t("review_missing"), ok: !!formData.docFront },
+                { label: t("selfie"),                value: formData.selfie      ? t("review_uploaded") : t("review_missing"), ok: !!formData.selfie },
+                { label: t("proof_of_address"),      value: formData.addressDoc  ? t("review_uploaded") : t("review_missing"), ok: !!formData.addressDoc },
+                { label: t("home_address_field"),    value: formData.address     || "-", ok: !!formData.address },
               ].map(r => (
                 <div key={r.label} className={`bg-[#131313] border rounded-xl p-3 ${r.ok ? "border-[#1e1e1e]" : "border-[#f6465d]/40 bg-[#f6465d]/5"}`}>
                   <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">{r.label}</div>
@@ -729,12 +731,12 @@ export default function KycPage() {
             {(!formData.docFront || !formData.selfie || !formData.addressDoc) && (
               <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-sm text-[#f6465d] flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                Some required items are missing. Go back and complete all steps.
+                {t("some_items_missing")}
               </div>
             )}
             <div className="bg-[#f0b90b]/8 border border-[#f0b90b]/25 rounded-xl p-3 text-xs text-[#f0b90b] flex items-center gap-2">
               <Clock className="w-4 h-4 shrink-0" />
-              KYC review takes 24–48 hours. You&apos;ll be notified by email once complete.
+              {t("kyc_review_time")}
             </div>
           </div>
         )}
@@ -744,16 +746,16 @@ export default function KycPage() {
           {step > 1 && (
             <button onClick={() => setStep(s => s - 1)}
               className="flex-1 py-3 rounded-2xl bg-[#131313] border border-[#1e1e1e] text-sm font-semibold text-gray-300 hover:bg-[#1a1a1a] transition-colors">
-              ← Back
+              {t("back_btn")}
             </button>
           )}
           <button
             onClick={handleNext}
             disabled={loading || (step === 5 && (!formData.docFront || !formData.selfie || !formData.addressDoc))}
             className="flex-1 py-3 rounded-2xl bg-[#f0b90b] text-black font-black text-sm flex items-center justify-center gap-2 hover:bg-[#f0b90b]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-            {loading ? "Submitting…" : step < 5
-              ? <><span>Continue</span><ArrowRight className="w-4 h-4" /></>
-              : "Submit KYC →"}
+            {loading ? t("submitting_btn") : step < 5
+              ? <><span>{t("continue_btn")}</span><ArrowRight className="w-4 h-4" /></>
+              : t("submit_kyc_btn")}
           </button>
         </div>
       </div>

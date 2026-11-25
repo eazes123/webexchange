@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type StepStatus = "done" | "active" | "pending";
 
@@ -38,6 +39,7 @@ function StepConnector({ done }: { done: boolean }) {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
   const { demoUser, coins, walletBalances } = useStore();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -86,8 +88,8 @@ export default function DashboardPage() {
         <Link href="/profile" className="flex items-center gap-3 bg-amber-500/8 border border-amber-500/25 rounded-xl px-4 py-3 mb-5 hover:bg-amber-500/12 transition-colors group">
           <UserCircle className="w-5 h-5 text-amber-400 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-300">Complete your profile</p>
-            <p className="text-xs text-gray-500 truncate">Add your phone number and country to unlock full platform access</p>
+            <p className="text-sm font-semibold text-amber-300">{t("complete_profile")}</p>
+            <p className="text-xs text-gray-500 truncate">{t("complete_profile_desc")}</p>
           </div>
           <ChevronRight className="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
         </Link>
@@ -100,11 +102,8 @@ export default function DashboardPage() {
           <div className="relative z-10 flex items-start gap-3">
             <PartyPopper className="w-8 h-8 text-ex-green shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-2xl font-black text-ex-green">Congratulations, {demoUser.name}! 🎉</h1>
-              <p className="text-gray-300 mt-1">
-                Your $50,000 USDT interest-free loan has been disbursed to your wallet.
-                You can now withdraw or trade with it freely.
-              </p>
+              <h1 className="text-2xl font-black text-ex-green">{t("rewarded_title", { name: demoUser.name })}</h1>
+              <p className="text-gray-300 mt-1">{t("rewarded_desc")}</p>
             </div>
           </div>
         </div>
@@ -113,11 +112,8 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Lock className="w-7 h-7 text-ex-green shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black text-ex-green">Staking Active, Loan Eligible ✓</h1>
-              <p className="text-gray-400 mt-1">
-                Your 500 USDT is staked. Keep it staked until <strong className="text-white">December 31, 2026</strong> to
-                receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
-              </p>
+              <h1 className="text-xl font-black text-ex-green">{t("staking_active_title")}</h1>
+              <p className="text-gray-400 mt-1">{t("staking_active_desc")}</p>
             </div>
           </div>
         </div>
@@ -126,13 +122,11 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-7 h-7 text-red-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h1 className="text-xl font-black text-red-400">KYC Rejected</h1>
-              <p className="text-gray-400 mt-1">
-                Your KYC submission was not approved. Please review your documents and resubmit.
-              </p>
+              <h1 className="text-xl font-black text-red-400">{t("kyc_rejected_banner_title")}</h1>
+              <p className="text-gray-400 mt-1">{t("kyc_rejected_banner_desc")}</p>
               <Link href="/kyc"
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-semibold rounded-xl transition-colors">
-                Resubmit KYC <ChevronRight className="w-4 h-4" />
+                {t("resubmit_kyc_btn")} <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -142,11 +136,8 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Clock className="w-7 h-7 text-ex-yellow shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black">KYC Under Review</h1>
-              <p className="text-gray-400 mt-1">
-                Your documents have been submitted. Our compliance team will review within{" "}
-                <strong className="text-white">24–48 hours</strong>.
-              </p>
+              <h1 className="text-xl font-black">{t("kyc_pending_title_banner")}</h1>
+              <p className="text-gray-400 mt-1">{t("kyc_pending_long_desc")}</p>
             </div>
           </div>
         </div>
@@ -155,11 +146,8 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Wallet className="w-7 h-7 text-ex-blue shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-black">KYC Verified: Deposit 500 USDT to Continue</h1>
-              <p className="text-gray-400 mt-1">
-                Send at least <strong className="text-white">500 USDT (TRC20)</strong> to your personal deposit
-                address. Then stake in the New Year Campaign to get your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
-              </p>
+              <h1 className="text-xl font-black">{t("deposit_step_title")}</h1>
+              <p className="text-gray-400 mt-1">{t("deposit_step_desc")}</p>
             </div>
           </div>
         </div>
@@ -167,27 +155,23 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-r from-ex-card2 to-ex-card border border-ex-border rounded-2xl p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-ex-yellow/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="relative z-10">
-            <h1 className="text-2xl font-black">Welcome, {demoUser.name}! 👋</h1>
-            <p className="text-gray-400 mt-1">
-              Complete KYC verification to unlock the{" "}
-              <strong className="text-ex-yellow">New Year Campaign</strong> and get your{" "}
-              <strong className="text-white">$50,000 USDT interest-free loan</strong>.
-            </p>
+            <h1 className="text-2xl font-black">{t("welcome_default", { name: demoUser.name })}</h1>
+            <p className="text-gray-400 mt-1">{t("welcome_default_desc")}</p>
           </div>
         </div>
       )}
 
       {/* Progress stepper */}
       <div className="bg-ex-card border border-ex-border rounded-2xl p-5 mb-6">
-        <h2 className="font-bold mb-4 text-sm text-gray-400 uppercase tracking-wide">Your Journey</h2>
+        <h2 className="font-bold mb-4 text-sm text-gray-400 uppercase tracking-wide">{t("journey")}</h2>
         <div className="flex items-start gap-0">
-          <Step n={1} label="Register"     sub="Account created"           status={stepStatus(1)} />
+          <Step n={1} label={t("step_register")}     sub={t("step_register_sub")}           status={stepStatus(1)} />
           <StepConnector done={currentStep > 1} />
-          <Step n={2} label="KYC"          sub={kycDone ? "Identity verified" : kycRejected ? "Rejected" : kycPend ? "Under review" : "Verify identity"} status={kycRejected ? "active" : stepStatus(2)} />
+          <Step n={2} label={t("step_kyc")}          sub={kycDone ? t("step_kyc_verified") : kycRejected ? t("step_kyc_rejected") : kycPend ? t("step_kyc_pending") : t("step_kyc_sub")} status={kycRejected ? "active" : stepStatus(2)} />
           <StepConnector done={currentStep > 2} />
-          <Step n={3} label="Stake 500 USDT" sub="New Year Campaign"       status={stepStatus(3)} />
+          <Step n={3} label={t("step_stake")} sub={t("step_stake_simple")}       status={stepStatus(3)} />
           <StepConnector done={isRewarded} />
-          <Step n={4} label="Loan Disbursed" sub="$50K interest-free"       status={stepStatus(4)} />
+          <Step n={4} label={t("step_loan")} sub={t("step_loan_simple")}       status={stepStatus(4)} />
         </div>
       </div>
 
@@ -196,30 +180,30 @@ export default function DashboardPage() {
         {[
           {
             icon: Shield,
-            label: "KYC Status",
-            value: kycDone ? "Verified" : kycPend ? "In Review" : kycRejected ? "Rejected" : "Pending",
-            sub:   kycDone ? "✓ Identity confirmed" : kycPend ? "24–48h remaining" : kycRejected ? "Resubmit required" : "Action required",
+            label: t("kyc_status_label"),
+            value: kycDone ? t("kyc_verified") : kycPend ? t("kyc_in_review") : kycRejected ? t("step_kyc_rejected") : t("kyc_in_review"),
+            sub:   kycDone ? t("kyc_identity_confirmed") : kycPend ? t("kyc_24h_remaining") : kycRejected ? t("kyc_resubmit_required") : t("kyc_action_required"),
             color: kycDone ? "text-ex-green" : kycPend ? "text-ex-yellow" : kycRejected ? "text-red-400" : "text-gray-400",
           },
           {
             icon: Wallet,
-            label: "USDT Balance",
+            label: t("usdt_balance_label"),
             value: `${(usdtAvail).toFixed(2)} USDT`,
-            sub: usdtLocked > 0 ? `+${usdtLocked.toFixed(2)} staked` : "Available balance",
+            sub: usdtLocked > 0 ? t("staked_amount_sub", { amount: usdtLocked.toFixed(2) }) : t("available_balance_label"),
             color: usdtAvail > 0 ? "text-ex-green" : "text-gray-400",
           },
           {
             icon: Lock,
-            label: "Stake Status",
-            value: isRewarded ? "Rewarded ✓" : isStaked ? "Active" : demoUser.stakeStatus === "unstaked" ? "Unstaked" : "None",
-            sub:   isRewarded ? "Loan disbursed" : isStaked ? "500 USDT locked" : "Stake to get $50K loan",
+            label: t("stake_status"),
+            value: isRewarded ? t("stake_rewarded_val") : isStaked ? t("stake_active") : demoUser.stakeStatus === "unstaked" ? t("stake_unstaked") : t("stake_for_loan_sub"),
+            sub:   isRewarded ? t("loan_disbursed_sub_label") : isStaked ? t("stake_500_locked") : t("stake_for_loan_sub"),
             color: isRewarded ? "text-ex-yellow" : isStaked ? "text-ex-green" : "text-gray-400",
           },
           {
             icon: Gift,
-            label: "Loan Amount",
-            value: isRewarded ? "$50,000" : "Eligible",
-            sub:   "50,000 USDT, 0% interest",
+            label: t("loan_amount"),
+            value: isRewarded ? "$50,000" : t("loan_eligible_val"),
+            sub:   t("loan_zero_interest_sub"),
             color: isRewarded ? "text-ex-green" : "text-ex-yellow",
           },
         ].map((s, i) => (
@@ -240,22 +224,20 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Shield className={`w-5 h-5 ${kycRejected ? "text-red-400" : "text-ex-yellow"}`} />
-                <h2 className="font-bold">{kycRejected ? "Resubmit KYC Verification" : "Step 2: Verify Your Identity"}</h2>
+                <h2 className="font-bold">{kycRejected ? t("step2_resubmit") : t("step2_title_kyc")}</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                {kycRejected
-                  ? "Your previous submission was rejected. Please resubmit with clear documents."
-                  : "KYC is required to participate in the campaign. It takes about 5 minutes."}
+                {kycRejected ? t("step2_desc_rejected") : t("step2_desc_new")}
               </p>
               <div className="space-y-2 mb-4">
-                {["Government-issued photo ID", "Selfie / liveness check", "Proof of address"].map(r => (
+                {[t("kyc_req1"), t("kyc_req2"), t("kyc_req3")].map(r => (
                   <div key={r} className="flex items-center gap-2 text-sm text-gray-400">
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-600" /> {r}
                   </div>
                 ))}
               </div>
               <Link href="/kyc" className={`w-full py-3 text-center block rounded-xl font-bold text-sm transition-colors ${kycRejected ? "bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400" : "btn-primary"}`}>
-                {kycRejected ? "Resubmit KYC →" : "Start KYC Verification →"}
+                {kycRejected ? t("resubmit_kyc_btn") : t("start_kyc_btn")}
               </Link>
             </>
           )}
@@ -264,17 +246,15 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-5 h-5 text-ex-yellow animate-pulse" />
-                <h2 className="font-bold">Documents Under Review</h2>
+                <h2 className="font-bold">{t("docs_under_review")}</h2>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
-                Our team is reviewing your documents. Typically done within 24–48 hours.
-              </p>
+              <p className="text-sm text-gray-400 mb-4">{t("docs_review_desc")}</p>
               <div className="bg-ex-card2 border border-ex-border rounded-xl p-3 space-y-2 text-sm">
-                {["Personal Information", "ID Document", "Selfie", "Proof of Address"].map(d => (
+                {[t("doc_personal_info"), t("doc_id"), t("doc_selfie"), t("doc_address")].map(d => (
                   <div key={d} className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-ex-green" />
                     <span className="text-gray-300">{d}</span>
-                    <span className="ml-auto text-xs text-ex-yellow bg-ex-yellow/10 px-2 py-0.5 rounded-full">Submitted</span>
+                    <span className="ml-auto text-xs text-ex-yellow bg-ex-yellow/10 px-2 py-0.5 rounded-full">{t("submitted_label")}</span>
                   </div>
                 ))}
               </div>
@@ -285,21 +265,19 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Star className="w-5 h-5 text-ex-yellow" />
-                <h2 className="font-bold">Step 3: Stake 500 USDT</h2>
+                <h2 className="font-bold">{t("step3_title_stake")}</h2>
               </div>
               <p className="text-sm text-gray-400 mb-4">
-                {!hasDeposit
-                  ? `Deposit at least 500 USDT to your personal TRC20 address first, then stake in the New Year Campaign.`
-                  : `You have ${usdtAvail.toFixed(2)} USDT available. Stake 500 USDT to activate your $50,000 USDT interest-free loan.`}
+                {!hasDeposit ? t("deposit_first") : t("stake_desc_has_funds", { amount: usdtAvail.toFixed(2) })}
               </p>
               <div className="space-y-2">
                 {!hasDeposit && (
                   <Link href="/wallet" className="btn-outline w-full py-2.5 text-sm text-center block">
-                    Deposit USDT →
+                    {t("deposit_usdt_btn")}
                   </Link>
                 )}
                 <Link href="/campaign" className="btn-primary w-full py-2.5 text-sm text-center block">
-                  Go to New Year Campaign →
+                  {t("go_to_campaign_btn")}
                 </Link>
               </div>
             </>
@@ -309,17 +287,14 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Lock className="w-5 h-5 text-ex-green" />
-                <h2 className="font-bold">Staking Active: Loan Pending Disbursement</h2>
+                <h2 className="font-bold">{t("staking_active_card_title")}</h2>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
-                Your 500 USDT is staked. Keep it locked until December 31, 2026 to
-                receive your <strong className="text-ex-yellow">$50,000 USDT interest-free loan</strong>.
-              </p>
+              <p className="text-sm text-gray-400 mb-4">{t("staking_active_card_desc")}</p>
               <div className="bg-ex-green/5 border border-ex-green/20 rounded-xl p-3 text-sm text-ex-green flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 shrink-0" /> Stake confirmed, loan eligible
+                <CheckCircle className="w-4 h-4 shrink-0" /> {t("stake_confirmed")}
               </div>
               <Link href="/campaign" className="btn-outline w-full py-2.5 text-sm text-center block mt-3">
-                View Campaign Status →
+                {t("view_campaign_status")}
               </Link>
             </>
           )}
@@ -328,14 +303,12 @@ export default function DashboardPage() {
             <>
               <div className="flex items-center gap-2 mb-3">
                 <Gift className="w-5 h-5 text-ex-green" />
-                <h2 className="font-bold">Loan Disbursed! 🎉</h2>
+                <h2 className="font-bold">{t("loan_disbursed_card_title")}</h2>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
-                Your $50,000 USDT interest-free loan has been credited. Withdraw or trade freely. 0% interest for 10 years.
-              </p>
+              <p className="text-sm text-gray-400 mb-4">{t("loan_disbursed_card_desc")}</p>
               <div className="space-y-2">
                 <Link href="/wallet" className="btn-primary w-full py-2.5 text-sm text-center block">
-                  Withdraw to External Wallet →
+                  {t("withdraw_external_btn")}
                 </Link>
               </div>
             </>
@@ -346,51 +319,51 @@ export default function DashboardPage() {
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-ex-yellow" />
-            <h2 className="font-bold">Campaign Countdown</h2>
+            <h2 className="font-bold">{t("campaign_countdown")}</h2>
           </div>
           <div className="flex gap-3 mb-4">
             {[
-              { l: "Days",  v: timeLeft.days },
-              { l: "Hours", v: timeLeft.hours },
-              { l: "Mins",  v: timeLeft.minutes },
-              { l: "Secs",  v: timeLeft.seconds },
-            ].map((t, i) => (
+              { l: t("days"),    v: timeLeft.days },
+              { l: t("hours"),   v: timeLeft.hours },
+              { l: t("minutes"), v: timeLeft.minutes },
+              { l: t("seconds"), v: timeLeft.seconds },
+            ].map((unit, i) => (
               <div key={i} className="text-center flex-1">
                 <div className="bg-ex-card2 border border-ex-border rounded-xl py-2 font-black text-2xl font-num text-ex-yellow">
-                  {String(t.v).padStart(2, "0")}
+                  {String(unit.v).padStart(2, "0")}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{t.l}</div>
+                <div className="text-xs text-gray-500 mt-1">{unit.l}</div>
               </div>
             ))}
           </div>
           <div className="bg-ex-card2 border border-ex-border rounded-xl p-4 text-sm space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-500">Campaign</span>
-              <span className="font-semibold">New Year 2026</span>
+              <span className="text-gray-500">{t("campaign_label")}</span>
+              <span className="font-semibold">{t("campaign_name")}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Stake Required</span>
+              <span className="text-gray-500">{t("campaign_stake_req")}</span>
               <span className="font-semibold font-num">500 USDT</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Loan Amount</span>
+              <span className="text-gray-500">{t("loan_amount_detail")}</span>
               <span className="font-semibold font-num text-ex-yellow">50,000 USDT</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Interest Rate</span>
-              <span className="font-semibold text-ex-green">0% (10 Years)</span>
+              <span className="text-gray-500">{t("campaign_interest")}</span>
+              <span className="font-semibold text-ex-green">{t("campaign_zero_pct")}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Deadline</span>
-              <span className="font-semibold">Dec 31, 2026</span>
+              <span className="text-gray-500">{t("campaign_deadline")}</span>
+              <span className="font-semibold">{t("campaign_dec_31")}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Network</span>
-              <span className="font-semibold">TRON (TRC20)</span>
+              <span className="text-gray-500">{t("campaign_network")}</span>
+              <span className="font-semibold">{t("campaign_tron")}</span>
             </div>
           </div>
           <Link href="/campaign" className="btn-primary w-full py-2.5 text-sm text-center block mt-4">
-            View Campaign Details →
+            {t("view_campaign_btn")}
           </Link>
         </div>
       </div>
@@ -401,10 +374,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-ex-green" />
-              <h2 className="font-bold">Wallet Balances</h2>
+              <h2 className="font-bold">{t("wallet_balances_title")}</h2>
             </div>
             <Link href="/wallet" className="text-xs text-ex-yellow hover:underline flex items-center gap-1">
-              Manage <ChevronRight className="w-3 h-3" />
+              {t("manage_link")} <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -424,7 +397,7 @@ export default function DashboardPage() {
                     <span className="text-sm font-semibold text-gray-300">{sym}</span>
                   </div>
                   <div className="font-black font-num">{bal.toLocaleString("en-US", { maximumFractionDigits: 6 })}</div>
-                  {lkd > 0 && <div className="text-xs text-purple-400 mt-0.5">{lkd.toFixed(2)} locked</div>}
+                  {lkd > 0 && <div className="text-xs text-purple-400 mt-0.5">{t("locked_in_wallet", { amount: lkd.toFixed(2) })}</div>}
                   <div className="text-xs text-gray-500">${usd.toLocaleString("en-US", { maximumFractionDigits: 2 })}</div>
                 </div>
               );
@@ -438,10 +411,10 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-ex-blue" />
-            <h2 className="font-bold">Market Overview</h2>
+            <h2 className="font-bold">{t("market_overview_title")}</h2>
           </div>
           <Link href="/markets" className="text-xs text-ex-yellow hover:underline flex items-center gap-1">
-            All Markets <ChevronRight className="w-3 h-3" />
+            {t("all_markets_link")} <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

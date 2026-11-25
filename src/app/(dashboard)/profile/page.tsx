@@ -5,8 +5,10 @@ import { User, Mail, Phone, Globe, Lock, CheckCircle, AlertCircle, ChevronDown, 
 import { useStore } from "@/lib/store";
 import { COUNTRIES, flagEmoji } from "@/lib/countries";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const { demoUser, hydrate } = useStore();
 
   const [fullName, setFullName]       = useState("");
@@ -71,8 +73,8 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-black text-white tracking-tight">My Profile</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your account information</p>
+        <h1 className="text-2xl font-black text-white tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
       </div>
 
       {/* Incomplete profile alert */}
@@ -80,11 +82,8 @@ export default function ProfilePage() {
         <div className="bg-amber-500/8 border border-amber-500/25 rounded-xl p-4 mb-6 flex gap-3">
           <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-300">Profile incomplete</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Add your phone number and country to fully verify your account.
-              {" "}This is required before KYC submission.
-            </p>
+            <p className="text-sm font-semibold text-amber-300">{t("incomplete_title")}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t("incomplete_desc")}</p>
           </div>
         </div>
       )}
@@ -93,11 +92,11 @@ export default function ProfilePage() {
 
         {/* Account info (read-only) */}
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">Account</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">{t("account_section")}</h2>
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1.5">Email address</label>
+            <label className="block text-xs font-semibold text-gray-400 mb-1.5">{t("email_label")}</label>
             <div className="ex-input flex items-center gap-2 opacity-60 cursor-not-allowed select-none">
               <Mail className="w-4 h-4 text-gray-500 shrink-0" />
               <span className="text-sm text-gray-300">{demoUser.email}</span>
@@ -106,7 +105,7 @@ export default function ProfilePage() {
 
           {/* Sign-in method */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1.5">Sign-in method</label>
+            <label className="block text-xs font-semibold text-gray-400 mb-1.5">{t("signin_method")}</label>
             <div className="ex-input flex items-center gap-2 opacity-60 cursor-not-allowed select-none">
               {demoUser.phone === "" && demoUser.country === "" ? (
                 <>
@@ -116,12 +115,12 @@ export default function ProfilePage() {
                     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-3.58-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                   </svg>
-                  <span className="text-sm text-gray-300">Google Sign-In</span>
+                  <span className="text-sm text-gray-300">{t("google_signin")}</span>
                 </>
               ) : (
                 <>
                   <Lock className="w-4 h-4 text-gray-500 shrink-0" />
-                  <span className="text-sm text-gray-300">Email &amp; Password</span>
+                  <span className="text-sm text-gray-300">{t("password_signin")}</span>
                 </>
               )}
             </div>
@@ -130,18 +129,18 @@ export default function ProfilePage() {
 
         {/* Personal info */}
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">Personal Info</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">{t("personal_section")}</h2>
 
           {/* Full name */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1.5">Full name</label>
+            <label className="block text-xs font-semibold text-gray-400 mb-1.5">{t("full_name_label")}</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 className="ex-input pl-9 w-full"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Your full legal name"
+                placeholder={t("full_name_placeholder")}
                 required
                 minLength={2}
               />
@@ -151,8 +150,8 @@ export default function ProfilePage() {
           {/* Phone */}
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5">
-              Phone number
-              {!demoUser.phone && <span className="ml-2 text-amber-400 text-xs">Required</span>}
+              {t("phone_label")}
+              {!demoUser.phone && <span className="ml-2 text-amber-400 text-xs">{t("required_badge")}</span>}
             </label>
             <div className="flex gap-2">
               {/* Dial code picker */}
@@ -188,7 +187,7 @@ export default function ProfilePage() {
                   type="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Phone number"
+                  placeholder={t("phone_placeholder")}
                 />
               </div>
             </div>
@@ -197,8 +196,8 @@ export default function ProfilePage() {
           {/* Country */}
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5">
-              Country
-              {!demoUser.country && <span className="ml-2 text-amber-400 text-xs">Required</span>}
+              {t("country_label")}
+              {!demoUser.country && <span className="ml-2 text-amber-400 text-xs">{t("required_badge")}</span>}
             </label>
             <div className="relative">
               <button
@@ -213,7 +212,7 @@ export default function ProfilePage() {
                     {selectedCountry.name}
                   </span>
                 ) : (
-                  <span className="flex-1 text-sm text-gray-500">Select country</span>
+                  <span className="flex-1 text-sm text-gray-500">{t("country_placeholder")}</span>
                 )}
                 <ChevronDown className="w-4 h-4 text-gray-500 ml-auto" />
               </button>
@@ -236,22 +235,22 @@ export default function ProfilePage() {
 
         {/* Save */}
         <button type="submit" disabled={saving} className="btn-primary w-full py-3 font-bold text-sm">
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? t("saving") : t("save_button")}
         </button>
 
       </form>
 
       {/* KYC status card */}
       <div className="mt-5 bg-ex-card border border-ex-border rounded-2xl p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">KYC Verification</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">{t("kyc_section")}</h2>
         {demoUser.kycStatus === "none" && (
           <Link href="/kyc" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-full bg-gray-800 border border-ex-border flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4 text-gray-500" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-white">Not submitted</p>
-              <p className="text-xs text-gray-500">Complete KYC to unlock staking and loan access</p>
+              <p className="text-sm font-semibold text-white">{t("kyc_not_submitted")}</p>
+              <p className="text-xs text-gray-500">{t("kyc_not_submitted_desc")}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all shrink-0" />
           </Link>
@@ -262,8 +261,8 @@ export default function ProfilePage() {
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-amber-300">Under Review</p>
-              <p className="text-xs text-gray-500">Your documents are being reviewed. Usually takes 24-48 hours.</p>
+              <p className="text-sm font-semibold text-amber-300">{t("kyc_under_review")}</p>
+              <p className="text-xs text-gray-500">{t("kyc_under_review_desc")}</p>
             </div>
           </div>
         )}
@@ -273,8 +272,8 @@ export default function ProfilePage() {
               <CheckCircle className="w-4 h-4 text-green-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-green-400">Verified</p>
-              <p className="text-xs text-gray-500">Your identity has been successfully verified.</p>
+              <p className="text-sm font-semibold text-green-400">{t("kyc_verified")}</p>
+              <p className="text-xs text-gray-500">{t("kyc_verified_desc")}</p>
             </div>
           </div>
         )}
@@ -284,8 +283,8 @@ export default function ProfilePage() {
               <XCircle className="w-4 h-4 text-red-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-400">Rejected — Resubmit required</p>
-              <p className="text-xs text-gray-500">Your KYC was rejected. Click here to resubmit with correct documents.</p>
+              <p className="text-sm font-semibold text-red-400">{t("kyc_rejected")}</p>
+              <p className="text-xs text-gray-500">{t("kyc_rejected_desc")}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all shrink-0" />
           </Link>
