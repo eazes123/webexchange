@@ -7,7 +7,7 @@ import ChatWidget from "@/components/ChatWidget";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { rtlLocales } from "@/i18n";
+import { rtlLocales } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 

@@ -8,10 +8,9 @@ import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, type Country } from "@/lib/count
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
-const STEPS = ["Account Details", "Verify Email"] as const;
-
 export default function RegisterPage() {
   const t = useTranslations("auth");
+  const STEPS = [t("step_account"), t("step_verify")] as const;
   const router = useRouter();
   const { hydrate, setRegisteredEmail } = useStore();
 
@@ -51,9 +50,9 @@ export default function RegisterPage() {
 
   const handleStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.agreeTerms) { toast.error("Please agree to the terms"); return; }
-    if (form.password !== form.confirmPassword) { toast.error("Passwords do not match"); return; }
-    if (form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    if (!form.agreeTerms) { toast.error(t("terms_required")); return; }
+    if (form.password !== form.confirmPassword) { toast.error(t("passwords_mismatch")); return; }
+    if (form.password.length < 8) { toast.error(t("password_too_short")); return; }
 
     setLoading(true);
     try {
@@ -70,13 +69,13 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Registration failed");
+        toast.error(data.error ?? t("registration_failed"));
         return;
       }
       setRegisteredEmail(form.email);
       setStep(1);
     } catch {
-      toast.error("Network error. Please try again.");
+      toast.error(t("network_error"));
     } finally {
       setLoading(false);
     }
@@ -84,11 +83,11 @@ export default function RegisterPage() {
 
   const handleOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp !== "123456") { toast.error("Invalid verification code. Please check your email."); return; }
+    if (otp !== "123456") { toast.error(t("invalid_2fa")); return; }
     setLoading(true);
     await hydrate();
     setLoading(false);
-    toast.success("Account created! Welcome to GROXchange 🎉");
+    toast.success(t("account_created"));
     router.push("/dashboard");
   };
 
@@ -100,9 +99,9 @@ export default function RegisterPage() {
             <div className="w-14 h-14 bg-ex-green/10 rounded-2xl flex items-center justify-center mb-5">
               <CheckCircle className="w-7 h-7 text-ex-green" />
             </div>
-            <h2 className="text-2xl font-black mb-1">Verify Your Email</h2>
+            <h2 className="text-2xl font-black mb-1">{t("verify_email_title")}</h2>
             <p className="text-gray-400 text-sm mb-6">
-              A 6-digit code was sent to <strong className="text-white">{form.email}</strong>
+              {t("verify_email_subtitle")} <strong className="text-white">{form.email}</strong>
             </p>
             <form onSubmit={handleOtp} className="space-y-4">
               <input
@@ -111,10 +110,10 @@ export default function RegisterPage() {
                 value={otp} onChange={e => setOtp(e.target.value)} autoFocus required
               />
               <div className="text-xs text-gray-600 text-center">
-                Check your email for the verification code
+                {t("2fa_check_email")}
               </div>
               <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
-                {loading ? "Creating account..." : "Verify & Create Account"}
+                {loading ? t("creating_account") : t("verify_create_account")}
               </button>
             </form>
           </div>
@@ -128,10 +127,10 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-ex-yellow/10 border border-ex-yellow/30 text-ex-yellow text-sm px-3 py-1.5 rounded-full mb-4">
-            <Zap className="w-4 h-4" /> Limited: {spotsLeft} spots remaining
+            <Zap className="w-4 h-4" /> {t("limited_spots", { count: spotsLeft })}
           </div>
-          <h1 className="text-3xl font-black">Create Account</h1>
-          <p className="text-gray-400 mt-1">Join the $50,000 USDT loan campaign</p>
+          <h1 className="text-3xl font-black">{t("register_title")}</h1>
+          <p className="text-gray-400 mt-1">{t("join_campaign")}</p>
         </div>
 
         <div className="bg-ex-card border border-ex-border rounded-2xl p-8">
@@ -147,7 +146,7 @@ export default function RegisterPage() {
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Sign up with Google
+            {t("signup_google")}
           </a>
           <a
             href="/api/auth/twitter"
@@ -156,29 +155,29 @@ export default function RegisterPage() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
-            Sign up with X
+            {t("signup_x")}
           </a>
           </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-ex-border" />
-            <span className="text-xs text-gray-600">or create account with email</span>
+            <span className="text-xs text-gray-600">{t("or_create_email")}</span>
             <div className="flex-1 h-px bg-ex-border" />
           </div>
 
           <form onSubmit={handleStep1} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Full Name *</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t("full_name_label")} *</label>
                 <input className="ex-input" type="text" required placeholder="John Doe"
                   value={form.fullName} onChange={field("fullName")} />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Email *</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t("email_label")} *</label>
                 <input className="ex-input" type="email" required placeholder="you@example.com"
                   value={form.email} onChange={field("email")} />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Phone *</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t("phone_label")} *</label>
                 <div className="flex gap-2">
                   <div className="relative">
                     <select
@@ -209,7 +208,7 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Country *</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t("country_label")} *</label>
                 <select
                   className="ex-input"
                   value={form.country}
@@ -223,10 +222,10 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Password *</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t("password_label")} *</label>
                 <div className="relative">
                   <input className="ex-input pr-10" type={showPw ? "text" : "password"} required
-                    placeholder="Min. 8 characters" minLength={8}
+                    placeholder={t("password_min")} minLength={8}
                     value={form.password} onChange={field("password")} />
                   <button type="button" onClick={() => setShowPw(!showPw)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
@@ -235,13 +234,13 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Confirm Password *</label>
-                <input className="ex-input" type="password" required placeholder="Repeat password"
+                <label className="block text-sm text-gray-400 mb-1.5">{t("confirm_password_label")} *</label>
+                <input className="ex-input" type="password" required placeholder={t("confirm_password_placeholder")}
                   value={form.confirmPassword} onChange={field("confirmPassword")} />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1.5">Referral Code (optional)</label>
-                <input className="ex-input" type="text" placeholder="Enter referral code"
+                <label className="block text-sm text-gray-400 mb-1.5">{t("referral_label")}</label>
+                <input className="ex-input" type="text" placeholder={t("referral_placeholder")}
                   value={form.referral} onChange={field("referral")} />
               </div>
             </div>
@@ -250,21 +249,21 @@ export default function RegisterPage() {
               <input type="checkbox" className="mt-0.5 accent-ex-yellow"
                 checked={form.agreeTerms} onChange={field("agreeTerms")} />
               <span className="text-sm text-gray-400">
-                I agree to the{" "}
-                <Link href="/terms" className="text-ex-yellow hover:underline" target="_blank">Terms of Service</Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-ex-yellow hover:underline" target="_blank">Privacy Policy</Link>
+                {t("terms_agree")}{" "}
+                <Link href="/terms" className="text-ex-yellow hover:underline" target="_blank">{t("terms_link")}</Link>{" "}
+                {t("and")}{" "}
+                <Link href="/privacy" className="text-ex-yellow hover:underline" target="_blank">{t("privacy_link")}</Link>
               </span>
             </label>
 
             <button type="submit" className="btn-primary w-full py-3 flex items-center justify-center gap-2" disabled={loading}>
-              {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Creating account...</> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
+              {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> {t("registering")}</> : <>{t("register_button")} <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-400 mt-6">
-            Already have an account?{" "}
-            <Link href="/login" className="text-ex-yellow hover:underline font-semibold">Sign In</Link>
+            {t("have_account")}{" "}
+            <Link href="/login" className="text-ex-yellow hover:underline font-semibold">{t("login_button")}</Link>
           </p>
         </div>
       </div>

@@ -1,10 +1,9 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
+import { locales, defaultLocale, type Locale } from "./i18n-config";
 
-export const locales = ["en","hi","zh","es","ar","fr","bn","pt","id","ur","tr","ru","ja"] as const;
-export type Locale = typeof locales[number];
-export const defaultLocale: Locale = "en";
-export const rtlLocales: readonly Locale[] = ["ar", "ur"];
+export { locales, defaultLocale, rtlLocales } from "./i18n-config";
+export type { Locale } from "./i18n-config";
 
 export default getRequestConfig(async () => {
   const cookieStore = cookies();

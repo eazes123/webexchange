@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { locales, type Locale } from "@/i18n";
+import { locales, type Locale } from "@/i18n-config";
 
 const LANGUAGE_NAMES: Record<Locale, string> = {
   en: "English",

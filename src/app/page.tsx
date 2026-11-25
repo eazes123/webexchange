@@ -10,33 +10,9 @@ import {
 import { COINS, CAMPAIGN_STATS } from "@/lib/mock-data";
 import { formatPrice, formatChange, getChangeColor } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { useTranslations } from "next-intl";
 
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number; }
-
-const STEPS = [
-  { icon: Users,  title: "Create Account", desc: "Register with your email and basic details to get your unique deposit address." },
-  { icon: Shield, title: "Complete KYC",   desc: "Submit your ID, selfie, and proof of address for full identity verification." },
-  { icon: Lock,   title: "Stake 500 USDT", desc: "Deposit and stake 500 USDT to activate your loan slot in the New Year Campaign." },
-  { icon: Award,  title: "Loan Disbursed", desc: "Receive $50,000 USDT as a 10-year interest-free loan. Withdraw or trade freely." },
-];
-
-const FEATURES = [
-  { icon: Shield, title: "Bank-Level Security",  desc: "256-bit SSL encryption, 2FA, and cold storage for all assets." },
-  { icon: Zap,    title: "Lightning Fast",        desc: "Up to 1.4M transactions per second on our matching engine." },
-  { icon: Globe,  title: "100+ Countries",        desc: "Available in over 100 countries with multi-language support." },
-  { icon: Lock,   title: "KYC Protected",         desc: "Full identity verification ensures a safe trading environment." },
-  { icon: Award,  title: "0% Interest Loan",       desc: "Stake 500 USDT and receive $50,000 USDT as a 10-year interest-free loan." },
-  { icon: Users,  title: "1M+ Users",             desc: "Join our growing community of traders worldwide." },
-];
-
-const FAQS = [
-  { q: "How do I qualify for the $50,000 USDT loan?", a: "Register an account, complete full KYC verification, and stake 500 USDT before December 31st, 2026. The first 1,000 users who complete all three steps receive the $50,000 USDT interest-free loan disbursed directly to their account." },
-  { q: "Is the loan really interest-free?", a: "Yes, 0% interest for the full 10-year term. The 500 USDT stake acts as a collateral deposit and is returned to you at the end of the loan period along with any profits you made trading." },
-  { q: "Can I withdraw or trade with the loan funds?", a: "Yes, once the $50,000 USDT loan is credited you can trade any spot pairs on the platform or withdraw the funds to your external TRC20 wallet at any time during the 10-year period." },
-  { q: "What documents are required for KYC?", a: "You need: (1) Valid government ID: passport, national ID, or driver's license, (2) A selfie/liveness check for face matching, and (3) Proof of address: utility bill or bank statement dated within 3 months." },
-  { q: "How long does KYC verification take?", a: "KYC verification typically takes 24-48 hours. You'll receive an email notification when your status is updated." },
-  { q: "When does the New Year Campaign end?", a: "The campaign runs until December 31st, 2026. Spots are limited to 1,000 users on a first-come-first-served basis. After staking, the loan is disbursed to your account within 24 hours." },
-];
 
 function PartnerLogo({ name, src }: { name: string; src: string }) {
   const [hov, setHov] = useState(false);
@@ -80,11 +56,38 @@ const PARTNERS = [
 ];
 
 export default function LandingPage() {
+  const t = useTranslations("home");
+
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [openFaq, setOpenFaq]   = useState<number | null>(null);
   const [spotsLeft, setSpotsLeft] = useState(CAMPAIGN_STATS.spotsRemaining);
   const [spotsUsed, setSpotsUsed] = useState(CAMPAIGN_STATS.spotsUsed);
   const { coins, updatePrices, fetchLivePrices } = useStore();
+
+  const STEPS = [
+    { icon: Users,  title: t("step1_title"), desc: t("step1_desc") },
+    { icon: Shield, title: t("step2_title"), desc: t("step2_desc") },
+    { icon: Lock,   title: t("step3_title"), desc: t("step3_desc") },
+    { icon: Award,  title: t("step4_title"), desc: t("step4_desc") },
+  ];
+
+  const FEATURES = [
+    { icon: Shield, title: t("feat1_title"), desc: t("feat1_desc") },
+    { icon: Zap,    title: t("feat2_title"), desc: t("feat2_desc") },
+    { icon: Globe,  title: t("feat3_title"), desc: t("feat3_desc") },
+    { icon: Lock,   title: t("feat4_title"), desc: t("feat4_desc") },
+    { icon: Award,  title: t("feat5_title"), desc: t("feat5_desc") },
+    { icon: Users,  title: t("feat6_title"), desc: t("feat6_desc") },
+  ];
+
+  const FAQS = [
+    { q: t("faq1_q"), a: t("faq1_a") },
+    { q: t("faq2_q"), a: t("faq2_a") },
+    { q: t("faq3_q"), a: t("faq3_a") },
+    { q: t("faq4_q"), a: t("faq4_a") },
+    { q: t("faq5_q"), a: t("faq5_a") },
+    { q: t("faq6_q"), a: t("faq6_a") },
+  ];
 
   useEffect(() => {
     const deadline = new Date("2026-12-31T23:59:59");
@@ -174,15 +177,14 @@ export default function LandingPage() {
                 letterSpacing: "0.04em",
               }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#f0b90b" }} />
-              LIMITED: {spotsLeft} SPOTS REMAINING
+              {t("hero_badge", { count: spotsLeft })}
             </div>
 
             {/* Headline */}
             <h1 style={{ fontSize: "clamp(40px, 7vw, 80px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.04em", marginBottom: "20px", color: "#fff" }}>
-              Get{" "}
-              <span className="gradient-text">$50,000 USDT</span>
+              <span className="gradient-text">{t("hero_title")}</span>
               <br />
-              Interest-Free
+              {t("hero_title_2")}
             </h1>
             <p style={{ fontSize: "16px", color: "#888", marginBottom: "36px", maxWidth: "480px", margin: "0 auto 36px", lineHeight: 1.7 }}>
               First <strong style={{ color: "#aaa", fontWeight: 600 }}>1,000 verified users</strong> who stake 500 USDT receive a{" "}
@@ -197,7 +199,7 @@ export default function LandingPage() {
                 onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
                 onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
               >
-                Sign Up Now <ArrowRight className="w-4 h-4" />
+                {t("cta_signup")} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/#how-it-works"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base transition-all"
@@ -205,17 +207,17 @@ export default function LandingPage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a"; (e.currentTarget as HTMLElement).style.color = "#aaa"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e"; (e.currentTarget as HTMLElement).style.color = "#555"; }}
               >
-                How It Works
+                {t("cta_how")}
               </Link>
             </div>
 
             {/* Stats row */}
             <div className="flex flex-wrap justify-center gap-8" style={{ marginBottom: "60px" }}>
               {[
-                { label: "Loan Amount",    value: "$50,000 USDT", color: "#0ecb81" },
-                { label: "Interest Rate",  value: "0%",           color: "#f0b90b" },
-                { label: "Loan Term",      value: "10 Years",     color: "#fff" },
-                { label: "Stake Required", value: "500 USDT",     color: "#f6465d" },
+                { label: t("stat_loan_label"),  value: t("stat_loan_amount"), color: "#0ecb81" },
+                { label: t("stat_rate_label"),  value: t("stat_rate"),        color: "#f0b90b" },
+                { label: t("stat_term_label"),  value: t("stat_term"),        color: "#fff" },
+                { label: t("stat_stake_label"), value: t("stat_stake"),       color: "#f6465d" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <div style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.03em", color: s.color, fontVariantNumeric: "tabular-nums" }}>
@@ -238,24 +240,24 @@ export default function LandingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "16px" }}>
               <Clock className="w-3.5 h-3.5" style={{ color: "#f0b90b" }} />
               <span style={{ fontSize: "10px", color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>
-                Campaign Ends In
+                {t("countdown_title")}
               </span>
             </div>
             <div className="flex justify-center gap-3" style={{ marginBottom: "20px" }}>
               {[
-                { label: "Days",    value: timeLeft.days },
-                { label: "Hours",   value: timeLeft.hours },
-                { label: "Min",     value: timeLeft.minutes },
-                { label: "Sec",     value: timeLeft.seconds },
-              ].map((t, i) => (
+                { label: t("time_days"),  value: timeLeft.days },
+                { label: t("time_hours"), value: timeLeft.hours },
+                { label: t("time_min"),   value: timeLeft.minutes },
+                { label: t("time_sec"),   value: timeLeft.seconds },
+              ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div style={{ background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "10px", padding: "10px 14px", minWidth: "58px" }}>
                     <span style={{ fontSize: "28px", fontWeight: 900, color: "#f0b90b", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}>
-                      {String(t.value).padStart(2, "0")}
+                      {String(item.value).padStart(2, "0")}
                     </span>
                   </div>
                   <div style={{ fontSize: "10px", color: "#444", marginTop: "6px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                    {t.label}
+                    {item.label}
                   </div>
                 </div>
               ))}
@@ -264,8 +266,8 @@ export default function LandingPage() {
             {/* Progress bar */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888", marginBottom: "8px" }}>
-                <span>{spotsUsed} registered</span>
-                <span style={{ color: "#f0b90b" }}>{spotsLeft} spots left</span>
+                <span>{t("spots_registered", { count: spotsUsed })}</span>
+                <span style={{ color: "#f0b90b" }}>{t("spots_left_label", { count: spotsLeft })}</span>
               </div>
               <div style={{ height: "3px", background: "#111", borderRadius: "4px", overflow: "hidden" }}>
                 <div
@@ -287,7 +289,7 @@ export default function LandingPage() {
       <section style={{ background: "#080808", borderTop: "1px solid #111", borderBottom: "1px solid #111", padding: "32px 16px" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
           <p style={{ textAlign: "center", fontSize: "10px", color: "#2a2a2a", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700, marginBottom: "28px" }}>
-            Trusted Partners
+            {t("trusted_partners")}
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "12px 52px" }}>
             {PARTNERS.map(p => (
@@ -301,14 +303,14 @@ export default function LandingPage() {
       <section style={{ padding: "60px 16px", maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <div>
-            <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#e8e8e8", letterSpacing: "-0.02em" }}>Live Markets</h2>
-            <p style={{ fontSize: "12px", color: "#555", marginTop: "2px" }}>Real-time prices · Updates every 3s</p>
+            <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#e8e8e8", letterSpacing: "-0.02em" }}>{t("live_markets_title")}</h2>
+            <p style={{ fontSize: "12px", color: "#555", marginTop: "2px" }}>{t("live_markets_subtitle")}</p>
           </div>
           <Link href="/markets"
             className="inline-flex items-center gap-1 text-sm font-semibold transition-all"
             style={{ color: "#f0b90b", fontSize: "12px" }}
           >
-            View All <ArrowRight className="w-3 h-3" />
+            {t("view_all")} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
@@ -344,11 +346,11 @@ export default function LandingPage() {
       <section style={{ padding: "80px 16px" }} id="how-it-works">
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Process</span>
+            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>{t("how_process")}</span>
             <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
-              How It Works
+              {t("how_title")}
             </h2>
-            <p style={{ color: "#444", fontSize: "14px" }}>4 simple steps to get your $50,000 USDT interest-free loan</p>
+            <p style={{ color: "#444", fontSize: "14px" }}>{t("how_subtitle")}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {STEPS.map((step, i) => (
@@ -388,7 +390,7 @@ export default function LandingPage() {
               onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
             >
-              Sign Up Now ({spotsLeft} Spots Left) <ArrowRight className="w-4 h-4" />
+              {t("how_cta")} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -399,11 +401,11 @@ export default function LandingPage() {
       {/* ─── FEATURES ─── */}
       <section style={{ padding: "80px 16px", maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>Why GROXchange</span>
+          <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>{t("features_why")}</span>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
-            Built Different
+            {t("features_title")}
           </h2>
-          <p style={{ color: "#444", fontSize: "14px" }}>Security, speed, and your financial growth. All in one platform.</p>
+          <p style={{ color: "#444", fontSize: "14px" }}>{t("features_subtitle")}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {FEATURES.map((f, i) => (
@@ -437,9 +439,9 @@ export default function LandingPage() {
       <section style={{ padding: "80px 16px" }} id="faq">
         <div style={{ maxWidth: "680px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>FAQ</span>
+            <span style={{ fontSize: "10px", color: "#f0b90b", letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>{t("faq_label")}</span>
             <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginTop: "8px", marginBottom: "12px" }}>
-              Questions
+              {t("faq_title")}
             </h2>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -501,11 +503,10 @@ export default function LandingPage() {
                 <Award className="w-7 h-7" style={{ color: "#f0b90b" }} />
               </div>
               <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: "12px" }}>
-                Claim Your <span className="gradient-text">$50,000 USDT</span>
+                <span className="gradient-text">{t("cta_title")}</span>
               </h2>
               <p style={{ color: "#888", marginBottom: "28px", fontSize: "14px", lineHeight: 1.7 }}>
-                Only <strong style={{ color: "#aaa" }}>{spotsLeft} spots</strong> remaining.
-                Complete KYC + stake 500 USDT before December 31st, 2026.
+                {t("cta_desc", { count: spotsLeft })}
               </p>
               <Link href="/register"
                 className="inline-flex items-center gap-2 font-bold px-10 py-4 rounded-xl text-lg transition-all glow-yellow"
@@ -513,7 +514,7 @@ export default function LandingPage() {
                 onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#ffc929")}
                 onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#f0b90b")}
               >
-                Sign Up Now <ArrowRight className="w-5 h-5" />
+                {t("cta_button")} <ArrowRight className="w-5 h-5" />
               </Link>
               <p style={{ fontSize: "11px", color: "#444", marginTop: "16px" }}>
                 By signing up you agree to our Terms & Conditions and Privacy Policy.
