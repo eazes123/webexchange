@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  findUserByEmail, createUser, createInitialWallets,
-  createSession, countUsers,
+  findUserByEmail, createUser, createInitialWallets, countUsers,
 } from "@/lib/db";
-import { hashPassword, generateToken, SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
+import { hashPassword, ASSETS } from "@/lib/auth-utils";
 import { deriveAddress } from "@/lib/tron";
 import { deriveEvmAddress } from "@/lib/bsc";
 import { sendWelcomeEmail, sendOtpEmail } from "@/lib/email";
@@ -17,33 +16,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "All fields required" }, { status: 400 });
   }
 
-  const existing = await findUserByEmail(email);
+  const normalizedEmail = email.toLowerCase().trim();
+  const existing = await findUserByEmail(normalizedEmail);
+
   if (existing) {
-    return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+    if (existing.emailVerified) {
+      return NextResponse.json(
+        { error: "Email already registered. Please login." },
+        { status: 400 }
+      );
+    }
+    // Existing but unverified — resend OTP so they can complete verification
+    const otpCode = createOtp(normalizedEmail);
+    sendOtpEmail(normalizedEmail, otpCode, "verify").catch(() => {});
+    return NextResponse.json({ needsVerification: true });
   }
 
   const count = await countUsers();
   const queuePosition  = count + 1;
-  const addressIndex   = count; // 0-based HD derivation index
+  const addressIndex   = count;
 
   const tronMnemonic = process.env.TRON_MASTER_MNEMONIC!;
-  const bscMnemonic  = process.env.BSC_MASTER_MNEMONIC ?? tronMnemonic; // fallback to same mnemonic
+  const bscMnemonic  = process.env.BSC_MASTER_MNEMONIC ?? tronMnemonic;
   let depositAddress: string | null = null;
   let bscDepositAddress: string | null = null;
-  try {
-    depositAddress = deriveAddress(tronMnemonic, addressIndex);
-  } catch {
-    // Non-fatal: address can be assigned later
-  }
-  try {
-    bscDepositAddress = deriveEvmAddress(bscMnemonic, addressIndex);
-  } catch {
-    // Non-fatal
-  }
+  try { depositAddress = deriveAddress(tronMnemonic, addressIndex); } catch {}
+  try { bscDepositAddress = deriveEvmAddress(bscMnemonic, addressIndex); } catch {}
 
   const user = await createUser({
     fullName,
-    email: email.toLowerCase().trim(),
+    email: normalizedEmail,
     phone,
     country,
     passwordHash: hashPassword(password),
@@ -64,32 +66,15 @@ export async function POST(request: NextRequest) {
     rewardDistributed: false,
     totpEnabled: false,
     totpSecret: null,
+    emailVerified: false,
   });
 
   await createInitialWallets(user.id, ASSETS);
 
-  // Send welcome email + OTP verification code
   sendWelcomeEmail(user.email, user.fullName).catch(() => {});
   const otpCode = createOtp(user.email);
   sendOtpEmail(user.email, otpCode, "verify").catch(() => {});
 
-  const token = generateToken();
-  await createSession(user.id, token);
-
-  const res = NextResponse.json({
-    success: true,
-    user: {
-      id: user.id, fullName: user.fullName, email: user.email,
-      queuePosition: user.queuePosition, kycStatus: "none", loanStatus: "none",
-      depositAddress: user.depositAddress,
-    },
-  });
-  res.cookies.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60,
-    path: "/",
-  });
-  return res;
+  // Session is NOT created here — only after email OTP is verified
+  return NextResponse.json({ needsVerification: true });
 }

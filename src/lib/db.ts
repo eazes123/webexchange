@@ -25,6 +25,7 @@ export interface DbUser {
   rewardDistributed: boolean;
   totpEnabled: boolean;
   totpSecret: string | null;
+  emailVerified: boolean;
   createdAt: string;
 }
 
@@ -106,6 +107,7 @@ function rowToUser(r: any): DbUser {
     rewardDistributed: r.reward_distributed ?? false,
     totpEnabled: r.totp_enabled ?? false,
     totpSecret: r.totp_secret ?? null,
+    emailVerified: r.email_verified ?? false,
     createdAt: r.created_at,
   };
 }
@@ -150,7 +152,7 @@ export async function getSessionUser(token: string | undefined): Promise<DbUser 
   if (!token) return null;
   const { data } = await supabaseAdmin
     .from("sessions")
-    .select("*, users(id, full_name, email, phone, country, password_hash, queue_position, kyc_status, loan_status, loan_amount, activation_fee_paid, activation_fee_refund_requested, loan_withdrawn_to_external, deposit_address, address_index, bsc_deposit_address, bsc_wallet_index, stake_amount, stake_status, staked_at, reward_distributed, totp_enabled, totp_secret, created_at)")
+    .select("*, users(id, full_name, email, phone, country, password_hash, queue_position, kyc_status, loan_status, loan_amount, activation_fee_paid, activation_fee_refund_requested, loan_withdrawn_to_external, deposit_address, address_index, bsc_deposit_address, bsc_wallet_index, stake_amount, stake_status, staked_at, reward_distributed, totp_enabled, totp_secret, email_verified, created_at)")
     .eq("token", token)
     .gt("expires_at", new Date().toISOString())
     .single();
@@ -173,7 +175,7 @@ export async function deleteSession(token: string): Promise<void> {
 // ── User helpers ───────────────────────────────────────────────────────────────
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
   const { data } = await supabaseAdmin
-    .from("users").select("*, totp_enabled, totp_secret, password_hash").eq("email", email.toLowerCase().trim()).single();
+    .from("users").select("*").eq("email", email.toLowerCase().trim()).single();
   return data ? rowToUser(data) : null;
 }
 
@@ -193,6 +195,9 @@ export async function createUser(user: Omit<DbUser, "id" | "createdAt">): Promis
       bsc_deposit_address: user.bscDepositAddress,
       bsc_wallet_index: user.bscWalletIndex,
       stake_amount: 0, stake_status: "none",
+      totp_enabled: user.totpEnabled ?? false,
+      totp_secret: user.totpSecret ?? null,
+      email_verified: user.emailVerified ?? false,
     })
     .select().single();
   if (error) throw new Error(error.message);
@@ -241,11 +246,13 @@ export async function updateUserSecurity(userId: string, fields: {
   passwordHash?: string;
   totpSecret?: string | null;
   totpEnabled?: boolean;
+  emailVerified?: boolean;
 }): Promise<void> {
   const row: any = {};
-  if (fields.passwordHash !== undefined) row.password_hash = fields.passwordHash;
-  if (fields.totpSecret   !== undefined) row.totp_secret   = fields.totpSecret;
-  if (fields.totpEnabled  !== undefined) row.totp_enabled  = fields.totpEnabled;
+  if (fields.passwordHash    !== undefined) row.password_hash  = fields.passwordHash;
+  if (fields.totpSecret      !== undefined) row.totp_secret    = fields.totpSecret;
+  if (fields.totpEnabled     !== undefined) row.totp_enabled   = fields.totpEnabled;
+  if (fields.emailVerified   !== undefined) row.email_verified = fields.emailVerified;
   if (Object.keys(row).length === 0) return;
   const { error } = await supabaseAdmin.from("users").update(row).eq("id", userId);
   if (error) throw new Error(`updateUserSecurity failed: ${error.message}`);

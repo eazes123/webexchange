@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
       rewardDistributed: false,
       totpEnabled: false,
       totpSecret: null,
+      emailVerified: true,
     });
 
     await createInitialWallets(user.id, ASSETS);

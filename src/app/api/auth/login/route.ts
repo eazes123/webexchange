@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, createSession, getUserWallet, getUserTransactions } from "@/lib/db";
 import { verifyPassword, generateToken, SESSION_COOKIE } from "@/lib/auth-utils";
 import { storePendingLogin } from "@/lib/totp";
+import { createOtp } from "@/lib/otp-store";
+import { sendOtpEmail } from "@/lib/email";
 
 // Brute-force protection: max 5 failed attempts per email per 15 minutes
 const loginFailMap = new Map<string, { count: number; resetAt: number }>();
@@ -69,6 +71,13 @@ export async function POST(request: NextRequest) {
   }
 
   clearLoginFail(email);
+
+  // If email not verified, send new OTP and ask them to verify first
+  if (!user.emailVerified) {
+    const otpCode = createOtp(user.email);
+    sendOtpEmail(user.email, otpCode, "verify").catch(() => {});
+    return NextResponse.json({ needs_email_verify: true });
+  }
 
   // If user has TOTP (Google Authenticator) enabled, require 2FA
   if (user.totpEnabled) {

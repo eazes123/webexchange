@@ -19,13 +19,21 @@ export default function LoginPage() {
     if (err === "oauth_failed")   toast.error("Social login failed. Please try again.");
   }, []);
 
-  const [step, setStep]               = useState<"login" | "totp">("login");
+  const [step, setStep]               = useState<"login" | "totp" | "email_otp">("login");
   const [email, setEmail]             = useState("");
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
   const [otp, setOtp]                 = useState("");
   const [loading, setLoading]         = useState(false);
   const [pendingToken, setPendingToken] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendRemaining, setResendRemaining] = useState(3);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => setResendCooldown(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +49,13 @@ export default function LoginPage() {
         toast.error(data.error ?? "Invalid credentials");
         return;
       }
+      if (data.needs_email_verify) {
+        setOtp("");
+        setResendRemaining(3);
+        setResendCooldown(30);
+        setStep("email_otp");
+        return;
+      }
       if (data.needs2fa) {
         setPendingToken(data.pendingToken);
         setStep("totp");
@@ -53,6 +68,45 @@ export default function LoginPage() {
       toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmailOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? "Invalid code"); return; }
+      await hydrate();
+      toast.success("Email verified! Welcome back.");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailOtpResend = async () => {
+    if (resendCooldown > 0 || resendRemaining <= 0) return;
+    try {
+      const res = await fetch("/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, type: "verify" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      setResendRemaining(data.remaining ?? 0);
+      setResendCooldown(30);
+      toast.success("New verification code sent!");
+    } catch {
+      toast.error("Network error. Please try again.");
     }
   };
 
@@ -76,6 +130,52 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (step === "email_otp") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-ex-card border border-ex-border rounded-2xl p-8">
+            <div className="w-14 h-14 bg-ex-green/10 rounded-2xl flex items-center justify-center mb-5">
+              <Shield className="w-7 h-7 text-ex-green" />
+            </div>
+            <h2 className="text-2xl font-black mb-1">Verify Your Email</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              A verification code was sent to <strong className="text-white">{email}</strong>. Enter it below to complete login.
+            </p>
+            <form onSubmit={handleEmailOtp} className="space-y-4">
+              <input
+                className="ex-input text-center text-2xl font-num tracking-[0.4em] font-bold"
+                type="text" maxLength={6} placeholder="● ● ● ● ● ●"
+                value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))} autoFocus required
+              />
+              <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+                {loading ? t("verifying") : "Verify & Login"}
+              </button>
+              <div className="text-center">
+                {resendRemaining > 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleEmailOtpResend}
+                    disabled={resendCooldown > 0}
+                    className="text-xs text-ex-yellow hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : `Resend Code (${resendRemaining} left)`}
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-600">Maximum resend attempts reached</span>
+                )}
+              </div>
+              <button type="button" onClick={() => setStep("login")}
+                className="text-xs text-gray-500 hover:text-gray-300 w-full text-center transition-colors">
+                ← Back to login
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "totp") {
     return (
