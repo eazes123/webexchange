@@ -8,27 +8,28 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-const NAV = [
-  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/campaign",   label: "Campaign",   icon: Trophy },
-  { href: "/kyc",        label: "KYC",        icon: Shield },
-  { href: "/wallet",     label: "Wallet",     icon: Wallet },
-  { href: "/loan",       label: "Loan",       icon: CreditCard },
-];
-
-// Bottom nav shows only 5 key items
-const BOTTOM_NAV = [
-  { href: "/dashboard", label: "Home",     icon: LayoutDashboard },
-  { href: "/campaign",  label: "Campaign", icon: Trophy },
-  { href: "/wallet",    label: "Wallet",   icon: Wallet },
-  { href: "/loan",      label: "Loan",     icon: CreditCard },
-];
+import { useTranslations } from "next-intl";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const t        = useTranslations("layout");
   const pathname = usePathname();
   const router   = useRouter();
   const { isLoggedIn, hydrate, fetchLivePrices, updatePrices, logout, demoUser } = useStore();
+
+  const NAV = [
+    { href: "/dashboard",  label: t("nav_dashboard"),  icon: LayoutDashboard },
+    { href: "/campaign",   label: t("nav_campaign"),   icon: Trophy },
+    { href: "/kyc",        label: t("nav_kyc"),        icon: Shield },
+    { href: "/wallet",     label: t("nav_wallet"),     icon: Wallet },
+    { href: "/loan",       label: t("nav_loan"),       icon: CreditCard },
+  ];
+
+  const BOTTOM_NAV = [
+    { href: "/dashboard", label: t("nav_home"),     icon: LayoutDashboard },
+    { href: "/campaign",  label: t("nav_campaign"), icon: Trophy },
+    { href: "/wallet",    label: t("nav_wallet"),   icon: Wallet },
+    { href: "/loan",      label: t("nav_loan"),     icon: CreditCard },
+  ];
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen bg-ex-bg flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 border-2 border-ex-yellow border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Loading your account...</p>
+          <p className="text-gray-400 text-sm">{t("loading_account")}</p>
         </div>
       </div>
     );
@@ -97,13 +98,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <Link href="/markets"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
-          <TrendingUp className="w-4 h-4" /> Markets
+          <TrendingUp className="w-4 h-4" /> {t("nav_markets")}
         </Link>
 
         <div className="mt-auto">
           <button onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-ex-red hover:bg-ex-red/5 transition-colors">
-            <LogOut className="w-4 h-4" /> Sign Out
+            <LogOut className="w-4 h-4" /> {t("nav_sign_out")}
           </button>
         </div>
       </aside>
@@ -128,7 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <button onClick={handleLogout}
           className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-[10px] font-semibold text-gray-500 hover:text-red-400 transition-colors">
           <LogOut className="w-5 h-5" />
-          Out
+          {t("nav_out")}
         </button>
       </nav>
     </div>

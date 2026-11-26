@@ -992,5 +992,17 @@
     "title": "Privacy Policy",
     "last_updated": "Last updated: January 1, 2026",
     "intro": "This Privacy Policy explains how GROXchange collects and uses your personal information."
+  },
+  "layout": {
+    "nav_dashboard": "Dashboard",
+    "nav_campaign": "Campaign",
+    "nav_kyc": "KYC",
+    "nav_wallet": "Wallet",
+    "nav_loan": "Loan",
+    "nav_markets": "Markets",
+    "nav_home": "Home",
+    "nav_sign_out": "Sign Out",
+    "nav_out": "Out",
+    "loading_account": "Loading your account..."
   }
 }
