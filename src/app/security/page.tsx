@@ -61,7 +61,7 @@ export default function SecurityPage() {
       const res = await fetch("/api/security/totp/enable", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: totpCode }),
+        body: JSON.stringify({ code: totpCode, secret: totpSecret }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error); return; }
