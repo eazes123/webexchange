@@ -225,6 +225,26 @@ export function sendDepositConfirmedEmail(
   });
 }
 
+// ── 6. Email OTP (registration / login verification) ───────────────────────
+export function sendOtpEmail(to: string, code: string, type: "verify" | "login" = "verify"): Promise<void> {
+  const isLogin = type === "login";
+  return sendEmail({
+    to,
+    subject: isLogin ? "GROXchange Login Code" : "GROXchange Email Verification Code",
+    html: baseTemplate(`
+      ${badge(isLogin ? "Login Verification" : "Email Verification")}
+      ${h1("Your Verification Code")}
+      ${p(isLogin
+        ? "Use this code to complete your login. It expires in 10 minutes."
+        : "Use this code to verify your email address. It expires in 10 minutes.")}
+      <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:16px;padding:32px;text-align:center;margin:24px 0;">
+        <span style="font-size:40px;font-weight:900;color:#f0b90b;letter-spacing:0.5em;font-family:monospace;">${code}</span>
+      </div>
+      ${p("If you did not request this code, you can safely ignore this email.")}
+    `),
+  });
+}
+
 // ── Admin: agent chat request (kept here, removed from chat route) ──────────
 export function sendAgentRequestEmail(
   adminEmail: string,

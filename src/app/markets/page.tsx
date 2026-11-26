@@ -5,12 +5,17 @@ import { Search, TrendingUp, TrendingDown, ChevronUp, ChevronDown } from "lucide
 import { useStore } from "@/lib/store";
 import { formatPrice, formatLargeNumber, formatChange, getChangeColor } from "@/lib/utils";
 import type { Coin } from "@/lib/mock-data";
+import { useTranslations } from "next-intl";
 
 type SortKey = "rank" | "price" | "change24h" | "volume24h" | "marketCap";
 type SortDir = "asc" | "desc";
 type Category = "All" | "Layer 1" | "Layer 2" | "DeFi" | "Meme" | "Stablecoin" | "Payments";
 
 const CATEGORIES: Category[] = ["All", "Layer 1", "Layer 2", "DeFi", "Meme", "Stablecoin", "Payments"];
+const CAT_KEY: Record<Category, string> = {
+  "All": "cat_all", "Layer 1": "cat_layer1", "Layer 2": "cat_layer2",
+  "DeFi": "cat_defi", "Meme": "cat_meme", "Stablecoin": "cat_stablecoin", "Payments": "cat_payments",
+};
 
 function Sparkline({ data, change }: { data: number[]; change: number }) {
   const min = Math.min(...data);
@@ -32,6 +37,7 @@ function Sparkline({ data, change }: { data: number[]; change: number }) {
 }
 
 export default function MarketsPage() {
+  const t = useTranslations("markets");
   const { coins, updatePrices, fetchLivePrices } = useStore();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("All");
@@ -76,15 +82,15 @@ export default function MarketsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black mb-1">Markets</h1>
-        <p className="text-gray-400">Live cryptocurrency prices and market data</p>
+        <h1 className="text-3xl font-black mb-1">{t("title")}</h1>
+        <p className="text-gray-400">{t("subtitle")}</p>
       </div>
 
       {/* Top Gainers / Losers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4 text-ex-green font-semibold">
-            <TrendingUp className="w-4 h-4" /> Top Gainers (24h)
+            <TrendingUp className="w-4 h-4" /> {t("top_gainers")}
           </div>
           <div className="space-y-3">
             {gainers.map(c => (
@@ -105,7 +111,7 @@ export default function MarketsPage() {
 
         <div className="bg-ex-card border border-ex-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4 text-ex-red font-semibold">
-            <TrendingDown className="w-4 h-4" /> Top Losers (24h)
+            <TrendingDown className="w-4 h-4" /> {t("top_losers")}
           </div>
           <div className="space-y-3">
             {losers.map(c => (
@@ -133,7 +139,7 @@ export default function MarketsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               className="ex-input pl-9 h-9 text-sm"
-              placeholder="Search coins..."
+              placeholder={t("search_placeholder")}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -149,7 +155,7 @@ export default function MarketsPage() {
                     : "bg-ex-card2 text-gray-400 hover:text-white"
                 }`}
               >
-                {cat}
+                {t(CAT_KEY[cat])}
               </button>
             ))}
           </div>
@@ -165,21 +171,21 @@ export default function MarketsPage() {
                 <th onClick={() => handleSort("rank")} className="cursor-pointer text-left w-12">
                   # <SortIcon k="rank" />
                 </th>
-                <th className="text-left">Name</th>
+                <th className="text-left">{t("col_name")}</th>
                 <th onClick={() => handleSort("price")} className="cursor-pointer text-right">
-                  Price <SortIcon k="price" />
+                  {t("col_price")} <SortIcon k="price" />
                 </th>
                 <th onClick={() => handleSort("change24h")} className="cursor-pointer text-right">
-                  24h % <SortIcon k="change24h" />
+                  {t("col_24h")} <SortIcon k="change24h" />
                 </th>
                 <th onClick={() => handleSort("volume24h")} className="cursor-pointer text-right hidden md:table-cell">
-                  Volume <SortIcon k="volume24h" />
+                  {t("col_volume")} <SortIcon k="volume24h" />
                 </th>
                 <th onClick={() => handleSort("marketCap")} className="cursor-pointer text-right hidden lg:table-cell">
-                  Market Cap <SortIcon k="marketCap" />
+                  {t("col_market_cap")} <SortIcon k="marketCap" />
                 </th>
-                <th className="text-right hidden md:table-cell">7D Chart</th>
-                <th className="text-center">Trade</th>
+                <th className="text-right hidden md:table-cell">{t("col_chart")}</th>
+                <th className="text-center">{t("col_trade")}</th>
               </tr>
             </thead>
             <tbody>
@@ -217,7 +223,7 @@ export default function MarketsPage() {
                   <td className="text-center">
                     <Link href={`/trade/${coin.symbol}-USDT`}
                       className="inline-flex items-center px-3 py-1.5 bg-ex-yellow/10 text-ex-yellow text-xs font-semibold rounded-lg hover:bg-ex-yellow/20 transition-colors">
-                      Trade
+                      {t("col_trade")}
                     </Link>
                   </td>
                 </tr>
@@ -226,7 +232,7 @@ export default function MarketsPage() {
           </table>
           {filtered.length === 0 && (
             <div className="text-center py-16 text-gray-500">
-              No coins found for &quot;{search}&quot;
+              {t("no_coins", { search })}
             </div>
           )}
         </div>

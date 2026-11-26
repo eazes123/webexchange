@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   TrendingUp, Menu, X, ChevronDown,
-  LogOut, LayoutDashboard, FileText, Zap, UserCircle
+  LogOut, LayoutDashboard, FileText, Zap, UserCircle, Shield
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -136,6 +136,10 @@ export default function Navbar() {
                   <Link href="/kyc" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
                     <FileText className="w-3.5 h-3.5" /> {t("kyc_status")}
+                  </Link>
+                  <Link href="/security" onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#888] hover:text-white hover:bg-white/[0.03] transition-colors">
+                    <Shield className="w-3.5 h-3.5" /> Security
                   </Link>
                   <Link href="/campaign" onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-white/[0.03] transition-colors"

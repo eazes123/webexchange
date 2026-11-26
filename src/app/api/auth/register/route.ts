@@ -6,7 +6,8 @@ import {
 import { hashPassword, generateToken, SESSION_COOKIE, ASSETS } from "@/lib/auth-utils";
 import { deriveAddress } from "@/lib/tron";
 import { deriveEvmAddress } from "@/lib/bsc";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, sendOtpEmail } from "@/lib/email";
+import { createOtp } from "@/lib/otp-store";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -61,12 +62,16 @@ export async function POST(request: NextRequest) {
     stakeStatus: "none",
     stakedAt: null,
     rewardDistributed: false,
+    totpEnabled: false,
+    totpSecret: null,
   });
 
   await createInitialWallets(user.id, ASSETS);
 
-  // Best-effort welcome email — never blocks registration
+  // Send welcome email + OTP verification code
   sendWelcomeEmail(user.email, user.fullName).catch(() => {});
+  const otpCode = createOtp(user.email);
+  sendOtpEmail(user.email, otpCode, "verify").catch(() => {});
 
   const token = generateToken();
   await createSession(user.id, token);

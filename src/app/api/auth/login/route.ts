@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, createSession, getUserWallet, getUserTransactions } from "@/lib/db";
 import { verifyPassword, generateToken, SESSION_COOKIE } from "@/lib/auth-utils";
+import { storePendingLogin } from "@/lib/totp";
 
 // Brute-force protection: max 5 failed attempts per email per 15 minutes
 const loginFailMap = new Map<string, { count: number; resetAt: number }>();
@@ -68,6 +69,13 @@ export async function POST(request: NextRequest) {
   }
 
   clearLoginFail(email);
+
+  // If user has TOTP (Google Authenticator) enabled, require 2FA
+  if (user.totpEnabled) {
+    const pendingToken = generateToken();
+    storePendingLogin(pendingToken, user.id);
+    return NextResponse.json({ needs2fa: true, pendingToken });
+  }
 
   const token = generateToken();
   await createSession(user.id, token);

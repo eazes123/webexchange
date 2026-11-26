@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       stakeStatus: user.stakeStatus,
       stakedAt: user.stakedAt,
       rewardDistributed: user.rewardDistributed,
+      totpEnabled: user.totpEnabled,
     },
     wallets,
     transactions,

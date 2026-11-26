@@ -19,12 +19,13 @@ export default function LoginPage() {
     if (err === "oauth_failed")   toast.error("Social login failed. Please try again.");
   }, []);
 
-  const [step, setStep]           = useState<"login" | "2fa">("login");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [showPw, setShowPw]       = useState(false);
-  const [otp, setOtp]             = useState("");
-  const [loading, setLoading]     = useState(false);
+  const [step, setStep]               = useState<"login" | "totp">("login");
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
+  const [showPw, setShowPw]           = useState(false);
+  const [otp, setOtp]                 = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [pendingToken, setPendingToken] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,14 @@ export default function LoginPage() {
         toast.error(data.error ?? "Invalid credentials");
         return;
       }
-      setStep("2fa");
+      if (data.needs2fa) {
+        setPendingToken(data.pendingToken);
+        setStep("totp");
+        return;
+      }
+      await hydrate();
+      toast.success("Welcome back!");
+      router.push("/dashboard");
     } catch {
       toast.error("Network error. Please try again.");
     } finally {
@@ -48,17 +56,28 @@ export default function LoginPage() {
     }
   };
 
-  const handle2FA = async (e: React.FormEvent) => {
+  const handleTotp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp !== "123456") { toast.error("Invalid verification code. Please check your email."); return; }
     setLoading(true);
-    await hydrate();
-    setLoading(false);
-    toast.success("Welcome back!");
-    router.push("/dashboard");
+    try {
+      const res = await fetch("/api/auth/verify-totp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pendingToken, code: otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? "Invalid code"); return; }
+      await hydrate();
+      toast.success("Welcome back!");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (step === "2fa") {
+  if (step === "totp") {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="w-full max-w-md">
@@ -67,18 +86,19 @@ export default function LoginPage() {
               <Shield className="w-7 h-7 text-ex-yellow" />
             </div>
             <h2 className="text-2xl font-black mb-1">{t("2fa_title")}</h2>
-            <p className="text-gray-400 text-sm mb-6">{t("2fa_subtitle")}</p>
-            <form onSubmit={handle2FA} className="space-y-4">
+            <p className="text-gray-400 text-sm mb-6">Enter the 6-digit code from your Google Authenticator app.</p>
+            <form onSubmit={handleTotp} className="space-y-4">
               <input
                 className="ex-input text-center text-2xl font-num tracking-[0.4em] font-bold"
                 type="text" maxLength={6} placeholder="● ● ● ● ● ●"
-                value={otp} onChange={e => setOtp(e.target.value)} autoFocus required
+                value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))} autoFocus required
               />
-              <div className="text-xs text-gray-600 text-center">
-                {t("2fa_check_email")}
-              </div>
               <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
                 {loading ? t("verifying") : t("2fa_verify")}
+              </button>
+              <button type="button" onClick={() => setStep("login")}
+                className="text-xs text-gray-500 hover:text-gray-300 w-full text-center transition-colors">
+                ← Back to login
               </button>
             </form>
           </div>

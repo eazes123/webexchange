@@ -14,13 +14,21 @@ export default function RegisterPage() {
   const router = useRouter();
   const { hydrate, setRegisteredEmail } = useStore();
 
-  const [step, setStep]           = useState(0);
-  const [loading, setLoading]     = useState(false);
-  const [showPw, setShowPw]       = useState(false);
-  const [otp, setOtp]             = useState("");
-  const [spotsLeft, setSpotsLeft] = useState(985);
+  const [step, setStep]               = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const [showPw, setShowPw]           = useState(false);
+  const [otp, setOtp]                 = useState("");
+  const [spotsLeft, setSpotsLeft]     = useState(985);
   const [dialCountry, setDialCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phoneRaw, setPhoneRaw]       = useState("");
+  const [resendRemaining, setResendRemaining] = useState(3);
+  const [resendCooldown, setResendCooldown]   = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => setResendCooldown(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
 
   useEffect(() => {
     fetch("/api/stats")
@@ -83,12 +91,41 @@ export default function RegisterPage() {
 
   const handleOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp !== "123456") { toast.error(t("invalid_2fa")); return; }
     setLoading(true);
-    await hydrate();
-    setLoading(false);
-    toast.success(t("account_created"));
-    router.push("/dashboard");
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, code: otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? t("invalid_2fa")); return; }
+      await hydrate();
+      toast.success(t("account_created"));
+      router.push("/dashboard");
+    } catch {
+      toast.error(t("network_error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || resendRemaining <= 0) return;
+    try {
+      const res = await fetch("/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, type: "verify" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      setResendRemaining(data.remaining ?? 0);
+      setResendCooldown(30);
+      toast.success("New verification code sent!");
+    } catch {
+      toast.error(t("network_error"));
+    }
   };
 
   if (step === 1) {
@@ -115,6 +152,20 @@ export default function RegisterPage() {
               <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
                 {loading ? t("creating_account") : t("verify_create_account")}
               </button>
+              <div className="text-center">
+                {resendRemaining > 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendCooldown > 0}
+                    className="text-xs text-ex-yellow hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : `Resend Code (${resendRemaining} left)`}
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-600">Maximum resend attempts reached</span>
+                )}
+              </div>
             </form>
           </div>
         </div>

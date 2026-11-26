@@ -75,6 +75,8 @@ export async function GET(request: NextRequest) {
       stakeStatus: "none",
       stakedAt: null,
       rewardDistributed: false,
+      totpEnabled: false,
+      totpSecret: null,
     });
 
     await createInitialWallets(user.id, ASSETS);
