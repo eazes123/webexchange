@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { popPendingLogin } from "@/lib/totp";
-import { totpVerify } from "@/lib/totp";
+import { popPendingLogin, totpVerify } from "@/lib/totp";
 import { getUserById, createSession, getUserWallet, getUserTransactions } from "@/lib/db";
 import { generateToken, SESSION_COOKIE } from "@/lib/auth-utils";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
-import { generateTotpSecret, totpUri, storePendingSecret } from "@/lib/totp";
+import { generateTotpSecret, totpUri } from "@/lib/totp";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const secret = generateTotpSecret();
-  storePendingSecret(user.id, secret);
   const uri = totpUri(user.email, secret);
 
   return NextResponse.json({ secret, uri });

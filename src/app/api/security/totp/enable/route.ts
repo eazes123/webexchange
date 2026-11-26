@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, updateUserSecurity } from "@/lib/db";
 import { SESSION_COOKIE } from "@/lib/auth-utils";
-import { totpVerify, getPendingSecret, clearPendingSecret } from "@/lib/totp";
+import { totpVerify } from "@/lib/totp";
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
@@ -16,6 +16,5 @@ export async function POST(request: NextRequest) {
   }
 
   await updateUserSecurity(user.id, { totpSecret: secret.trim(), totpEnabled: true });
-  clearPendingSecret(user.id);
   return NextResponse.json({ success: true });
 }

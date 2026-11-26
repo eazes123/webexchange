@@ -1,6 +1,7 @@
 // TOTP (RFC 6238) implementation using @noble/hashes
 // Compatible with Google Authenticator and all standard TOTP apps.
 
+import { createHmac } from "crypto";
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 
@@ -62,31 +63,14 @@ export function totpUri(email: string, secret: string, issuer = "GROXchange"): s
   return `otpauth://totp/${account}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
 
-// In-memory store for pending TOTP setup (secret shown to user, not yet confirmed)
-const pendingSecrets = new Map<string, { secret: string; expiresAt: number }>();
-
-export function storePendingSecret(userId: string, secret: string): void {
-  pendingSecrets.set(userId, { secret, expiresAt: Date.now() + 10 * 60 * 1000 });
-}
-
-export function getPendingSecret(userId: string): string | null {
-  const entry = pendingSecrets.get(userId);
-  if (!entry || Date.now() > entry.expiresAt) { pendingSecrets.delete(userId); return null; }
-  return entry.secret;
-}
-
-export function clearPendingSecret(userId: string): void {
-  pendingSecrets.delete(userId);
-}
-
-// Stateless pending login token — HMAC-signed so no in-memory state needed.
-// Works across module instances (Next.js dev) and serverless functions.
-import { createHmac } from "crypto";
+// ── Stateless pending login token (HMAC-signed, no in-memory state) ───────────
+// Works across Next.js route module instances and serverless function invocations.
 
 function signingKey(): string {
   return process.env.SUPABASE_SECRET_KEY ?? process.env.CRON_SECRET ?? "change-me-in-env";
 }
 
+/** Create a signed pending-login token encoding userId + expiry. */
 export function storePendingLogin(userId: string): string {
   const expiresAt = Date.now() + 5 * 60 * 1000;
   const payload = `${userId}:${expiresAt}`;
@@ -94,6 +78,7 @@ export function storePendingLogin(userId: string): string {
   return Buffer.from(payload).toString("base64url") + "." + sig;
 }
 
+/** Verify token signature + expiry, return userId or null. */
 export function popPendingLogin(token: string): string | null {
   try {
     const dot = token.lastIndexOf(".");

@@ -6,14 +6,15 @@ import { createOtp } from "@/lib/otp-store";
 import { sendOtpEmail } from "@/lib/email";
 
 // Brute-force protection: max 5 failed attempts per email per 15 minutes
-const loginFailMap = new Map<string, { count: number; resetAt: number }>();
+declare global { var __loginFailMap: Map<string, { count: number; resetAt: number }> | undefined; }
+function failMap() { if (!globalThis.__loginFailMap) globalThis.__loginFailMap = new Map(); return globalThis.__loginFailMap; }
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS   = 15 * 60 * 1000;
 
 function checkLoginRate(email: string): { allowed: boolean; retryAfter?: number } {
   const key = email.toLowerCase().trim();
   const now = Date.now();
-  const entry = loginFailMap.get(key);
+  const entry = failMap().get(key);
   if (!entry || now > entry.resetAt) return { allowed: true };
   if (entry.count >= MAX_ATTEMPTS) {
     return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
@@ -24,16 +25,16 @@ function checkLoginRate(email: string): { allowed: boolean; retryAfter?: number 
 function recordLoginFail(email: string) {
   const key = email.toLowerCase().trim();
   const now = Date.now();
-  const entry = loginFailMap.get(key);
+  const entry = failMap().get(key);
   if (!entry || now > entry.resetAt) {
-    loginFailMap.set(key, { count: 1, resetAt: now + LOCKOUT_MS });
+    failMap().set(key, { count: 1, resetAt: now + LOCKOUT_MS });
   } else {
     entry.count++;
   }
 }
 
 function clearLoginFail(email: string) {
-  loginFailMap.delete(email.toLowerCase().trim());
+  failMap().delete(email.toLowerCase().trim());
 }
 
 export async function POST(request: NextRequest) {
