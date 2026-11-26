@@ -79,16 +79,36 @@ export function clearPendingSecret(userId: string): void {
   pendingSecrets.delete(userId);
 }
 
-// In-memory store for pending logins (email verified but TOTP not yet entered)
-const pendingLogins = new Map<string, { userId: string; expiresAt: number }>();
+// Stateless pending login token — HMAC-signed so no in-memory state needed.
+// Works across module instances (Next.js dev) and serverless functions.
+import { createHmac } from "crypto";
 
-export function storePendingLogin(token: string, userId: string): void {
-  pendingLogins.set(token, { userId, expiresAt: Date.now() + 5 * 60 * 1000 });
+function signingKey(): string {
+  return process.env.SUPABASE_SECRET_KEY ?? process.env.CRON_SECRET ?? "change-me-in-env";
+}
+
+export function storePendingLogin(userId: string): string {
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const payload = `${userId}:${expiresAt}`;
+  const sig = createHmac("sha256", signingKey()).update(payload).digest("hex");
+  return Buffer.from(payload).toString("base64url") + "." + sig;
 }
 
 export function popPendingLogin(token: string): string | null {
-  const entry = pendingLogins.get(token);
-  if (!entry || Date.now() > entry.expiresAt) { pendingLogins.delete(token); return null; }
-  pendingLogins.delete(token);
-  return entry.userId;
+  try {
+    const dot = token.lastIndexOf(".");
+    if (dot === -1) return null;
+    const payloadB64 = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+    const payload = Buffer.from(payloadB64, "base64url").toString();
+    const expected = createHmac("sha256", signingKey()).update(payload).digest("hex");
+    if (sig !== expected) return null;
+    const colon = payload.lastIndexOf(":");
+    const userId = payload.slice(0, colon);
+    const expiresAt = parseInt(payload.slice(colon + 1), 10);
+    if (!userId || isNaN(expiresAt) || Date.now() > expiresAt) return null;
+    return userId;
+  } catch {
+    return null;
+  }
 }

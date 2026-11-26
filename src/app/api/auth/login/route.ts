@@ -85,8 +85,7 @@ export async function POST(request: NextRequest) {
 
   // If user has TOTP (Google Authenticator) enabled, require 2FA
   if (user.totpEnabled) {
-    const pendingToken = generateToken();
-    storePendingLogin(pendingToken, user.id);
+    const pendingToken = storePendingLogin(user.id);
     return NextResponse.json({ needs2fa: true, pendingToken });
   }
 
