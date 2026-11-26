@@ -28,7 +28,11 @@ export async function POST(request: NextRequest) {
     }
     // Existing but unverified — resend OTP so they can complete verification
     const otpCode = createOtp(normalizedEmail);
-    sendOtpEmail(normalizedEmail, otpCode, "verify").catch(() => {});
+    try {
+      await sendOtpEmail(normalizedEmail, otpCode, "verify");
+    } catch {
+      return NextResponse.json({ error: "Could not send verification email. Check server logs." }, { status: 500 });
+    }
     return NextResponse.json({ needsVerification: true });
   }
 
@@ -73,7 +77,11 @@ export async function POST(request: NextRequest) {
 
   sendWelcomeEmail(user.email, user.fullName).catch(() => {});
   const otpCode = createOtp(user.email);
-  sendOtpEmail(user.email, otpCode, "verify").catch(() => {});
+  try {
+    await sendOtpEmail(user.email, otpCode, "verify");
+  } catch {
+    return NextResponse.json({ error: "Could not send verification email. Check server logs." }, { status: 500 });
+  }
 
   // Session is NOT created here — only after email OTP is verified
   return NextResponse.json({ needsVerification: true });

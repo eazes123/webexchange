@@ -23,8 +23,11 @@ export async function POST(request: NextRequest) {
   const code = recordResend(key);
   const info = getResendInfo(key);
 
-  // Best-effort send — never throw
-  sendOtpEmail(key, code, type ?? "verify").catch(() => {});
+  try {
+    await sendOtpEmail(key, code, type ?? "verify");
+  } catch {
+    return NextResponse.json({ error: "Could not send verification email. Check server logs." }, { status: 500 });
+  }
 
   return NextResponse.json({
     success: true,

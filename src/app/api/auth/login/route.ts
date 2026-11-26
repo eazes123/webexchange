@@ -75,7 +75,11 @@ export async function POST(request: NextRequest) {
   // If email not verified, send new OTP and ask them to verify first
   if (!user.emailVerified) {
     const otpCode = createOtp(user.email);
-    sendOtpEmail(user.email, otpCode, "verify").catch(() => {});
+    try {
+      await sendOtpEmail(user.email, otpCode, "verify");
+    } catch {
+      return NextResponse.json({ error: "Could not send verification email. Check server logs." }, { status: 500 });
+    }
     return NextResponse.json({ needs_email_verify: true });
   }
 
