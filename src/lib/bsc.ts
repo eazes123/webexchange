@@ -190,18 +190,13 @@ export async function sendBnb(
 
 export async function fetchBep20Balance(address: string): Promise<number> {
   try {
-    const url = new URL(BSCSCAN_BASE);
-    url.searchParams.set("module",          "account");
-    url.searchParams.set("action",          "tokenbalance");
-    url.searchParams.set("contractaddress", USDT_BEP20);
-    url.searchParams.set("address",         address);
-    url.searchParams.set("tag",             "latest");
-    url.searchParams.set("apikey",          bscscanKey());
-    const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) return 0;
-    const { status, result } = await res.json();
-    if (status !== "1") return 0;
-    return Number(result) / 10 ** USDT_DECIMALS;
+    // Use eth_call to invoke balanceOf(address) on the USDT contract (no BscScan needed)
+    const paddedAddr = "0x" + address.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+    // balanceOf selector = 0x70a08231
+    const data = "0x70a08231" + paddedAddr.slice(2);
+    const res  = await rpcCall("eth_call", [{ to: USDT_BEP20, data }, "latest"]);
+    if (res.error || !res.result || res.result === "0x") return 0;
+    return Number(BigInt(res.result)) / 10 ** USDT_DECIMALS;
   } catch {
     return 0;
   }
