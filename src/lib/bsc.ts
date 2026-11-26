@@ -4,8 +4,10 @@ import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { keccak_256 } from "@noble/hashes/sha3.js";
 
 const USDT_BEP20   = "0x55d398326f99059fF775485246999027B3197955";
-const BSCSCAN_BASE = "https://api.bscscan.com/api";
+const BSCSCAN_BASE = "https://api.bscscan.com/api"; // kept for reference
 const BSC_RPC      = "https://bsc-dataseed.binance.org/";
+// PublicNode supports eth_getLogs up to 10000 blocks; Binance nodes do not
+const BSC_LOGS_RPC = "https://bsc-rpc.publicnode.com";
 const CHAIN_ID     = 56n;
 const USDT_DECIMALS = 18; // BEP20 USDT has 18 decimals
 
@@ -62,35 +64,49 @@ export interface BscDeposit {
   confirmed: boolean;
 }
 
-// ── BSCScan fetch helpers ─────────────────────────────────────────────────────
+// ── ERC20 Transfer event topic ────────────────────────────────────────────────
+// keccak256("Transfer(address,address,uint256)") = 0xddf252ad...
+const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+// ── BSCScan fetch helpers (kept for reference, replaced by RPC approach) ──────
 
 function bscscanKey(): string {
   return process.env.BSCSCAN_API_KEY ?? "";
 }
 
+// Fetch BEP20 USDT deposits using direct BSC RPC eth_getLogs.
+// Uses publicnode.com which supports up to 10000-block range.
 export async function fetchBep20Deposits(address: string): Promise<BscDeposit[]> {
   try {
-    const url = new URL(BSCSCAN_BASE);
-    url.searchParams.set("module",          "account");
-    url.searchParams.set("action",          "tokentx");
-    url.searchParams.set("contractaddress", USDT_BEP20);
-    url.searchParams.set("address",         address);
-    url.searchParams.set("sort",            "desc");
-    url.searchParams.set("apikey",          bscscanKey());
+    const paddedAddr = "0x" + address.toLowerCase().replace(/^0x/, "").padStart(64, "0");
 
-    const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) return [];
-    const { status, result } = await res.json();
-    if (status !== "1" || !Array.isArray(result)) return [];
+    // Get latest block from logs RPC
+    const latestRes = await rpcCallTo(BSC_LOGS_RPC, "eth_blockNumber", []);
+    if (latestRes.error) return [];
+    const latestBlock = BigInt(latestRes.result);
 
-    return result
-      .filter((tx: any) => tx.to?.toLowerCase() === address.toLowerCase())
-      .map((tx: any) => ({
-        txHash:    tx.hash as string,
-        amount:    Number(tx.value) / 10 ** USDT_DECIMALS,
-        timestamp: Number(tx.timeStamp) * 1000, // BSCScan returns seconds
+    // 5000 blocks ≈ 4 hours on BSC (3-second blocks)
+    const BLOCK_RANGE = 5000n;
+    const fromBlock = "0x" + (latestBlock - BLOCK_RANGE).toString(16);
+    const toBlock   = "0x" + latestBlock.toString(16);
+
+    const logsRes = await rpcCallTo(BSC_LOGS_RPC, "eth_getLogs", [{
+      fromBlock,
+      toBlock,
+      address:  USDT_BEP20,
+      topics:   [TRANSFER_TOPIC, null, paddedAddr], // Transfer(*, to=address, *)
+    }]);
+
+    if (logsRes.error || !Array.isArray(logsRes.result)) return [];
+
+    return logsRes.result
+      .map((log: any) => ({
+        txHash:    log.transactionHash as string,
+        amount:    Number(BigInt(log.data)) / 10 ** USDT_DECIMALS,
+        timestamp: Date.now(), // block timestamp fetch skipped to reduce RPC calls
         confirmed: true,
-      }));
+      }))
+      .filter((d: BscDeposit) => d.amount > 0);
   } catch {
     return [];
   }
@@ -241,14 +257,18 @@ function encodeTransfer(to: string, amount: bigint): Uint8Array {
 
 // ── BSC JSON-RPC helpers ──────────────────────────────────────────────────────
 
-async function rpcCall(method: string, params: unknown[]): Promise<any> {
-  const res = await fetch(BSC_RPC, {
+async function rpcCallTo(endpoint: string, method: string, params: unknown[]): Promise<any> {
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
   if (!res.ok) throw new Error(`BSC RPC HTTP ${res.status}`);
   return res.json();
+}
+
+async function rpcCall(method: string, params: unknown[]): Promise<any> {
+  return rpcCallTo(BSC_RPC, method, params);
 }
 
 // ── Send BEP20 USDT ───────────────────────────────────────────────────────────
