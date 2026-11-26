@@ -678,7 +678,7 @@ export default function WalletPage() {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-sm text-gray-400">{t("amount_wd_label")}</label>
-                  <button type="button" onClick={() => setWithdrawAmount(String(avail - (wdFee?.fee ?? 0)))}
+                  <button type="button" onClick={() => setWithdrawAmount(String(avail))}
                     className="text-xs text-ex-yellow hover:underline">{t("max_btn")}</button>
                 </div>
                 <input className="ex-input font-num" type="number" required step="any"
