@@ -266,6 +266,9 @@ export default function AdminPage() {
   const [kycCompletedList, setKycCompletedList] = useState<KycCompleted[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
+  const [wdFees, setWdFees] = useState({ trc20: 1, bsc: 1 });
+  const [editingWdFees, setEditingWdFees] = useState(false);
+  const [wdFeesForm, setWdFeesForm] = useState({ trc20: "1", bsc: "1" });
   const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
   const [campaign, setCampaign]     = useState<CampaignData | null>(null);
   const [exchangeWallet, setExchangeWallet] = useState<string | null>(null);
@@ -370,6 +373,10 @@ export default function AdminPage() {
         const d = await r.json();
         setWithdrawals(d.withdrawals ?? []);
         setWithdrawalsEnabled(d.withdrawalsEnabled ?? true);
+        if (d.trc20Fee !== undefined && d.bscFee !== undefined) {
+          setWdFees({ trc20: d.trc20Fee, bsc: d.bscFee });
+          setWdFeesForm({ trc20: String(d.trc20Fee), bsc: String(d.bscFee) });
+        }
       }
     } finally { setLoadingWd(false); }
   }, []);
@@ -547,6 +554,22 @@ export default function AdminPage() {
       toast.success(data.message);
       await fetchCampaign(); await fetchStats();
     } catch { toast.error("Action failed"); }
+    finally { setActionLoading(null); }
+  };
+
+  const saveWdFees = async () => {
+    setActionLoading("save_wd_fees");
+    try {
+      const res = await fetch("/api/admin/withdrawals", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_withdrawal_fees", trc20Fee: wdFeesForm.trc20, bscFee: wdFeesForm.bsc }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); return; }
+      setWdFees({ trc20: data.trc20Fee, bsc: data.bscFee });
+      setEditingWdFees(false);
+      toast.success(data.message);
+    } catch { toast.error("Failed to save fees"); }
     finally { setActionLoading(null); }
   };
 
@@ -1722,6 +1745,62 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* ── USDT Withdrawal Fee Settings ──────────────────────────────── */}
+            <div className="bg-ex-card border border-ex-border rounded-2xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-ex-blue" />
+                  <h3 className="font-semibold text-sm">USDT Withdrawal Fees</h3>
+                </div>
+                {!editingWdFees ? (
+                  <button onClick={() => { setWdFeesForm({ trc20: String(wdFees.trc20), bsc: String(wdFees.bsc) }); setEditingWdFees(true); }}
+                    className="flex items-center gap-1 px-3 py-1 text-xs rounded-lg border text-gray-400 border-ex-border hover:text-white transition-colors">
+                    <Edit3 className="w-3 h-3" /> Edit
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={saveWdFees} disabled={actionLoading === "save_wd_fees"}
+                      className="flex items-center gap-1 px-3 py-1 text-xs rounded-lg bg-ex-green/10 text-ex-green border border-ex-green/30 hover:bg-ex-green/20 disabled:opacity-50 transition-colors">
+                      <Save className="w-3 h-3" /> Save
+                    </button>
+                    <button onClick={() => setEditingWdFees(false)}
+                      className="flex items-center gap-1 px-3 py-1 text-xs rounded-lg bg-ex-card2 text-gray-400 border border-ex-border hover:text-white transition-colors">
+                      <X className="w-3 h-3" /> Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+              {editingWdFees ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">🔴 TRC20 (TRON) Fee (USDT)</label>
+                    <input type="number" step="any" min="0"
+                      value={wdFeesForm.trc20}
+                      onChange={e => setWdFeesForm(f => ({ ...f, trc20: e.target.value }))}
+                      className="w-full bg-ex-bg border border-ex-border rounded-lg px-3 py-1.5 text-sm font-num text-white" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">🟡 BSC (BEP20) Fee (USDT)</label>
+                    <input type="number" step="any" min="0"
+                      value={wdFeesForm.bsc}
+                      onChange={e => setWdFeesForm(f => ({ ...f, bsc: e.target.value }))}
+                      className="w-full bg-ex-bg border border-ex-border rounded-lg px-3 py-1.5 text-sm font-num text-white" />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-6">
+                  <div className="text-sm">
+                    <span className="text-gray-500 text-xs block">🔴 TRC20 (TRON)</span>
+                    <span className="font-num font-bold">{wdFees.trc20} USDT</span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-gray-500 text-xs block">🟡 BSC (BEP20)</span>
+                    <span className="font-num font-bold">{wdFees.bsc} USDT</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {loadingWd ? (
               <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" /></div>
             ) : filteredWithdrawals.length === 0 ? (
@@ -1754,6 +1833,17 @@ export default function AdminPage() {
                           <div className="font-semibold font-num text-sm">{w.amount} {w.asset}</div>
                           <div className="text-xs text-gray-500">fee: {w.fee} {w.asset}</div>
                           <div className="text-xs text-ex-green">net: {w.amount - w.fee} {w.asset}</div>
+                          {w.asset === "USDT" && (
+                            <div className="mt-0.5">
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                w.destinationAddress?.startsWith("0x")
+                                  ? "bg-yellow-500/20 text-yellow-400"
+                                  : "bg-red-500/20 text-red-400"
+                              }`}>
+                                {w.destinationAddress?.startsWith("0x") ? "BEP20" : "TRC20"}
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td className="hidden md:table-cell text-xs font-mono text-gray-400 max-w-[140px] truncate">
                           {w.destinationAddress}

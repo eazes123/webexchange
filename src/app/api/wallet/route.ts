@@ -10,15 +10,23 @@ export async function GET(request: NextRequest) {
   const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const wallets     = await getUserWallet(user.id);
-  const withdrawals = await getUserWithdrawalRequests(user.id);
-  const withdrawalsEnabled = (await getSetting("withdrawals_enabled")) !== "false";
+  const [wallets, withdrawals, withdrawalsEnabled, trc20Fee, bscFee] = await Promise.all([
+    getUserWallet(user.id),
+    getUserWithdrawalRequests(user.id),
+    getSetting("withdrawals_enabled").then(v => v !== "false"),
+    getSetting("withdrawal_fee_trc20"),
+    getSetting("withdrawal_fee_bsc"),
+  ]);
 
   return NextResponse.json({
     wallets,
     depositAddress: user.depositAddress,
     withdrawals,
     withdrawalsEnabled,
+    withdrawalFees: {
+      trc20: parseFloat(trc20Fee ?? "1"),
+      bsc:   parseFloat(bscFee   ?? "1"),
+    },
   });
 }
 
@@ -27,7 +35,7 @@ export async function POST(request: NextRequest) {
   const user  = await getSessionUser(token);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { action, asset, amount, address } = await request.json();
+  const { action, asset, amount, address, network: wdNetwork } = await request.json();
 
   if (!ASSETS.includes(asset)) {
     return NextResponse.json({ error: "Invalid asset" }, { status: 400 });
@@ -42,7 +50,25 @@ export async function POST(request: NextRequest) {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
 
-    const feeConfig = WITHDRAWAL_FEES_CONFIG[asset] ?? { fee: 1, min: 10 };
+    // For USDT, read admin-configured fee based on network; fall back to WITHDRAWAL_FEES_CONFIG for others
+    let feeConfig: { fee: number; min: number };
+    if (asset === "USDT") {
+      const isBsc = wdNetwork === "BSC";
+      const feeSetting = await getSetting(isBsc ? "withdrawal_fee_bsc" : "withdrawal_fee_trc20");
+      feeConfig = { fee: parseFloat(feeSetting ?? "1"), min: 10 };
+
+      // Validate address format
+      const addr = address?.trim() ?? "";
+      if (isBsc && !(addr.startsWith("0x") && addr.length === 42)) {
+        return NextResponse.json({ error: "Invalid BSC address (must start with 0x, 42 chars)" }, { status: 400 });
+      }
+      if (!isBsc && !(addr.startsWith("T") && addr.length === 34)) {
+        return NextResponse.json({ error: "Invalid TRC20 address (must start with T, 34 chars)" }, { status: 400 });
+      }
+    } else {
+      feeConfig = WITHDRAWAL_FEES_CONFIG[asset] ?? { fee: 1, min: 10 };
+    }
+
     if (amt < feeConfig.min) {
       return NextResponse.json({ error: `Minimum withdrawal: ${feeConfig.min} ${asset}` }, { status: 400 });
     }

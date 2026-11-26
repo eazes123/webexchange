@@ -89,6 +89,8 @@ export default function WalletPage() {
   const [incoming, setIncoming]         = useState<IncomingDeposit[]>([]);
   const [incomingBsc, setIncomingBsc]   = useState<IncomingDeposit[]>([]);
   const [network, setNetwork]           = useState<"TRC20" | "BEP20">("TRC20");
+  const [withdrawNetwork, setWithdrawNetwork] = useState<"TRC20" | "BSC">("TRC20");
+  const [adminFees, setAdminFees]       = useState({ trc20: 1, bsc: 1 });
   const [, setTick]                     = useState(0); // force re-render for timeAgo
   const intervalRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const intervalRefBsc = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -105,6 +107,13 @@ export default function WalletPage() {
   const depositAddress    = demoUser.depositAddress;
   const bscDepositAddress = demoUser.bscDepositAddress;
   const activeAddress     = network === "TRC20" ? depositAddress : bscDepositAddress;
+
+  // Fetch admin-configured withdrawal fees once on mount
+  useEffect(() => {
+    fetch("/api/wallet").then(r => r.json()).then(d => {
+      if (d.withdrawalFees) setAdminFees(d.withdrawalFees);
+    }).catch(() => {});
+  }, []);
 
   // Auto-refresh "X seconds ago" every 10s
   useEffect(() => {
@@ -214,7 +223,10 @@ export default function WalletPage() {
       const res  = await fetch("/api/wallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "withdraw", asset: selectedAsset, amount: amt, address: withdrawAddress }),
+        body: JSON.stringify({
+          action: "withdraw", asset: selectedAsset, amount: amt, address: withdrawAddress,
+          ...(selectedAsset === "USDT" && { network: withdrawNetwork }),
+        }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Withdrawal failed"); return; }
@@ -230,11 +242,13 @@ export default function WalletPage() {
 
   const openDeposit  = (asset: string) => { setSelectedAsset(asset); setModal("deposit"); };
   const openWithdraw = (asset: string) => {
-    setSelectedAsset(asset); setWithdrawAmount(""); setWithdrawAddress(""); setModal("withdraw");
+    setSelectedAsset(asset); setWithdrawAmount(""); setWithdrawAddress(""); setWithdrawNetwork("TRC20"); setModal("withdraw");
   };
 
-  const avail   = walletBalances[selectedAsset]?.available ?? 0;
-  const wdFee   = WITHDRAWAL_FEES[selectedAsset];
+  const avail = walletBalances[selectedAsset]?.available ?? 0;
+  const wdFee = selectedAsset === "USDT"
+    ? { fee: withdrawNetwork === "TRC20" ? adminFees.trc20 : adminFees.bsc, min: 10, network: withdrawNetwork === "TRC20" ? "TRON (TRC20)" : "BSC (BEP20)" }
+    : WITHDRAWAL_FEES[selectedAsset];
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto w-full">
@@ -611,10 +625,30 @@ export default function WalletPage() {
             </div>
 
             {selectedAsset === "USDT" ? (
-              <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-xs text-[#f6465d] mb-4 flex items-start gap-2">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>{t("irreversible_warning")}</span>
-              </div>
+              <>
+                {/* Network selector */}
+                <div className="mb-4">
+                  <label className="text-sm text-gray-400 block mb-2">{t("network_label")}</label>
+                  <div className="flex gap-2">
+                    {(["TRC20", "BSC"] as const).map(n => (
+                      <button key={n} type="button" onClick={() => { setWithdrawNetwork(n); setWithdrawAddress(""); }}
+                        className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                          withdrawNetwork === n
+                            ? n === "TRC20"
+                              ? "bg-red-500/20 text-red-400 border-red-500/40"
+                              : "bg-yellow-500/20 text-yellow-400 border-yellow-500/40"
+                            : "bg-ex-card2 text-gray-400 border-ex-border hover:text-white"
+                        }`}>
+                        {n === "TRC20" ? "🔴 TRC20 (TRON)" : "🟡 BEP20 (BSC)"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-[#f6465d]/10 border border-[#f6465d]/30 rounded-xl p-3 text-xs text-[#f6465d] mb-4 flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{t("irreversible_warning")}</span>
+                </div>
+              </>
             ) : (
               <div className="bg-ex-blue/10 border border-ex-blue/30 rounded-xl p-3 text-xs text-ex-blue mb-4">
                 <Clock className="w-3.5 h-3.5 inline mr-1" />
@@ -627,7 +661,7 @@ export default function WalletPage() {
                 <span className="text-sm text-gray-400">{t("available_balance_label")}</span>
                 <span className="font-num font-bold">{avail.toLocaleString("en-US", { maximumFractionDigits: 6 })} {selectedAsset}</span>
               </div>
-              {wdFee && (
+              {wdFee && selectedAsset !== "USDT" && (
                 <div>
                   <label className="text-sm text-gray-400 block mb-1.5">{t("network_label")}</label>
                   <div className="ex-input text-sm text-gray-300">{wdFee.network}</div>
@@ -636,7 +670,9 @@ export default function WalletPage() {
               <div>
                 <label className="text-sm text-gray-400 block mb-1.5">{t("destination_address_label")}</label>
                 <input className="ex-input font-mono text-sm" type="text" required
-                  placeholder={`Enter ${selectedAsset} address`}
+                  placeholder={selectedAsset === "USDT"
+                    ? withdrawNetwork === "TRC20" ? "T... (TRON address)" : "0x... (BSC address)"
+                    : `Enter ${selectedAsset} address`}
                   value={withdrawAddress} onChange={e => setWithdrawAddress(e.target.value)} />
               </div>
               <div>
