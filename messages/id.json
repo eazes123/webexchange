@@ -81,7 +81,8 @@
     "logout": "Keluar",
     "kyc_status": "Status KYC",
     "my_profile": "Profil Saya",
-    "new_year_campaign": "Kampanye Tahun Baru"
+    "new_year_campaign": "Kampanye Tahun Baru",
+    "security": "Keamanan"
   },
   "footer": {
     "brand_desc": "Platform exchange yang dibangun untuk trading dan pinjaman staking.",
@@ -1063,5 +1064,42 @@
     "nav_sign_out": "Keluar",
     "nav_out": "Keluar",
     "loading_account": "Memuat akun Anda..."
+  },
+  "security": {
+    "title": "Keamanan",
+    "subtitle": "Kelola pengaturan keamanan akun Anda",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "Autentikasi dua faktor via aplikasi TOTP",
+    "totp_enabled": "Aktif",
+    "totp_disabled": "Nonaktif",
+    "totp_desc": "Tambahkan lapisan keamanan ekstra. Setelah diaktifkan, kode dari aplikasi diperlukan setiap login.",
+    "totp_setup_btn": "Siapkan Google Authenticator",
+    "totp_step1": "Buka Google Authenticator (atau aplikasi TOTP apa pun) dan pindai kode QR.",
+    "totp_cant_scan": "Tidak bisa memindai? Masukkan rahasia ini secara manual:",
+    "totp_step2": "Masukkan kode 6 digit dari aplikasi untuk konfirmasi.",
+    "totp_verify_btn": "Verifikasi & Aktifkan",
+    "totp_cancel": "Batalkan penyiapan",
+    "totp_active_desc": "Google Authenticator aktif. Akun Anda memerlukan kode 6 digit dari aplikasi untuk masuk.",
+    "totp_disable_link": "Nonaktifkan Google Authenticator",
+    "totp_disable_warning": "Masukkan kode autentikator untuk menonaktifkan 2FA.",
+    "totp_disable_btn": "Nonaktifkan",
+    "cancel": "Batal",
+    "pw_title": "Ganti Kata Sandi",
+    "pw_subtitle": "Perbarui kata sandi login Anda",
+    "pw_current_label": "Kata Sandi Saat Ini",
+    "pw_current_placeholder": "Kata sandi Anda saat ini",
+    "pw_new_label": "Kata Sandi Baru",
+    "pw_new_placeholder": "Min. 8 karakter",
+    "pw_confirm_label": "Konfirmasi Kata Sandi Baru",
+    "pw_confirm_placeholder": "Ulangi kata sandi baru",
+    "pw_btn": "Ganti Kata Sandi",
+    "pw_btn_loading": "Mengganti...",
+    "pw_mismatch": "Kata sandi tidak cocok",
+    "pw_too_short": "Kata sandi harus minimal 8 karakter",
+    "pw_success": "Kata sandi berhasil diubah!",
+    "enable_error": "Masukkan kode 6 digit",
+    "setup_error": "Kesalahan jaringan",
+    "totp_enabled_toast": "Google Authenticator diaktifkan!",
+    "totp_disabled_toast": "Google Authenticator dinonaktifkan"
   }
 }

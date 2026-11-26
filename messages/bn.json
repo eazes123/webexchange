@@ -81,7 +81,8 @@
     "logout": "লগআউট",
     "kyc_status": "KYC অবস্থা",
     "my_profile": "আমার প্রোফাইল",
-    "new_year_campaign": "নববর্ষ ক্যাম্পেইন"
+    "new_year_campaign": "নববর্ষ ক্যাম্পেইন",
+    "security": "নিরাপত্তা"
   },
   "footer": {
     "brand_desc": "ট্রেডিং এবং স্টেকিং-ঋণের জন্য তৈরি একটি এক্সচেঞ্জ প্ল্যাটফর্ম।",
@@ -1063,5 +1064,42 @@
     "nav_sign_out": "সাইন আউট",
     "nav_out": "বের হন",
     "loading_account": "আপনার অ্যাকাউন্ট লোড হচ্ছে..."
+  },
+  "security": {
+    "title": "নিরাপত্তা",
+    "subtitle": "আপনার অ্যাকাউন্টের নিরাপত্তা সেটিংস পরিচালনা করুন",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "TOTP অ্যাপের মাধ্যমে দ্বি-স্তরীয় যাচাইকরণ",
+    "totp_enabled": "সক্রিয়",
+    "totp_disabled": "নিষ্ক্রিয়",
+    "totp_desc": "নিরাপত্তার একটি অতিরিক্ত স্তর যোগ করুন। সক্রিয় করার পরে, প্রতিবার লগইনে অ্যাপ থেকে কোড চাওয়া হবে।",
+    "totp_setup_btn": "Google Authenticator সেটআপ করুন",
+    "totp_step1": "Google Authenticator (বা যেকোনো TOTP অ্যাপ) খুলুন এবং QR কোড স্ক্যান করুন।",
+    "totp_cant_scan": "স্ক্যান করতে পারছেন না? এই সিক্রেটটি ম্যানুয়ালি প্রবেশ করান:",
+    "totp_step2": "নিশ্চিত করতে অ্যাপ থেকে ৬-সংখ্যার কোড দিন।",
+    "totp_verify_btn": "যাচাই করুন ও সক্রিয় করুন",
+    "totp_cancel": "সেটআপ বাতিল করুন",
+    "totp_active_desc": "Google Authenticator সক্রিয়। লগইনের জন্য অ্যাপ থেকে ৬-সংখ্যার কোড প্রয়োজন।",
+    "totp_disable_link": "Google Authenticator নিষ্ক্রিয় করুন",
+    "totp_disable_warning": "2FA নিষ্ক্রিয় করতে Authenticator কোড দিন।",
+    "totp_disable_btn": "নিষ্ক্রিয় করুন",
+    "cancel": "বাতিল",
+    "pw_title": "পাসওয়ার্ড পরিবর্তন করুন",
+    "pw_subtitle": "আপনার লগইন পাসওয়ার্ড আপডেট করুন",
+    "pw_current_label": "বর্তমান পাসওয়ার্ড",
+    "pw_current_placeholder": "আপনার বর্তমান পাসওয়ার্ড",
+    "pw_new_label": "নতুন পাসওয়ার্ড",
+    "pw_new_placeholder": "ন্যূনতম ৮ অক্ষর",
+    "pw_confirm_label": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    "pw_confirm_placeholder": "নতুন পাসওয়ার্ড পুনরায় দিন",
+    "pw_btn": "পাসওয়ার্ড পরিবর্তন করুন",
+    "pw_btn_loading": "পরিবর্তন হচ্ছে...",
+    "pw_mismatch": "পাসওয়ার্ড মিলছে না",
+    "pw_too_short": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষর হতে হবে",
+    "pw_success": "পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!",
+    "enable_error": "৬-সংখ্যার কোড দিন",
+    "setup_error": "নেটওয়ার্ক ত্রুটি",
+    "totp_enabled_toast": "Google Authenticator সক্রিয় হয়েছে!",
+    "totp_disabled_toast": "Google Authenticator নিষ্ক্রিয় হয়েছে"
   }
 }

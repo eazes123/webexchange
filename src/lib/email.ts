@@ -21,11 +21,14 @@ function baseTemplate(content: string): string {
           <td align="center" style="padding-bottom:32px;">
             <table cellpadding="0" cellspacing="0">
               <tr>
-                <td style="background:#f0b90b;border-radius:12px;width:44px;height:44px;text-align:center;vertical-align:middle;">
-                  <span style="font-size:22px;line-height:44px;display:block;">⬡</span>
+                <td style="background:#f0b90b;border-radius:10px;width:40px;height:40px;text-align:center;vertical-align:middle;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:9px auto;">
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                    <polyline points="16 7 22 7 22 13"></polyline>
+                  </svg>
                 </td>
-                <td style="padding-left:12px;vertical-align:middle;">
-                  <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">GROXchange</span>
+                <td style="padding-left:10px;vertical-align:middle;">
+                  <span style="font-size:21px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;font-family:Inter,Arial,sans-serif;">GROX</span><span style="font-size:21px;font-weight:900;color:#f0b90b;letter-spacing:-0.5px;font-family:Inter,Arial,sans-serif;">change</span>
                 </td>
               </tr>
             </table>

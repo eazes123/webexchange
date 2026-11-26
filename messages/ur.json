@@ -81,7 +81,8 @@
     "logout": "لاگ آؤٹ",
     "kyc_status": "KYC حالت",
     "my_profile": "میرا پروفائل",
-    "new_year_campaign": "نئے سال کی مہم"
+    "new_year_campaign": "نئے سال کی مہم",
+    "security": "سیکیورٹی"
   },
   "footer": {
     "brand_desc": "ٹریڈنگ اور اسٹیکنگ قرض کے لیے بنایا گیا ایکسچینج پلیٹ فارم۔",
@@ -1066,5 +1067,42 @@
     "nav_sign_out": "سائن آؤٹ",
     "nav_out": "نکلیں",
     "loading_account": "آپ کا اکاؤنٹ لوڈ ہو رہا ہے..."
+  },
+  "security": {
+    "title": "سیکیورٹی",
+    "subtitle": "اپنے اکاؤنٹ کی سیکیورٹی سیٹنگز منظم کریں",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "TOTP ایپ کے ذریعے دو عنصری تصدیق",
+    "totp_enabled": "فعال",
+    "totp_disabled": "غیر فعال",
+    "totp_desc": "سیکیورٹی کی ایک اضافی پرت شامل کریں۔ فعال کرنے کے بعد، ہر لاگ ان پر ایپ سے کوڈ مانگا جائے گا۔",
+    "totp_setup_btn": "Google Authenticator سیٹ اپ کریں",
+    "totp_step1": "Google Authenticator (یا کوئی بھی TOTP ایپ) کھولیں اور QR کوڈ اسکین کریں۔",
+    "totp_cant_scan": "اسکین نہیں کر سکتے؟ یہ سیکرٹ دستی طور پر درج کریں:",
+    "totp_step2": "تصدیق کے لیے ایپ سے 6 ہندسوں کا کوڈ درج کریں۔",
+    "totp_verify_btn": "تصدیق کریں اور فعال کریں",
+    "totp_cancel": "سیٹ اپ منسوخ کریں",
+    "totp_active_desc": "Google Authenticator فعال ہے۔ لاگ ان کے لیے ایپ سے 6 ہندسوں کا کوڈ ضروری ہے۔",
+    "totp_disable_link": "Google Authenticator غیر فعال کریں",
+    "totp_disable_warning": "2FA غیر فعال کرنے کے لیے Authenticator کوڈ درج کریں۔",
+    "totp_disable_btn": "غیر فعال کریں",
+    "cancel": "منسوخ",
+    "pw_title": "پاس ورڈ تبدیل کریں",
+    "pw_subtitle": "اپنا لاگ ان پاس ورڈ اپ ڈیٹ کریں",
+    "pw_current_label": "موجودہ پاس ورڈ",
+    "pw_current_placeholder": "آپ کا موجودہ پاس ورڈ",
+    "pw_new_label": "نیا پاس ورڈ",
+    "pw_new_placeholder": "کم از کم 8 حروف",
+    "pw_confirm_label": "نئے پاس ورڈ کی تصدیق کریں",
+    "pw_confirm_placeholder": "نیا پاس ورڈ دہرائیں",
+    "pw_btn": "پاس ورڈ تبدیل کریں",
+    "pw_btn_loading": "تبدیل ہو رہا ہے...",
+    "pw_mismatch": "پاس ورڈ میل نہیں کھاتے",
+    "pw_too_short": "پاس ورڈ کم از کم 8 حروف کا ہونا چاہیے",
+    "pw_success": "پاس ورڈ کامیابی سے تبدیل ہو گیا!",
+    "enable_error": "6 ہندسوں کا کوڈ درج کریں",
+    "setup_error": "نیٹ ورک خرابی",
+    "totp_enabled_toast": "Google Authenticator فعال!",
+    "totp_disabled_toast": "Google Authenticator غیر فعال"
   }
 }

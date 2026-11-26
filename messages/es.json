@@ -81,7 +81,8 @@
     "logout": "Cerrar sesión",
     "kyc_status": "Estado KYC",
     "my_profile": "Mi perfil",
-    "new_year_campaign": "Campaña de Año Nuevo"
+    "new_year_campaign": "Campaña de Año Nuevo",
+    "security": "Seguridad"
   },
   "footer": {
     "brand_desc": "Una plataforma de intercambio creada para trading y préstamos con staking.",
@@ -1066,5 +1067,42 @@
     "nav_sign_out": "Cerrar Sesión",
     "nav_out": "Salir",
     "loading_account": "Cargando tu cuenta..."
+  },
+  "security": {
+    "title": "Seguridad",
+    "subtitle": "Administra la configuración de seguridad de tu cuenta",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "Autenticación de dos factores mediante app TOTP",
+    "totp_enabled": "Habilitado",
+    "totp_disabled": "Deshabilitado",
+    "totp_desc": "Agrega una capa extra de seguridad. Al habilitarlo, se te pedirá un código de tu app cada vez que inicies sesión.",
+    "totp_setup_btn": "Configurar Google Authenticator",
+    "totp_step1": "Abre Google Authenticator (o cualquier app TOTP) y escanea el código QR.",
+    "totp_cant_scan": "¿No puedes escanear? Ingresa este secreto manualmente:",
+    "totp_step2": "Ingresa el código de 6 dígitos de la app para confirmar.",
+    "totp_verify_btn": "Verificar y habilitar",
+    "totp_cancel": "Cancelar configuración",
+    "totp_active_desc": "Google Authenticator está activo. Tu cuenta requiere un código de 6 dígitos de la app para iniciar sesión.",
+    "totp_disable_link": "Deshabilitar Google Authenticator",
+    "totp_disable_warning": "Ingresa el código de tu autenticador para deshabilitar 2FA.",
+    "totp_disable_btn": "Deshabilitar",
+    "cancel": "Cancelar",
+    "pw_title": "Cambiar contraseña",
+    "pw_subtitle": "Actualiza tu contraseña de acceso",
+    "pw_current_label": "Contraseña actual",
+    "pw_current_placeholder": "Tu contraseña actual",
+    "pw_new_label": "Nueva contraseña",
+    "pw_new_placeholder": "Mín. 8 caracteres",
+    "pw_confirm_label": "Confirmar nueva contraseña",
+    "pw_confirm_placeholder": "Repite la nueva contraseña",
+    "pw_btn": "Cambiar contraseña",
+    "pw_btn_loading": "Cambiando...",
+    "pw_mismatch": "Las contraseñas no coinciden",
+    "pw_too_short": "La contraseña debe tener al menos 8 caracteres",
+    "pw_success": "¡Contraseña cambiada exitosamente!",
+    "enable_error": "Ingresa un código de 6 dígitos",
+    "setup_error": "Error de red",
+    "totp_enabled_toast": "¡Google Authenticator habilitado!",
+    "totp_disabled_toast": "Google Authenticator deshabilitado"
   }
 }

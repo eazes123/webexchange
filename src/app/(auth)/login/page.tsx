@@ -13,11 +13,14 @@ export default function LoginPage() {
   const { hydrate } = useStore();
 
   useEffect(() => {
+    hydrate().then(() => {
+      if (useStore.getState().isLoggedIn) { router.replace("/dashboard"); return; }
+    });
     const params = new URLSearchParams(window.location.search);
     const err = params.get("error");
     if (err === "oauth_no_email") toast.error("Your X/Twitter account has no public email. Enable email sharing in Twitter settings or use another login method.");
     if (err === "oauth_failed")   toast.error("Social login failed. Please try again.");
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [step, setStep]               = useState<"login" | "totp" | "email_otp">("login");
   const [email, setEmail]             = useState("");

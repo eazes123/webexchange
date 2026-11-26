@@ -81,7 +81,8 @@
     "logout": "Çıkış",
     "kyc_status": "KYC Durumu",
     "my_profile": "Profilim",
-    "new_year_campaign": "Yeni Yıl Kampanyası"
+    "new_year_campaign": "Yeni Yıl Kampanyası",
+    "security": "Güvenlik"
   },
   "footer": {
     "brand_desc": "Ticaret ve staking kredisi için geliştirilmiş bir borsa platformu.",
@@ -1063,5 +1064,42 @@
     "nav_sign_out": "Çıkış Yap",
     "nav_out": "Çık",
     "loading_account": "Hesabınız yükleniyor..."
+  },
+  "security": {
+    "title": "Güvenlik",
+    "subtitle": "Hesap güvenlik ayarlarınızı yönetin",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "TOTP uygulaması ile iki faktörlü kimlik doğrulama",
+    "totp_enabled": "Etkin",
+    "totp_disabled": "Devre dışı",
+    "totp_desc": "Ekstra bir güvenlik katmanı ekleyin. Etkinleştirildikten sonra her girişte uygulamadan kod istenecek.",
+    "totp_setup_btn": "Google Authenticator'ı Kur",
+    "totp_step1": "Google Authenticator'ı (veya herhangi bir TOTP uygulamasını) açın ve QR kodu tarayın.",
+    "totp_cant_scan": "Tarayamıyor musunuz? Bu gizli anahtarı manuel girin:",
+    "totp_step2": "Onaylamak için uygulamadan 6 haneli kodu girin.",
+    "totp_verify_btn": "Doğrula ve Etkinleştir",
+    "totp_cancel": "Kurulumu iptal et",
+    "totp_active_desc": "Google Authenticator etkin. Hesabınız için girişte uygulamadan 6 haneli kod gereklidir.",
+    "totp_disable_link": "Google Authenticator'ı Devre Dışı Bırak",
+    "totp_disable_warning": "2FA'yı devre dışı bırakmak için kimlik doğrulama kodunuzu girin.",
+    "totp_disable_btn": "Devre dışı bırak",
+    "cancel": "İptal",
+    "pw_title": "Şifre Değiştir",
+    "pw_subtitle": "Giriş şifrenizi güncelleyin",
+    "pw_current_label": "Mevcut Şifre",
+    "pw_current_placeholder": "Mevcut şifreniz",
+    "pw_new_label": "Yeni Şifre",
+    "pw_new_placeholder": "Min. 8 karakter",
+    "pw_confirm_label": "Yeni Şifreyi Onayla",
+    "pw_confirm_placeholder": "Yeni şifreyi tekrarlayın",
+    "pw_btn": "Şifre Değiştir",
+    "pw_btn_loading": "Değiştiriliyor...",
+    "pw_mismatch": "Şifreler eşleşmiyor",
+    "pw_too_short": "Şifre en az 8 karakter olmalıdır",
+    "pw_success": "Şifre başarıyla değiştirildi!",
+    "enable_error": "6 haneli kod girin",
+    "setup_error": "Ağ hatası",
+    "totp_enabled_toast": "Google Authenticator etkinleştirildi!",
+    "totp_disabled_toast": "Google Authenticator devre dışı bırakıldı"
   }
 }

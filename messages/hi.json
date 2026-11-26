@@ -81,7 +81,8 @@
     "logout": "साइन आउट",
     "kyc_status": "KYC स्थिति",
     "my_profile": "मेरी प्रोफ़ाइल",
-    "new_year_campaign": "नव वर्ष अभियान"
+    "new_year_campaign": "नव वर्ष अभियान",
+    "security": "सुरक्षा"
   },
   "footer": {
     "brand_desc": "ट्रेडिंग और स्टेकिंग-लोन के लिए बनाया गया एक एक्सचेंज प्लेटफ़ॉर्म।",
@@ -1092,5 +1093,42 @@
     "nav_sign_out": "साइन आउट",
     "nav_out": "बाहर",
     "loading_account": "आपका खाता लोड हो रहा है..."
+  },
+  "security": {
+    "title": "सुरक्षा",
+    "subtitle": "अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "TOTP ऐप के माध्यम से दो-कारक प्रमाणीकरण",
+    "totp_enabled": "सक्षम",
+    "totp_disabled": "अक्षम",
+    "totp_desc": "सुरक्षा की एक अतिरिक्त परत जोड़ें। सक्षम करने के बाद, हर बार लॉगिन पर ऐप से कोड मांगा जाएगा।",
+    "totp_setup_btn": "Google Authenticator सेट करें",
+    "totp_step1": "Google Authenticator (या कोई भी TOTP ऐप) खोलें और QR कोड स्कैन करें।",
+    "totp_cant_scan": "स्कैन नहीं कर सकते? यह सीक्रेट मैन्युअली दर्ज करें:",
+    "totp_step2": "पुष्टि के लिए ऐप से 6-अंकीय कोड दर्ज करें।",
+    "totp_verify_btn": "सत्यापित करें और सक्षम करें",
+    "totp_cancel": "सेटअप रद्द करें",
+    "totp_active_desc": "Google Authenticator सक्रिय है। लॉगिन के लिए ऐप से 6-अंकीय कोड आवश्यक है।",
+    "totp_disable_link": "Google Authenticator अक्षम करें",
+    "totp_disable_warning": "2FA अक्षम करने के लिए Authenticator कोड दर्ज करें।",
+    "totp_disable_btn": "अक्षम करें",
+    "cancel": "रद्द करें",
+    "pw_title": "पासवर्ड बदलें",
+    "pw_subtitle": "अपना लॉगिन पासवर्ड अपडेट करें",
+    "pw_current_label": "वर्तमान पासवर्ड",
+    "pw_current_placeholder": "आपका वर्तमान पासवर्ड",
+    "pw_new_label": "नया पासवर्ड",
+    "pw_new_placeholder": "न्यूनतम 8 वर्ण",
+    "pw_confirm_label": "नया पासवर्ड पुष्टि करें",
+    "pw_confirm_placeholder": "नया पासवर्ड दोहराएं",
+    "pw_btn": "पासवर्ड बदलें",
+    "pw_btn_loading": "बदल रहे हैं...",
+    "pw_mismatch": "पासवर्ड मेल नहीं खाते",
+    "pw_too_short": "पासवर्ड कम से कम 8 वर्णों का होना चाहिए",
+    "pw_success": "पासवर्ड सफलतापूर्वक बदला गया!",
+    "enable_error": "6-अंकीय कोड दर्ज करें",
+    "setup_error": "नेटवर्क त्रुटि",
+    "totp_enabled_toast": "Google Authenticator सक्षम!",
+    "totp_disabled_toast": "Google Authenticator अक्षम"
   }
 }

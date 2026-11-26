@@ -3,17 +3,15 @@ import { useState, useEffect } from "react";
 import { Shield, Smartphone, Lock, Eye, EyeOff, CheckCircle, AlertTriangle, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
-import { useStore } from "@/lib/store";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function SecurityPage() {
-  const router = useRouter();
-  const { isLoggedIn, hydrate } = useStore();
+  const t = useTranslations("security");
 
   const [totpEnabled, setTotpEnabled]   = useState(false);
   const [totpUri, setTotpUri]           = useState("");
   const [totpSecret, setTotpSecret]     = useState("");
-  const [setupStep, setSetupStep]       = useState<"idle" | "scan" | "confirm">("idle");
+  const [setupStep, setSetupStep]       = useState<"idle" | "scan">("idle");
   const [totpCode, setTotpCode]         = useState("");
   const [disableCode, setDisableCode]   = useState("");
   const [showDisable, setShowDisable]   = useState(false);
@@ -25,18 +23,13 @@ export default function SecurityPage() {
   const [showNew, setShowNew]           = useState(false);
   const [loading, setLoading]           = useState(false);
   const [pwLoading, setPwLoading]       = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
 
   useEffect(() => {
-    if (!isLoggedIn) { router.push("/login"); return; }
     fetch("/api/auth/me")
       .then(r => r.json())
-      .then(d => {
-        if (d.user) setTotpEnabled(d.user.totpEnabled ?? false);
-      })
-      .catch(() => {})
-      .finally(() => setCheckingStatus(false));
-  }, [isLoggedIn, router]);
+      .then(d => { if (d.user) setTotpEnabled(d.user.totpEnabled ?? false); })
+      .catch(() => {});
+  }, []);
 
   const startSetup = async () => {
     setLoading(true);
@@ -48,14 +41,14 @@ export default function SecurityPage() {
       setTotpUri(data.uri);
       setSetupStep("scan");
     } catch {
-      toast.error("Network error");
+      toast.error(t("setup_error"));
     } finally {
       setLoading(false);
     }
   };
 
   const confirmEnable = async () => {
-    if (totpCode.length !== 6) { toast.error("Enter a 6-digit code"); return; }
+    if (totpCode.length !== 6) { toast.error(t("enable_error")); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/security/totp/enable", {
@@ -68,16 +61,16 @@ export default function SecurityPage() {
       setTotpEnabled(true);
       setSetupStep("idle");
       setTotpCode("");
-      toast.success("Google Authenticator enabled!");
+      toast.success(t("totp_enabled_toast"));
     } catch {
-      toast.error("Network error");
+      toast.error(t("setup_error"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDisable = async () => {
-    if (disableCode.length !== 6) { toast.error("Enter a 6-digit code"); return; }
+    if (disableCode.length !== 6) { toast.error(t("enable_error")); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/security/totp/disable", {
@@ -90,9 +83,9 @@ export default function SecurityPage() {
       setTotpEnabled(false);
       setShowDisable(false);
       setDisableCode("");
-      toast.success("Google Authenticator disabled");
+      toast.success(t("totp_disabled_toast"));
     } catch {
-      toast.error("Network error");
+      toast.error(t("setup_error"));
     } finally {
       setLoading(false);
     }
@@ -100,8 +93,8 @@ export default function SecurityPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPw !== confirmPw) { toast.error("Passwords do not match"); return; }
-    if (newPw.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    if (newPw !== confirmPw) { toast.error(t("pw_mismatch")); return; }
+    if (newPw.length < 8) { toast.error(t("pw_too_short")); return; }
     setPwLoading(true);
     try {
       const res = await fetch("/api/security/change-password", {
@@ -112,29 +105,21 @@ export default function SecurityPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error); return; }
       setCurrentPw(""); setNewPw(""); setConfirmPw("");
-      toast.success("Password changed successfully!");
+      toast.success(t("pw_success"));
     } catch {
-      toast.error("Network error");
+      toast.error(t("setup_error"));
     } finally {
       setPwLoading(false);
     }
   };
 
-  if (checkingStatus) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
       <div className="mb-2">
         <h1 className="text-3xl font-black flex items-center gap-3">
-          <Shield className="w-8 h-8 text-ex-yellow" /> Security
+          <Shield className="w-8 h-8 text-ex-yellow" /> {t("title")}
         </h1>
-        <p className="text-gray-400 mt-1">Manage your account security settings</p>
+        <p className="text-gray-400 mt-1">{t("subtitle")}</p>
       </div>
 
       {/* ── Google Authenticator ─────────────────────────────────────────── */}
@@ -145,28 +130,26 @@ export default function SecurityPage() {
               <Smartphone className="w-5 h-5 text-ex-yellow" />
             </div>
             <div>
-              <div className="font-bold">Google Authenticator</div>
-              <div className="text-xs text-gray-500">Two-factor authentication via TOTP app</div>
+              <div className="font-bold">{t("totp_title")}</div>
+              <div className="text-xs text-gray-500">{t("totp_subtitle")}</div>
             </div>
           </div>
           {totpEnabled ? (
             <span className="flex items-center gap-1.5 text-ex-green text-xs font-bold bg-ex-green/10 px-3 py-1 rounded-full">
-              <CheckCircle className="w-3.5 h-3.5" /> Enabled
+              <CheckCircle className="w-3.5 h-3.5" /> {t("totp_enabled")}
             </span>
           ) : (
-            <span className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full">Disabled</span>
+            <span className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full">{t("totp_disabled")}</span>
           )}
         </div>
 
         {!totpEnabled && setupStep === "idle" && (
           <div>
-            <p className="text-sm text-gray-400 mb-4">
-              Add a second layer of security. After enabling, you will be asked for a code from your authenticator app every time you log in.
-            </p>
+            <p className="text-sm text-gray-400 mb-4">{t("totp_desc")}</p>
             <button onClick={startSetup} disabled={loading}
               className="btn-primary px-5 py-2.5 text-sm flex items-center gap-2">
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
-              Set Up Google Authenticator
+              {t("totp_setup_btn")}
             </button>
           </div>
         )}
@@ -174,7 +157,7 @@ export default function SecurityPage() {
         {setupStep === "scan" && (
           <div className="space-y-5">
             <p className="text-sm text-gray-400">
-              <strong className="text-white">Step 1</strong> — Open Google Authenticator (or any TOTP app) and scan this QR code.
+              <strong className="text-white">Step 1</strong> — {t("totp_step1")}
             </p>
             <div className="flex justify-center">
               {totpUri && (
@@ -184,7 +167,7 @@ export default function SecurityPage() {
               )}
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-1">Can't scan? Enter this secret manually:</p>
+              <p className="text-xs text-gray-500 mb-1">{t("totp_cant_scan")}</p>
               <div className="flex items-center gap-2 bg-ex-card2 border border-ex-border rounded-xl px-4 py-2">
                 <code className="font-mono text-sm text-ex-yellow flex-1 break-all">{totpSecret}</code>
                 <button onClick={() => { navigator.clipboard.writeText(totpSecret).catch(() => {}); toast.success("Copied!"); }}
@@ -194,7 +177,7 @@ export default function SecurityPage() {
               </div>
             </div>
             <p className="text-sm text-gray-400">
-              <strong className="text-white">Step 2</strong> — Enter the 6-digit code from the app to confirm.
+              <strong className="text-white">Step 2</strong> — {t("totp_step2")}
             </p>
             <div className="flex gap-2">
               <input
@@ -205,24 +188,22 @@ export default function SecurityPage() {
               />
               <button onClick={confirmEnable} disabled={loading || totpCode.length !== 6}
                 className="btn-primary px-5 py-2.5 text-sm whitespace-nowrap disabled:opacity-50">
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Verify & Enable"}
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : t("totp_verify_btn")}
               </button>
             </div>
             <button onClick={() => setSetupStep("idle")}
               className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Cancel setup
+              {t("totp_cancel")}
             </button>
           </div>
         )}
 
         {totpEnabled && !showDisable && (
           <div className="mt-2">
-            <p className="text-sm text-gray-400 mb-4">
-              Google Authenticator is active. Your account requires a 6-digit code from the app to log in.
-            </p>
+            <p className="text-sm text-gray-400 mb-4">{t("totp_active_desc")}</p>
             <button onClick={() => setShowDisable(true)}
               className="text-xs text-ex-red hover:underline">
-              Disable Google Authenticator
+              {t("totp_disable_link")}
             </button>
           </div>
         )}
@@ -231,7 +212,7 @@ export default function SecurityPage() {
           <div className="mt-4 space-y-3">
             <div className="flex items-center gap-2 text-sm text-ex-red bg-ex-red/10 border border-ex-red/20 rounded-xl px-4 py-3">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              Enter your authenticator code to disable 2FA.
+              {t("totp_disable_warning")}
             </div>
             <div className="flex gap-2">
               <input
@@ -242,12 +223,12 @@ export default function SecurityPage() {
               />
               <button onClick={handleDisable} disabled={loading || disableCode.length !== 6}
                 className="px-5 py-2.5 text-sm font-bold rounded-xl bg-ex-red text-white whitespace-nowrap disabled:opacity-50">
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Disable"}
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : t("totp_disable_btn")}
               </button>
             </div>
             <button onClick={() => { setShowDisable(false); setDisableCode(""); }}
               className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-              Cancel
+              {t("cancel")}
             </button>
           </div>
         )}
@@ -260,17 +241,17 @@ export default function SecurityPage() {
             <Lock className="w-5 h-5 text-gray-400" />
           </div>
           <div>
-            <div className="font-bold">Change Password</div>
-            <div className="text-xs text-gray-500">Update your login password</div>
+            <div className="font-bold">{t("pw_title")}</div>
+            <div className="text-xs text-gray-500">{t("pw_subtitle")}</div>
           </div>
         </div>
 
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Current Password</label>
+            <label className="block text-sm text-gray-400 mb-1.5">{t("pw_current_label")}</label>
             <div className="relative">
               <input className="ex-input pr-10" type={showCur ? "text" : "password"}
-                value={currentPw} onChange={e => setCurrentPw(e.target.value)} required placeholder="Your current password" />
+                value={currentPw} onChange={e => setCurrentPw(e.target.value)} required placeholder={t("pw_current_placeholder")} />
               <button type="button" onClick={() => setShowCur(!showCur)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
                 {showCur ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -278,10 +259,10 @@ export default function SecurityPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">New Password</label>
+            <label className="block text-sm text-gray-400 mb-1.5">{t("pw_new_label")}</label>
             <div className="relative">
               <input className="ex-input pr-10" type={showNew ? "text" : "password"}
-                value={newPw} onChange={e => setNewPw(e.target.value)} required placeholder="Min. 8 characters" minLength={8} />
+                value={newPw} onChange={e => setNewPw(e.target.value)} required placeholder={t("pw_new_placeholder")} minLength={8} />
               <button type="button" onClick={() => setShowNew(!showNew)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -289,12 +270,12 @@ export default function SecurityPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Confirm New Password</label>
+            <label className="block text-sm text-gray-400 mb-1.5">{t("pw_confirm_label")}</label>
             <input className="ex-input" type="password"
-              value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required placeholder="Repeat new password" />
+              value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required placeholder={t("pw_confirm_placeholder")} />
           </div>
           <button type="submit" className="btn-primary px-6 py-2.5 text-sm flex items-center gap-2" disabled={pwLoading}>
-            {pwLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Changing...</> : "Change Password"}
+            {pwLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> {t("pw_btn_loading")}</> : t("pw_btn")}
           </button>
         </form>
       </div>

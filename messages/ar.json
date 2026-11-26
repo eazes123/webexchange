@@ -81,7 +81,8 @@
     "logout": "تسجيل الخروج",
     "kyc_status": "حالة KYC",
     "my_profile": "ملفي الشخصي",
-    "new_year_campaign": "حملة رأس السنة"
+    "new_year_campaign": "حملة رأس السنة",
+    "security": "الأمان"
   },
   "footer": {
     "brand_desc": "منصة تبادل مصممة للتداول والقروض بالتوثيق.",
@@ -1066,5 +1067,42 @@
     "nav_sign_out": "تسجيل الخروج",
     "nav_out": "خروج",
     "loading_account": "جارٍ تحميل حسابك..."
+  },
+  "security": {
+    "title": "الأمان",
+    "subtitle": "إدارة إعدادات أمان حسابك",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "المصادقة الثنائية عبر تطبيق TOTP",
+    "totp_enabled": "مفعّل",
+    "totp_disabled": "معطّل",
+    "totp_desc": "أضف طبقة حماية إضافية. بعد التفعيل، ستحتاج إلى رمز من تطبيق المصادقة في كل مرة تسجّل فيها الدخول.",
+    "totp_setup_btn": "إعداد Google Authenticator",
+    "totp_step1": "افتح Google Authenticator (أو أي تطبيق TOTP) وامسح رمز QR.",
+    "totp_cant_scan": "لا تستطيع المسح؟ أدخل هذا المفتاح يدوياً:",
+    "totp_step2": "أدخل الرمز المكوّن من 6 أرقام من التطبيق للتأكيد.",
+    "totp_verify_btn": "تحقق وفعّل",
+    "totp_cancel": "إلغاء الإعداد",
+    "totp_active_desc": "Google Authenticator نشط. يتطلب حسابك رمزاً من 6 أرقام لتسجيل الدخول.",
+    "totp_disable_link": "تعطيل Google Authenticator",
+    "totp_disable_warning": "أدخل رمز المصادقة لتعطيل 2FA.",
+    "totp_disable_btn": "تعطيل",
+    "cancel": "إلغاء",
+    "pw_title": "تغيير كلمة المرور",
+    "pw_subtitle": "تحديث كلمة مرور تسجيل الدخول",
+    "pw_current_label": "كلمة المرور الحالية",
+    "pw_current_placeholder": "كلمة مرورك الحالية",
+    "pw_new_label": "كلمة المرور الجديدة",
+    "pw_new_placeholder": "٨ أحرف على الأقل",
+    "pw_confirm_label": "تأكيد كلمة المرور الجديدة",
+    "pw_confirm_placeholder": "أعد كلمة المرور الجديدة",
+    "pw_btn": "تغيير كلمة المرور",
+    "pw_btn_loading": "جارٍ التغيير...",
+    "pw_mismatch": "كلمتا المرور غير متطابقتين",
+    "pw_too_short": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "pw_success": "تم تغيير كلمة المرور بنجاح!",
+    "enable_error": "أدخل رمزاً مكوناً من 6 أرقام",
+    "setup_error": "خطأ في الشبكة",
+    "totp_enabled_toast": "تم تفعيل Google Authenticator!",
+    "totp_disabled_toast": "تم تعطيل Google Authenticator"
   }
 }

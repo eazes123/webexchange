@@ -81,7 +81,8 @@
     "logout": "Sair",
     "kyc_status": "Status KYC",
     "my_profile": "Meu Perfil",
-    "new_year_campaign": "Campanha Ano Novo"
+    "new_year_campaign": "Campanha Ano Novo",
+    "security": "Segurança"
   },
   "footer": {
     "brand_desc": "Uma plataforma de exchange criada para negociações e empréstimos via staking.",
@@ -1063,5 +1064,42 @@
     "nav_sign_out": "Sair",
     "nav_out": "Sair",
     "loading_account": "Carregando sua conta..."
+  },
+  "security": {
+    "title": "Segurança",
+    "subtitle": "Gerencie as configurações de segurança da sua conta",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "Autenticação de dois fatores via app TOTP",
+    "totp_enabled": "Ativado",
+    "totp_disabled": "Desativado",
+    "totp_desc": "Adicione uma camada extra de segurança. Após ativar, será solicitado um código do app a cada login.",
+    "totp_setup_btn": "Configurar Google Authenticator",
+    "totp_step1": "Abra o Google Authenticator (ou qualquer app TOTP) e escaneie o QR code.",
+    "totp_cant_scan": "Não consegue escanear? Insira este segredo manualmente:",
+    "totp_step2": "Insira o código de 6 dígitos do app para confirmar.",
+    "totp_verify_btn": "Verificar e ativar",
+    "totp_cancel": "Cancelar configuração",
+    "totp_active_desc": "Google Authenticator está ativo. Sua conta requer um código de 6 dígitos do app para fazer login.",
+    "totp_disable_link": "Desativar Google Authenticator",
+    "totp_disable_warning": "Insira o código do autenticador para desativar 2FA.",
+    "totp_disable_btn": "Desativar",
+    "cancel": "Cancelar",
+    "pw_title": "Alterar senha",
+    "pw_subtitle": "Atualize sua senha de acesso",
+    "pw_current_label": "Senha atual",
+    "pw_current_placeholder": "Sua senha atual",
+    "pw_new_label": "Nova senha",
+    "pw_new_placeholder": "Mín. 8 caracteres",
+    "pw_confirm_label": "Confirmar nova senha",
+    "pw_confirm_placeholder": "Repita a nova senha",
+    "pw_btn": "Alterar senha",
+    "pw_btn_loading": "Alterando...",
+    "pw_mismatch": "As senhas não coincidem",
+    "pw_too_short": "A senha deve ter pelo menos 8 caracteres",
+    "pw_success": "Senha alterada com sucesso!",
+    "enable_error": "Insira um código de 6 dígitos",
+    "setup_error": "Erro de rede",
+    "totp_enabled_toast": "Google Authenticator ativado!",
+    "totp_disabled_toast": "Google Authenticator desativado"
   }
 }

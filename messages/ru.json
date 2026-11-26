@@ -81,7 +81,8 @@
     "logout": "Выйти",
     "kyc_status": "Статус KYC",
     "my_profile": "Мой профиль",
-    "new_year_campaign": "Новогодняя кампания"
+    "new_year_campaign": "Новогодняя кампания",
+    "security": "Безопасность"
   },
   "footer": {
     "brand_desc": "Биржевая платформа для торговли и стейкинг-займов.",
@@ -1063,5 +1064,42 @@
     "nav_sign_out": "Выйти",
     "nav_out": "Выйти",
     "loading_account": "Загрузка вашего аккаунта..."
+  },
+  "security": {
+    "title": "Безопасность",
+    "subtitle": "Управляйте настройками безопасности аккаунта",
+    "totp_title": "Google Authenticator",
+    "totp_subtitle": "Двухфакторная аутентификация через TOTP-приложение",
+    "totp_enabled": "Включено",
+    "totp_disabled": "Выключено",
+    "totp_desc": "Добавьте дополнительный уровень защиты. После включения при каждом входе будет запрашиваться код из приложения.",
+    "totp_setup_btn": "Настроить Google Authenticator",
+    "totp_step1": "Откройте Google Authenticator (или любое TOTP-приложение) и отсканируйте QR-код.",
+    "totp_cant_scan": "Не можете сканировать? Введите этот секрет вручную:",
+    "totp_step2": "Введите 6-значный код из приложения для подтверждения.",
+    "totp_verify_btn": "Проверить и включить",
+    "totp_cancel": "Отменить настройку",
+    "totp_active_desc": "Google Authenticator активен. Для входа требуется 6-значный код из приложения.",
+    "totp_disable_link": "Отключить Google Authenticator",
+    "totp_disable_warning": "Введите код аутентификатора для отключения 2FA.",
+    "totp_disable_btn": "Отключить",
+    "cancel": "Отмена",
+    "pw_title": "Изменить пароль",
+    "pw_subtitle": "Обновите пароль для входа",
+    "pw_current_label": "Текущий пароль",
+    "pw_current_placeholder": "Ваш текущий пароль",
+    "pw_new_label": "Новый пароль",
+    "pw_new_placeholder": "Мин. 8 символов",
+    "pw_confirm_label": "Подтвердите новый пароль",
+    "pw_confirm_placeholder": "Повторите новый пароль",
+    "pw_btn": "Изменить пароль",
+    "pw_btn_loading": "Изменение...",
+    "pw_mismatch": "Пароли не совпадают",
+    "pw_too_short": "Пароль должен содержать не менее 8 символов",
+    "pw_success": "Пароль успешно изменён!",
+    "enable_error": "Введите 6-значный код",
+    "setup_error": "Ошибка сети",
+    "totp_enabled_toast": "Google Authenticator включён!",
+    "totp_disabled_toast": "Google Authenticator отключён"
   }
 }

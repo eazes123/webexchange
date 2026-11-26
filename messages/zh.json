@@ -81,7 +81,8 @@
     "logout": "退出登录",
     "kyc_status": "KYC状态",
     "my_profile": "我的资料",
-    "new_year_campaign": "新年活动"
+    "new_year_campaign": "新年活动",
+    "security": "安全"
   },
   "footer": {
     "brand_desc": "专为交易和质押贷款打造的交易所平台。",
@@ -1066,5 +1067,42 @@
     "nav_sign_out": "退出登录",
     "nav_out": "退出",
     "loading_account": "正在加载您的账户..."
+  },
+  "security": {
+    "title": "安全",
+    "subtitle": "管理您的账户安全设置",
+    "totp_title": "Google 身份验证器",
+    "totp_subtitle": "通过 TOTP 应用进行双重身份验证",
+    "totp_enabled": "已启用",
+    "totp_disabled": "已禁用",
+    "totp_desc": "添加第二层安全保护。启用后，每次登录时都需要输入验证器应用中的验证码。",
+    "totp_setup_btn": "设置 Google 身份验证器",
+    "totp_step1": "打开 Google 身份验证器（或任何 TOTP 应用）并扫描二维码。",
+    "totp_cant_scan": "无法扫描？手动输入此密钥：",
+    "totp_step2": "输入应用中的 6 位验证码以确认。",
+    "totp_verify_btn": "验证并启用",
+    "totp_cancel": "取消设置",
+    "totp_active_desc": "Google 身份验证器已激活。登录时需要来自应用的 6 位验证码。",
+    "totp_disable_link": "禁用 Google 身份验证器",
+    "totp_disable_warning": "输入验证器代码以禁用 2FA。",
+    "totp_disable_btn": "禁用",
+    "cancel": "取消",
+    "pw_title": "修改密码",
+    "pw_subtitle": "更新您的登录密码",
+    "pw_current_label": "当前密码",
+    "pw_current_placeholder": "您的当前密码",
+    "pw_new_label": "新密码",
+    "pw_new_placeholder": "最少 8 个字符",
+    "pw_confirm_label": "确认新密码",
+    "pw_confirm_placeholder": "重复新密码",
+    "pw_btn": "修改密码",
+    "pw_btn_loading": "修改中...",
+    "pw_mismatch": "密码不匹配",
+    "pw_too_short": "密码至少需要 8 个字符",
+    "pw_success": "密码修改成功！",
+    "enable_error": "请输入 6 位验证码",
+    "setup_error": "网络错误",
+    "totp_enabled_toast": "Google 身份验证器已启用！",
+    "totp_disabled_toast": "Google 身份验证器已禁用"
   }
 }

@@ -31,11 +31,14 @@ export default function RegisterPage() {
   }, [resendCooldown]);
 
   useEffect(() => {
+    hydrate().then(() => {
+      if (useStore.getState().isLoggedIn) { router.replace("/dashboard"); return; }
+    });
     fetch("/api/stats")
       .then(r => r.json())
       .then(d => setSpotsLeft(d.spotsLeft ?? Math.max(10, 1000 - (d.stakedCount ?? 0))))
       .catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [form, setForm] = useState({
     fullName:        "",
