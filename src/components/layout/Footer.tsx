@@ -37,7 +37,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer style={{ background: "#080808", borderTop: "1px solid #141414", marginTop: "0" }}>
+    <footer aria-label="Site footer" style={{ background: "#080808", borderTop: "1px solid #141414", marginTop: "0" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "56px 16px 0" }}>
 
         {/* Top grid */}
@@ -60,7 +60,7 @@ export default function Footer() {
 
           {/* Link columns */}
           {LINKS.map(({ heading, items }) => (
-            <div key={heading}>
+            <nav key={heading} aria-label={heading}>
               <h4 style={{ fontSize: "10px", fontWeight: 700, color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "16px" }}>
                 {heading}
               </h4>
@@ -77,7 +77,7 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 

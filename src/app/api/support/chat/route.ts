@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   // No chatId — requires auth; returns user's active/pending chat for session restore
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const user = await getSessionUser(token);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ chat: null });
 
   const chat = await getActiveSupportChatByUser(user.id);
   if (!chat) return NextResponse.json({ chat: null });

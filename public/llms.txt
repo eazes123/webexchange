@@ -1,0 +1,41 @@
+# GROXchange
+
+> GROXchange is a cryptocurrency exchange and loan platform. Trade spot crypto markets and access a $50,000 USDT interest-free loan program for verified users.
+
+## About
+
+GROXchange offers:
+- **Spot trading** for BTC, ETH, BNB, SOL, XRP, and USDT pairs with live Binance price feeds
+- **$50,000 USDT loan program**: The first 1,000 users who complete KYC and stake 500 USDT receive a 10-year, zero-interest $50,000 USDT loan
+- **Multi-network deposits & withdrawals**: USDT via TRON TRC20 and Binance Smart Chain BEP20
+- **KYC verification** with document and selfie upload
+- **Secure 2FA** with TOTP authenticator support
+- **13 languages**: English, Hindi, Chinese, Spanish, French, Bengali, Portuguese, Indonesian, Urdu, Turkish, Russian, Japanese, Arabic
+
+## Key Pages
+
+- Homepage: https://groxchange.com/
+- Live Markets: https://groxchange.com/markets
+- BTC/USDT Trading: https://groxchange.com/trade/BTC-USDT
+- Loan Campaign: https://groxchange.com/campaign
+- Register: https://groxchange.com/register
+- Login: https://groxchange.com/login
+- Terms of Service: https://groxchange.com/terms
+- Privacy Policy: https://groxchange.com/privacy
+
+## Loan Campaign Details
+
+- Eligibility: First 1,000 users to register, complete KYC, and stake 500 USDT
+- Loan amount: $50,000 USDT (interest-free, 10-year term)
+- Campaign deadline: December 31, 2026
+- Withdrawal: Available via TRC20 or BEP20 network
+
+## Supported Cryptocurrencies
+
+BTC (Bitcoin), ETH (Ethereum), BNB (BNB Chain), SOL (Solana), XRP (Ripple), USDT (Tether)
+
+## Technical
+
+- Sitemap: https://groxchange.com/sitemap.xml
+- Robots: https://groxchange.com/robots.txt
+- Support: Live AI chat + human agent support via website widget

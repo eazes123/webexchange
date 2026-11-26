@@ -104,7 +104,9 @@ export const useStore = create<AppStore>((set, get) => ({
     try {
       const res = await fetch("/api/auth/me");
       if (!res.ok) return;
-      const { user, wallets, transactions } = await res.json();
+      const data = await res.json();
+      if (!data.user) return;
+      const { user, wallets, transactions } = data;
 
       const balances: Record<string, WalletBalance> = { ...DEFAULT_BALANCES };
       for (const w of wallets) {

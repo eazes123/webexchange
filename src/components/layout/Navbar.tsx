@@ -37,6 +37,7 @@ export default function Navbar() {
   return (
     <>
     <nav
+      aria-label="Main navigation"
       className="sticky top-0 z-40 transition-all duration-200"
       style={{
         background: scrolled
@@ -106,6 +107,9 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
+                aria-label="Account menu"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-sm"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid #1e1e1e" }}
                 onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a")}
@@ -183,8 +187,11 @@ export default function Navbar() {
             className="p-2 rounded-lg transition-colors"
             style={{ color: "#555" }}
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-drawer"
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -207,6 +214,10 @@ export default function Navbar() {
 
       {/* Drawer panel */}
       <div
+        id="mobile-nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
         className="md:hidden fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: "280px",
@@ -229,10 +240,11 @@ export default function Navbar() {
           </div>
           <button
             onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation menu"
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
             style={{ background: "#141414", color: "#555" }}
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
