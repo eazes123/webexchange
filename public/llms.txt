@@ -14,14 +14,14 @@ GROXchange offers:
 
 ## Key Pages
 
-- Homepage: https://groxchange.com/
-- Live Markets: https://groxchange.com/markets
-- BTC/USDT Trading: https://groxchange.com/trade/BTC-USDT
-- Loan Campaign: https://groxchange.com/campaign
-- Register: https://groxchange.com/register
-- Login: https://groxchange.com/login
-- Terms of Service: https://groxchange.com/terms
-- Privacy Policy: https://groxchange.com/privacy
+- [GROXchange Homepage](https://groxchange.com/)
+- [Live Crypto Markets](https://groxchange.com/markets)
+- [BTC/USDT Trading](https://groxchange.com/trade/BTC-USDT)
+- [Loan Campaign](https://groxchange.com/campaign)
+- [Register](https://groxchange.com/register)
+- [Login](https://groxchange.com/login)
+- [Terms of Service](https://groxchange.com/terms)
+- [Privacy Policy](https://groxchange.com/privacy)
 
 ## Loan Campaign Details
 
@@ -36,6 +36,6 @@ BTC (Bitcoin), ETH (Ethereum), BNB (BNB Chain), SOL (Solana), XRP (Ripple), USDT
 
 ## Technical
 
-- Sitemap: https://groxchange.com/sitemap.xml
-- Robots: https://groxchange.com/robots.txt
+- [Sitemap](https://groxchange.com/sitemap.xml)
+- [Robots](https://groxchange.com/robots.txt)
 - Support: Live AI chat + human agent support via website widget

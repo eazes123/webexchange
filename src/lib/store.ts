@@ -146,11 +146,8 @@ export const useStore = create<AppStore>((set, get) => ({
 
   fetchLivePrices: async () => {
     try {
-      // Call Binance directly from the browser — Vercel server IPs are blocked by Binance
-      const pairs = ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","ADAUSDT","AVAXUSDT","DOGEUSDT"];
-      const symbolsParam = encodeURIComponent(JSON.stringify(pairs));
-      const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${symbolsParam}`);
-      if (!res.ok) throw new Error("Binance error");
+      const res = await fetch("/api/prices");
+      if (!res.ok) throw new Error("Price fetch error");
       const tickers: any[] = await res.json();
       const PAIR_TO_SYMBOL: Record<string, string> = {
         BTCUSDT:"BTC", ETHUSDT:"ETH", BNBUSDT:"BNB", SOLUSDT:"SOL",
