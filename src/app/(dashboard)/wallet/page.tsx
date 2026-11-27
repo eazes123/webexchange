@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useStore, type Transaction } from "@/lib/store";
 import { COINS, WITHDRAWAL_FEES } from "@/lib/mock-data";
+import { gtmEvent } from "@/lib/gtm";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -144,6 +145,7 @@ export default function WalletPage() {
       const data = await res.json();
       setLastChecked(Date.now());
       if (data.credited > 0) {
+        gtmEvent("deposit_credited", { asset: "USDT", amount: data.credited, network: "TRC20" });
         toast.success(`${data.credited} USDT deposited to your wallet!`);
         await hydrate(); // refresh balances without full page reload
       }
@@ -182,6 +184,7 @@ export default function WalletPage() {
       const data = await res.json();
       setLastChecked(Date.now());
       if (data.credited > 0) {
+        gtmEvent("deposit_credited", { asset: "USDT", amount: data.credited, network: "BEP20" });
         toast.success(`${data.credited} USDT (BEP20) deposited to your wallet!`);
         await hydrate();
       }
@@ -204,6 +207,7 @@ export default function WalletPage() {
   const handleCopyAddress = () => {
     if (!activeAddress) return;
     navigator.clipboard.writeText(activeAddress);
+    gtmEvent("deposit_address_copied", { network });
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -230,6 +234,11 @@ export default function WalletPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Withdrawal failed"); return; }
+      gtmEvent("withdrawal_submitted", {
+        asset:   selectedAsset,
+        amount:  amt,
+        network: selectedAsset === "USDT" ? withdrawNetwork : undefined,
+      });
       toast.success(data.message ?? "Withdrawal request submitted");
       withdraw(selectedAsset, amt, withdrawAddress);
       setModal(null);

@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, type Country } from "@/lib/countries";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -104,6 +105,7 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error ?? t("invalid_2fa")); return; }
       await hydrate();
+      gtmEvent("sign_up", { method: "email" });
       toast.success(t("account_created"));
       router.push("/dashboard");
     } catch {

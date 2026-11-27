@@ -6,6 +6,7 @@ import { useStore } from "@/lib/store";
 import { COUNTRIES, flagEmoji } from "@/lib/countries";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -57,6 +58,7 @@ export default function ProfilePage() {
         return;
       }
       await hydrate();
+      gtmEvent("profile_updated");
       toast.success("Profile updated!");
     } catch {
       toast.error("Something went wrong");

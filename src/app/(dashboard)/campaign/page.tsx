@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 // -- Animated countdown block ---------------------------------------------------
 function CountdownBlock({ value, label, prev }: { value: number; label: string; prev: number }) {
@@ -158,6 +159,7 @@ export default function CampaignPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Staking failed"); return; }
+      gtmEvent("campaign_staked", { amount: 500, currency: "USDT" });
       toast.success("🎉 500 USDT staked! You're now eligible for the $50,000 loan.");
       await hydrate();
       fetch("/api/campaign").then(r => r.json()).then(d => setCampaignData(d)).catch(() => {});
@@ -175,6 +177,7 @@ export default function CampaignPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Unstake failed"); return; }
+      gtmEvent("campaign_unstaked", { amount: 500, currency: "USDT" });
       toast.success("Unstaked. 500 USDT returned to your wallet.");
       await hydrate();
     } catch { toast.error("Network error"); }

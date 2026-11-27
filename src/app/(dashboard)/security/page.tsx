@@ -4,6 +4,7 @@ import { Shield, Smartphone, Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Refr
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 export default function SecurityPage() {
   const t = useTranslations("security");
@@ -61,6 +62,7 @@ export default function SecurityPage() {
       setTotpEnabled(true);
       setSetupStep("idle");
       setTotpCode("");
+      gtmEvent("2fa_enabled");
       toast.success(t("totp_enabled_toast"));
     } catch {
       toast.error(t("setup_error"));
@@ -83,6 +85,7 @@ export default function SecurityPage() {
       setTotpEnabled(false);
       setShowDisable(false);
       setDisableCode("");
+      gtmEvent("2fa_disabled");
       toast.success(t("totp_disabled_toast"));
     } catch {
       toast.error(t("setup_error"));
@@ -105,6 +108,7 @@ export default function SecurityPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error); return; }
       setCurrentPw(""); setNewPw(""); setConfirmPw("");
+      gtmEvent("password_changed");
       toast.success(t("pw_success"));
     } catch {
       toast.error(t("setup_error"));

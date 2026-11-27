@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     email.split("@")[0];
 
   let user = await findUserByEmail(email);
+  const isNewUser = !user;
 
   if (!user) {
     const count = await countUsers();
@@ -87,7 +88,9 @@ export async function GET(request: NextRequest) {
   const token = generateToken();
   await createSession(user.id, token);
 
-  const res = NextResponse.redirect(new URL("/dashboard", origin));
+  const oauthEv     = isNewUser ? "sign_up" : "login";
+  const oauthMethod = provider === "x" ? "x" : "google";
+  const res = NextResponse.redirect(new URL(`/dashboard?_ev=${oauthEv}&method=${oauthMethod}`, origin));
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

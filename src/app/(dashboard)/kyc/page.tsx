@@ -10,6 +10,7 @@ import {
 import { COUNTRIES, flagEmoji } from "@/lib/countries";
 import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/lib/store";
+import { gtmEvent } from "@/lib/gtm";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
@@ -259,6 +260,7 @@ export default function KycPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error); return; }
       setKycStatus("under_review"); setSubmitted(true);
+      gtmEvent("kyc_submitted");
       toast.success("KYC submitted! Under review. Usually 24-48 hours.");
       if (!isDesktop) { setMobileDone(true); return; }
       router.push("/dashboard");

@@ -6,6 +6,7 @@ import { Eye, EyeOff, Zap, Shield, ArrowRight, RefreshCw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 export default function LoginPage() {
   const t        = useTranslations("auth");
@@ -65,6 +66,7 @@ export default function LoginPage() {
         return;
       }
       await hydrate();
+      gtmEvent("login", { method: "email" });
       toast.success("Welcome back!");
       router.push("/dashboard");
     } catch {
@@ -86,6 +88,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error ?? "Invalid code"); return; }
       await hydrate();
+      gtmEvent("login", { method: "email_otp" });
       toast.success("Email verified! Welcome back.");
       router.push("/dashboard");
     } catch {
@@ -125,6 +128,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error ?? "Invalid code"); return; }
       await hydrate();
+      gtmEvent("login", { method: "totp_2fa" });
       toast.success("Welcome back!");
       router.push("/dashboard");
     } catch {

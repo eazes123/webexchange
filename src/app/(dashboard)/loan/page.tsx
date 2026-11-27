@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { gtmEvent } from "@/lib/gtm";
 
 const LOAN_AMOUNT  = 50_000;
 const LOAN_MONTHS  = 120;
@@ -83,6 +84,7 @@ export default function LoanPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Payment failed"); return; }
+      gtmEvent("loan_payment_submitted");
       toast.success(data.message ?? "Payment submitted successfully!");
       setAmount("");
       await Promise.all([fetchLoan(), hydrate()]);

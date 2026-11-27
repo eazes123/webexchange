@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { gtmEvent } from "@/lib/gtm";
 import {
   LayoutDashboard, ArrowUpRight,
   LogOut, TrendingUp, Shield, Wallet, Trophy, CreditCard
@@ -9,6 +10,20 @@ import {
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+
+function OAuthEventFirer() {
+  const params = useSearchParams();
+  useEffect(() => {
+    const ev = params.get("_ev");
+    const method = params.get("method");
+    if (!ev) return;
+    gtmEvent(ev, { method: method ?? undefined });
+    // replaceState cleans the URL without triggering Next.js router —
+    // avoids a spurious page_view event from GTMProvider
+    window.history.replaceState(null, "", "/dashboard");
+  }, []);
+  return null;
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const t        = useTranslations("layout");
@@ -68,6 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex bg-ex-bg">
+      <Suspense fallback={null}><OAuthEventFirer /></Suspense>
       {/* Sidebar */}
       <aside aria-label="Dashboard sidebar" className="hidden md:flex flex-col w-56 bg-ex-card border-r border-ex-border p-4 gap-1 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
         {/* User info */}

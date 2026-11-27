@@ -8,6 +8,34 @@ import { deriveEvmAddress } from "@/lib/bsc";
 import { sendWelcomeEmail, sendOtpEmail } from "@/lib/email";
 import { createOtp } from "@/lib/otp-store";
 
+declare global { var __registerRateMap: Map<string, { count: number; resetAt: number }> | undefined; }
+function regMap() {
+  if (!globalThis.__registerRateMap) globalThis.__registerRateMap = new Map();
+  return globalThis.__registerRateMap;
+}
+const REG_MAX = 5;
+const REG_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkRegRate(email: string): { allowed: boolean; retryAfter?: number } {
+  const key = email.toLowerCase().trim();
+  const now = Date.now();
+  const entry = regMap().get(key);
+  if (!entry || now > entry.resetAt) return { allowed: true };
+  if (entry.count >= REG_MAX) return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+  return { allowed: true };
+}
+
+function recordRegAttempt(email: string) {
+  const key = email.toLowerCase().trim();
+  const now = Date.now();
+  const entry = regMap().get(key);
+  if (!entry || now > entry.resetAt) {
+    regMap().set(key, { count: 1, resetAt: now + REG_WINDOW_MS });
+  } else {
+    entry.count++;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { fullName, email, phone, country, password } = body;
@@ -17,6 +45,15 @@ export async function POST(request: NextRequest) {
   }
 
   const normalizedEmail = email.toLowerCase().trim();
+
+  const rateCheck = checkRegRate(normalizedEmail);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many registration attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } }
+    );
+  }
+  recordRegAttempt(normalizedEmail);
   const existing = await findUserByEmail(normalizedEmail);
 
   if (existing) {
